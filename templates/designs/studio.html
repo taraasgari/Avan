@@ -150,11 +150,19 @@
                         <input type="checkbox" data-publish-sale {% if initial_design.is_for_sale %}checked{% endif %}>
                         <span>LET OTHERS WEAR IT</span>
                     </label>
+                    {% if creator_pricing_enabled %}
                     <label class="studio-sale-fee">
                         <span>CREATOR DESIGN FEE / TOMAN</span>
                         <input type="number" min="0" step="1000" value="{{ initial_design.sale_price|default:0 }}" data-publish-price>
-                        <small>This fee is added only when another customer buys your published design.</small>
+                        <small>This optional fee is added only when another customer buys your published design.</small>
                     </label>
+                    {% else %}
+                    <input type="hidden" value="0" data-publish-price>
+                    <div class="studio-pricing-off">
+                        <strong>NO SEPARATE DESIGN PRICE</strong>
+                        <small>Published designs can still be worn by other customers. AVAN currently charges only the garment price.</small>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </aside>

@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "apps.experience",
     "apps.wardrobe",
     "apps.marketplace",
+    "apps.owner",
 ]
 
 MIDDLEWARE = [

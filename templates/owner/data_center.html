@@ -1,0 +1,7 @@
+{% extends "owner/base.html" %}
+{% block title %}All Data — AVAN OWNER{% endblock %}
+{% block content %}
+<header class="owner-page-head"><div><span>FULL SYSTEM ACCESS</span><h1>ALL DATA.</h1><p>Direct access to the lower-level AVAN modules that do not need their own daily operations screen.</p></div><a class="owner-btn" href="/admin/" target="_blank">OPEN DJANGO ADMIN ↗</a></header>
+<div class="owner-data-grid">{% for module in modules %}<a href="{{ module.url }}" target="_blank"><span>{{ module.label }}</span><strong>{{ module.count }}</strong><p>{{ module.note }}</p><b>MANAGE ↗</b></a>{% endfor %}</div>
+<div class="owner-warning"><strong>OWNER-ONLY DATA.</strong><p>Size Passport and other private customer data should only be opened when operationally necessary. The public Creator profile never exposes these fields.</p></div>
+{% endblock %}

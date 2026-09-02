@@ -1,0 +1,7 @@
+{% extends "owner/base.html" %}
+{% block title %}Customers — AVAN OWNER{% endblock %}
+{% block content %}
+<header class="owner-page-head"><div><span>ACCOUNTS</span><h1>CUSTOMERS.</h1></div><a class="owner-btn" href="/owner/reports/export/customers/">EXPORT CSV</a></header>
+<form class="owner-filters" method="get"><input name="q" value="{{ query }}" placeholder="USERNAME / NAME / EMAIL"><button>SEARCH</button></form>
+<div class="owner-table-wrap owner-panel"><table class="owner-table"><thead><tr><th>USER</th><th>EMAIL</th><th>JOINED</th><th>ORDERS</th><th>PAID VALUE</th><th>STATE</th><th></th></tr></thead><tbody>{% for customer in customers %}<tr><td><strong>{{ customer.display_name|default:customer.username }}</strong><small>@{{ customer.username }}{% if customer.public_profile_enabled %} / CREATOR{% endif %}</small></td><td>{{ customer.email|default:'—' }}</td><td>{{ customer.date_joined|date:"Y-m-d" }}</td><td>{{ customer.order_count }}</td><td>{{ customer.paid_total|floatformat:"0" }}</td><td>{% if customer.is_active %}<span class="owner-status is-good">ACTIVE</span>{% else %}<span class="owner-status is-red">DISABLED</span>{% endif %}{% if customer.is_staff %} <span class="owner-status">STAFF</span>{% endif %}</td><td><a href="/owner/customers/{{ customer.id }}/">OPEN →</a></td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

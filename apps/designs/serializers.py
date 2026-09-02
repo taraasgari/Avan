@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.catalog.models import Product
+from apps.marketplace.models import MarketplaceSettings
 from .models import Design, DesignAsset
 from .validators import validate_design_data
 
@@ -51,9 +52,13 @@ class DesignSerializer(serializers.ModelSerializer):
         color = attrs.get("base_color") if "base_color" in attrs else getattr(self.instance, "base_color", None)
         if product and color and not product.variants.filter(color=color, is_active=True).exists():
             raise serializers.ValidationError({"base_color": "This color is not available for the selected garment."})
-        sale_price = attrs.get("sale_price") if "sale_price" in attrs else getattr(self.instance, "sale_price", 0)
-        if sale_price is not None and sale_price < 0:
-            raise serializers.ValidationError({"sale_price": "Creator design fee cannot be negative."})
+        config = MarketplaceSettings.load()
+        if not config.creator_pricing_enabled:
+            attrs.pop("sale_price", None)
+        else:
+            sale_price = attrs.get("sale_price") if "sale_price" in attrs else getattr(self.instance, "sale_price", 0)
+            if sale_price is not None and sale_price < 0:
+                raise serializers.ValidationError({"sale_price": "Creator design fee cannot be negative."})
         return attrs
 
 

@@ -25,6 +25,7 @@ urlpatterns = [
     path("", include("apps.wardrobe.urls")),
     path("", include("apps.core.search_urls")),
     path("", include("apps.marketplace.urls")),
+    path("owner/", include("apps.owner.urls")),
 ]
 
 if settings.DEBUG:

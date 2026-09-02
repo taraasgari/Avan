@@ -21,8 +21,10 @@ def _money(value):
 
 
 def split_design_fee(design_fee):
-    fee = _money(design_fee)
     config = MarketplaceSettings.load()
+    if not config.creator_pricing_enabled:
+        return Decimal("0"), Decimal("0"), Decimal("0")
+    fee = _money(design_fee)
     rate = Decimal(config.commission_percent or 0)
     commission = (fee * rate / Decimal("100")).quantize(MONEY, rounding=ROUND_DOWN)
     creator_amount = max(Decimal("0"), fee - commission)

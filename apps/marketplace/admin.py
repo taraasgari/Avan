@@ -6,7 +6,7 @@ from .services import approve_payout, mark_payout_paid, reject_payout
 
 @admin.register(MarketplaceSettings)
 class MarketplaceSettingsAdmin(admin.ModelAdmin):
-    list_display = ("commission_percent", "minimum_payout_amount", "points_redemption_cost", "points_coupon_value", "updated_at")
+    list_display = ("creator_pricing_enabled", "commission_percent", "minimum_payout_amount", "points_redemption_cost", "points_coupon_value", "updated_at")
 
     def has_add_permission(self, request):
         return not MarketplaceSettings.objects.exists()

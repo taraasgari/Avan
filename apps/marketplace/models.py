@@ -6,6 +6,10 @@ from django.db import models
 
 
 class MarketplaceSettings(models.Model):
+    creator_pricing_enabled = models.BooleanField(
+        default=False,
+        help_text="When off, published designs can still be worn/bought but no separate creator design fee is charged.",
+    )
     commission_percent = models.DecimalField(
         max_digits=5,
         decimal_places=2,

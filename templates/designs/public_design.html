@@ -76,7 +76,7 @@
                 <div><span>COLOR</span><strong>{{ design.base_color.name|default:"—" }}</strong></div>
                 <div><span>PUBLISHED</span><strong>{{ design.published_at|date:"Y/m/d" }}</strong></div>
                 <div><span>REMIX</span><strong>{% if design.allow_remix %}ALLOWED{% else %}OFF{% endif %}</strong></div>
-                <div><span>CREATOR FEE</span><strong>{{ design.sale_price|floatformat:"0" }} TOMAN</strong></div>
+                {% if creator_pricing_enabled %}<div><span>CREATOR FEE</span><strong>{{ design.sale_price|floatformat:"0" }} TOMAN</strong></div>{% endif %}
             </div>
         </div>
     </aside>

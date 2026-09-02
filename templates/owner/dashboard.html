@@ -1,0 +1,45 @@
+{% extends "owner/base.html" %}
+{% block title %}Overview — AVAN OWNER{% endblock %}
+{% block content %}
+<header class="owner-page-head">
+    <div><span>CONTROL CENTER</span><h1>OVERVIEW.</h1></div>
+    <div class="owner-head-actions"><a class="owner-btn owner-btn--primary" href="/owner/products/new/">+ NEW PRODUCT</a><a class="owner-btn" href="/owner/reports/">EXPORT REPORTS</a></div>
+</header>
+
+<section class="owner-kpis owner-kpis--4">
+    <article><span>TOTAL REVENUE</span><strong>{{ revenue|floatformat:"0" }}</strong><small>TOMAN / PAID FLOW</small></article>
+    <article><span>TODAY</span><strong>{{ today_revenue|floatformat:"0" }}</strong><small>{{ today_orders }} ORDERS CREATED</small></article>
+    <article><span>CUSTOMERS</span><strong>{{ customers_count }}</strong><small>{{ creators_count }} PUBLIC CREATORS</small></article>
+    <article class="{% if low_stock_count %}is-alert{% endif %}"><span>LOW STOCK</span><strong>{{ low_stock_count }}</strong><small>THRESHOLD ≤ {{ owner_settings.low_stock_threshold }}</small></article>
+</section>
+
+<section class="owner-kpis owner-kpis--4 owner-kpis--secondary">
+    <article><span>ALL ORDERS</span><strong>{{ total_orders }}</strong></article>
+    <article><span>ACTIVE PRODUCTS</span><strong>{{ active_products_count }}</strong><small>/ {{ products_count }} TOTAL</small></article>
+    <article><span>PUBLISHED DESIGNS</span><strong>{{ published_designs }}</strong></article>
+    <article><span>PENDING CREATOR PAYOUT</span><strong>{{ pending_payout_total|floatformat:"0" }}</strong><small>TOMAN</small></article>
+</section>
+
+<div class="owner-grid owner-grid--2">
+<section class="owner-panel">
+    <div class="owner-panel__head"><div><span>OPERATIONS</span><h2>RECENT ORDERS</h2></div><a href="/owner/orders/">VIEW ALL</a></div>
+    <div class="owner-table-wrap"><table class="owner-table"><thead><tr><th>ORDER</th><th>CUSTOMER</th><th>STATUS</th><th>TOTAL</th></tr></thead><tbody>
+    {% for order in recent_orders %}<tr><td><a href="/owner/orders/{{ order.id }}/">{{ order.number|stringformat:"s"|slice:":8" }}</a></td><td>{{ order.customer_name }}</td><td><span class="owner-status owner-status--{{ order.status }}">{{ order.get_status_display|upper }}</span></td><td>{{ order.total_amount|floatformat:"0" }}</td></tr>{% empty %}<tr><td colspan="4">NO ORDERS YET.</td></tr>{% endfor %}
+    </tbody></table></div>
+</section>
+
+<section class="owner-panel">
+    <div class="owner-panel__head"><div><span>INVENTORY</span><h2>STOCK ALERTS</h2></div><a href="/owner/warehouse/?stock=low">WAREHOUSE</a></div>
+    <div class="owner-stack-list">
+    {% for variant in low_stock %}<a href="/owner/warehouse/?q={{ variant.sku }}"><div><strong>{{ variant.product.name }}</strong><span>{{ variant.color.name }} / {{ variant.size.name }} / {{ variant.sku }}</span></div><b>{{ variant.stock }}</b></a>{% empty %}<div class="owner-empty">NO LOW-STOCK ITEMS.</div>{% endfor %}
+    </div>
+</section>
+</div>
+
+<section class="owner-panel">
+    <div class="owner-panel__head"><div><span>SALES</span><h2>TOP PRODUCTS</h2></div></div>
+    <div class="owner-table-wrap"><table class="owner-table"><thead><tr><th>PRODUCT</th><th>UNITS</th><th>REVENUE</th></tr></thead><tbody>
+    {% for item in top_products %}<tr><td>{{ item.product_name }}</td><td>{{ item.quantity }}</td><td>{{ item.revenue|floatformat:"0" }} TOMAN</td></tr>{% empty %}<tr><td colspan="3">NO PAID SALES YET.</td></tr>{% endfor %}
+    </tbody></table></div>
+</section>
+{% endblock %}

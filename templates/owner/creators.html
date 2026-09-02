@@ -1,0 +1,7 @@
+{% extends "owner/base.html" %}
+{% block title %}Creators — AVAN OWNER{% endblock %}
+{% block content %}
+<header class="owner-page-head"><div><span>COMMUNITY</span><h1>CREATORS.</h1></div></header>
+<form class="owner-filters" method="get"><input name="q" value="{{ query }}" placeholder="USERNAME / NAME / EMAIL"><button>SEARCH</button></form>
+<div class="owner-table-wrap owner-panel"><table class="owner-table"><thead><tr><th>CREATOR</th><th>DESIGNS</th><th>FOLLOWERS</th><th>PUBLIC PROFILE</th><th>AVAILABLE</th><th>TOTAL EARNED</th><th></th></tr></thead><tbody>{% for row in rows %}<tr><td><strong>{{ row.creator.display_name|default:row.creator.username }}</strong><small>@{{ row.creator.username }}</small></td><td>{{ row.creator.designs_count }}</td><td>{{ row.creator.followers_count }}</td><td>{{ row.creator.public_profile_enabled|yesno:"YES,NO" }}</td><td>{% if row.wallet %}{{ row.wallet.available_balance|floatformat:"0" }}{% else %}0{% endif %}</td><td>{% if row.wallet %}{{ row.wallet.total_earned|floatformat:"0" }}{% else %}0{% endif %}</td><td><a href="/owner/customers/{{ row.creator.id }}/">ACCOUNT →</a></td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

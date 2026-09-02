@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.notifications.models import Notification
+from apps.marketplace.models import MarketplaceSettings
 from .models import Design, DesignAsset, DesignLike, DesignSave
 from .serializers import DesignAssetSerializer, DesignSerializer
 
@@ -92,14 +93,18 @@ class DesignPublishAPIView(APIView):
         design.visibility = Design.Visibility.PUBLIC
         design.allow_remix = bool(request.data.get("allow_remix", design.allow_remix))
         design.is_for_sale = bool(request.data.get("is_for_sale", design.is_for_sale))
-        raw_sale_price = request.data.get("sale_price", design.sale_price)
-        try:
-            sale_price = Decimal(str(raw_sale_price or 0))
-        except (InvalidOperation, TypeError, ValueError):
-            return Response({"detail": "Invalid creator design fee."}, status=400)
-        if sale_price < 0 or sale_price != sale_price.quantize(Decimal("1")):
-            return Response({"detail": "Creator design fee must be a non-negative whole Toman amount."}, status=400)
-        design.sale_price = sale_price
+        config = MarketplaceSettings.load()
+        if config.creator_pricing_enabled:
+            raw_sale_price = request.data.get("sale_price", design.sale_price)
+            try:
+                sale_price = Decimal(str(raw_sale_price or 0))
+            except (InvalidOperation, TypeError, ValueError):
+                return Response({"detail": "Invalid creator design fee."}, status=400)
+            if sale_price < 0 or sale_price != sale_price.quantize(Decimal("1")):
+                return Response({"detail": "Creator design fee must be a non-negative whole Toman amount."}, status=400)
+            design.sale_price = sale_price
+        else:
+            design.sale_price = Decimal("0")
         if not design.published_at:
             design.published_at = timezone.now()
         design.save(update_fields=[

@@ -10,6 +10,7 @@ from apps.catalog.models import ProductVariant
 from apps.coupons.models import Coupon
 from apps.coupons.services import validate_coupon
 from apps.designs.models import Design
+from apps.marketplace.models import MarketplaceSettings
 from .models import Cart, CartItem
 from .serializers import CartSerializer
 from .services import available_stock
@@ -80,7 +81,8 @@ class CartItemCreateAPIView(APIView):
         )
         design = _allowed_design(request, request.data.get("design_id"))
         design_fee = 0
-        if design and not (request.user.is_authenticated and design.owner_id == request.user.id):
+        pricing_enabled = MarketplaceSettings.load().creator_pricing_enabled
+        if pricing_enabled and design and not (request.user.is_authenticated and design.owner_id == request.user.id):
             design_fee = design.sale_price if design.is_for_sale else 0
 
         if design:

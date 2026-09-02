@@ -1,0 +1,7 @@
+{% extends "owner/base.html" %}
+{% block title %}Orders — AVAN OWNER{% endblock %}
+{% block content %}
+<header class="owner-page-head"><div><span>COMMERCE</span><h1>ORDERS.</h1></div><a class="owner-btn" href="/owner/reports/export/orders/">EXPORT CSV</a></header>
+<form class="owner-filters" method="get"><input name="q" value="{{ query }}" placeholder="ORDER UUID / CUSTOMER / PHONE / EMAIL"><select name="status"><option value="">ALL STATUS</option>{% for value,label in statuses %}<option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label|upper }}</option>{% endfor %}</select><button>FILTER</button></form>
+<div class="owner-table-wrap owner-panel"><table class="owner-table"><thead><tr><th>ORDER</th><th>DATE</th><th>CUSTOMER</th><th>ITEMS</th><th>STATUS</th><th>TOTAL</th><th></th></tr></thead><tbody>{% for order in orders %}<tr><td><strong>{{ order.number|stringformat:"s"|slice:":8" }}</strong><small>{{ order.number }}</small></td><td>{{ order.created_at|date:"Y-m-d H:i" }}</td><td>{{ order.customer_name }}<small>{{ order.phone }}</small></td><td>{{ order.items.count }}</td><td><span class="owner-status owner-status--{{ order.status }}">{{ order.get_status_display|upper }}</span></td><td>{{ order.total_amount|floatformat:"0" }}</td><td><a href="/owner/orders/{{ order.id }}/">OPEN →</a></td></tr>{% empty %}<tr><td colspan="7">NO ORDERS.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

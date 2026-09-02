@@ -4,6 +4,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 
 from apps.catalog.models import Product
+from apps.marketplace.models import MarketplaceSettings
 from .models import Design
 
 
@@ -116,7 +117,7 @@ def studio(request, design_id=None):
     )
     products = list(products_qs)
     if not products:
-        return render(request, "designs/studio.html", {"studio_products": [], "initial_design": None})
+        return render(request, "designs/studio.html", {"studio_products": [], "initial_design": None, "creator_pricing_enabled": MarketplaceSettings.load().creator_pricing_enabled})
 
     initial_design = None
     if design_id:
@@ -156,6 +157,7 @@ def studio(request, design_id=None):
             "studio_products": [_product_payload(product) for product in products],
             "initial_design": initial_design,
             "is_authenticated_for_studio": request.user.is_authenticated,
+            "creator_pricing_enabled": MarketplaceSettings.load().creator_pricing_enabled,
         },
     )
 
@@ -227,7 +229,13 @@ def public_design(request, design_id):
             "related": related,
             "liked": liked,
             "saved": saved,
-            "purchase_design_fee": 0 if (request.user.is_authenticated and request.user.id == design.owner_id) else int(design.sale_price or 0),
+            "creator_pricing_enabled": MarketplaceSettings.load().creator_pricing_enabled,
+            "purchase_design_fee": (
+                int(design.sale_price or 0)
+                if MarketplaceSettings.load().creator_pricing_enabled
+                and not (request.user.is_authenticated and request.user.id == design.owner_id)
+                else 0
+            ),
         },
     )
 

@@ -1,0 +1,7 @@
+{% extends "owner/base.html" %}
+{% block title %}Reports — AVAN OWNER{% endblock %}
+{% block content %}
+<header class="owner-page-head"><div><span>DATA</span><h1>REPORTS.</h1></div></header>
+<div class="owner-report-grid"><a href="/owner/reports/export/orders/"><span>ORDERS</span><strong>CSV</strong><p>Order number, date, customer, status and total.</p></a><a href="/owner/reports/export/inventory/"><span>WAREHOUSE</span><strong>CSV</strong><p>SKU, product, variant and physical stock.</p></a><a href="/owner/reports/export/customers/"><span>CUSTOMERS</span><strong>CSV</strong><p>Accounts, emails, account status and join date.</p></a><a href="/owner/reports/export/products/"><span>CATALOG</span><strong>CSV</strong><p>Product metadata, price, type and visibility.</p></a></div>
+<p class="owner-note">CSV exports are generated from the database at download time. They are not cached reports.</p>
+{% endblock %}
