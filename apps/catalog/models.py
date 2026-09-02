@@ -1,17 +1,35 @@
 from django.db import models
 
 
+def _is_fa(language):
+    return str(language or "").lower().startswith("fa")
+
+
 class Category(models.Model):
     name = models.CharField(max_length=120)
     slug = models.SlugField(max_length=140, unique=True)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
+    name_en = models.CharField(max_length=120, blank=True, default="")
+    name_fa = models.CharField(max_length=120, blank=True, default="")
+    description_en = models.TextField(blank=True, default="")
+    description_fa = models.TextField(blank=True, default="")
+    seo_title_en = models.CharField(max_length=180, blank=True, default="")
+    seo_title_fa = models.CharField(max_length=180, blank=True, default="")
+    seo_description_en = models.CharField(max_length=320, blank=True, default="")
+    seo_description_fa = models.CharField(max_length=320, blank=True, default="")
 
     class Meta:
         ordering = ["sort_order", "name"]
 
     def __str__(self):
         return self.name
+
+    def localized_name(self, language="en"):
+        return (self.name_fa or self.name_en or self.name) if _is_fa(language) else (self.name_en or self.name_fa or self.name)
+
+    def localized_description(self, language="en"):
+        return (self.description_fa or self.description_en) if _is_fa(language) else (self.description_en or self.description_fa)
 
 
 class Color(models.Model):
@@ -47,11 +65,35 @@ class Product(models.Model):
     product_type = models.CharField(max_length=20, choices=ProductType.choices, default=ProductType.READY)
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
+    name_en = models.CharField(max_length=180, blank=True, default="")
+    name_fa = models.CharField(max_length=180, blank=True, default="")
+    description_en = models.TextField(blank=True, default="")
+    description_fa = models.TextField(blank=True, default="")
+    seo_title_en = models.CharField(max_length=180, blank=True, default="")
+    seo_title_fa = models.CharField(max_length=180, blank=True, default="")
+    seo_description_en = models.CharField(max_length=320, blank=True, default="")
+    seo_description_fa = models.CharField(max_length=320, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
+
+    def localized_name(self, language="en"):
+        return (self.name_fa or self.name_en or self.name) if _is_fa(language) else (self.name_en or self.name_fa or self.name)
+
+    def localized_description(self, language="en"):
+        return (self.description_fa or self.description_en or self.description) if _is_fa(language) else (self.description_en or self.description_fa or self.description)
+
+    def localized_seo_title(self, language="en"):
+        if _is_fa(language):
+            return self.seo_title_fa or self.name_fa or self.seo_title_en or self.name_en or self.name
+        return self.seo_title_en or self.name_en or self.seo_title_fa or self.name_fa or self.name
+
+    def localized_seo_description(self, language="en"):
+        if _is_fa(language):
+            return self.seo_description_fa or self.description_fa or self.seo_description_en or self.description_en or self.description
+        return self.seo_description_en or self.description_en or self.seo_description_fa or self.description_fa or self.description
 
 
 class ProductImage(models.Model):
@@ -74,9 +116,7 @@ class ProductVariant(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=["product", "color", "size"], name="uniq_product_color_size")
-        ]
+        constraints = [models.UniqueConstraint(fields=["product", "color", "size"], name="uniq_product_color_size")]
 
     @property
     def price(self):
@@ -84,17 +124,9 @@ class ProductVariant(models.Model):
 
     @property
     def available_stock(self):
-        # Lazy import keeps catalog independent from the order app at import time.
         from django.utils import timezone
         from apps.orders.models import StockReservation
-
-        reserved = sum(
-            StockReservation.objects.filter(
-                variant_id=self.id,
-                status=StockReservation.Status.ACTIVE,
-                expires_at__gt=timezone.now(),
-            ).values_list("quantity", flat=True)
-        )
+        reserved = sum(StockReservation.objects.filter(variant_id=self.id, status=StockReservation.Status.ACTIVE, expires_at__gt=timezone.now()).values_list("quantity", flat=True))
         return max(0, int(self.stock) - reserved)
 
     def __str__(self):

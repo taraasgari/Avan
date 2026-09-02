@@ -1,0 +1,11 @@
+{% extends "owner/base.html" %}
+{% block title %}AVAN OWNER — COLLECTIONS{% endblock %}
+{% block content %}
+<section class="content11-head"><span>CONTENT / COLLECTIONS</span><h1>BUILD<br>STORIES.</h1><a class="content11-link" href="/collections/" target="_blank">OPEN PUBLIC COLLECTIONS ↗</a></section>
+<div class="content11-split content11-split--wide">
+<aside class="content11-list"><a class="content11-new" href="/owner/content/collections/">+ NEW COLLECTION</a>{% for item in collections %}<a href="/owner/content/collections/{{ item.id }}/" class="{% if editing.id == item.id %}is-active{% endif %}"><b>{{ item.name_en }}</b><span>/collections/{{ item.slug }}/</span><small>{{ item.product_count }} PRODUCTS · {% if item.is_active %}LIVE{% else %}HIDDEN{% endif %}</small></a>{% endfor %}</aside>
+<section class="content11-editor"><header><span>{% if editing %}EDIT COLLECTION{% else %}NEW COLLECTION{% endif %}</span><h2>{% if editing %}{{ editing.name_en }}{% else %}CREATE{% endif %}</h2></header><form method="post">{% csrf_token %}{{ form.as_p }}<button class="content11-primary">SAVE COLLECTION →</button></form>
+{% if editing %}<hr><h3>PRODUCTS IN COLLECTION</h3><form method="post" action="/owner/content/collections/{{ editing.id }}/products/" class="content11-products">{% csrf_token %}<input type="search" placeholder="FILTER PRODUCTS" data-product-picker-filter><div class="content11-checkgrid">{% for product in all_products %}<label data-product-picker-row><input type="checkbox" name="products" value="{{ product.id }}" {% if product in editing.products.all %}checked{% endif %}><span><b>{{ product.name }}</b><small>{{ product.slug }}</small></span></label>{% endfor %}</div><button class="content11-primary">UPDATE PRODUCTS →</button></form>{% endif %}</section>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="/static/js/stage11-content.js" defer></script>{% endblock %}

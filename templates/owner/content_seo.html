@@ -1,0 +1,6 @@
+{% extends "owner/base.html" %}
+{% block title %}AVAN OWNER — SEO{% endblock %}
+{% block content %}
+<section class="content11-head"><span>CONTENT / SEO</span><h1>SEARCH<br>CONTROL.</h1><div class="content11-inline-links"><a href="/sitemap.xml" target="_blank">SITEMAP ↗</a><a href="/robots.txt" target="_blank">ROBOTS ↗</a></div></section>
+<div class="content11-split"><aside class="content11-list"><a class="content11-new" href="/owner/content/seo/">+ NEW ROUTE</a>{% for item in pages %}<a href="/owner/content/seo/{{ item.id }}/" class="{% if editing.id == item.id %}is-active{% endif %}"><b>{{ item.path }}</b><span>{{ item.title_en|default:item.title_fa|default:"NO TITLE" }}</span><small>{% if item.noindex %}NOINDEX{% else %}INDEX{% endif %}</small></a>{% endfor %}</aside><section class="content11-editor"><header><span>{% if editing %}EDIT SEO ROUTE{% else %}NEW SEO ROUTE{% endif %}</span><h2>{% if editing %}{{ editing.path }}{% else %}METADATA{% endif %}</h2></header><form method="post">{% csrf_token %}{{ form.as_p }}<button class="content11-primary">SAVE SEO →</button></form><div class="content11-note"><b>JSON-LD</b><p>Optional structured-data JSON. Invalid JSON is rejected by Django's JSONField form validation.</p></div></section></div>
+{% endblock %}

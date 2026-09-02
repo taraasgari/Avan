@@ -28,6 +28,7 @@ urlpatterns = [
     path("owner/", include("apps.owner.urls")),
     path("", include("apps.operations.urls")),
     path("", include("apps.commerce.urls")),
+    path("", include("apps.contentstudio.urls")),
 ]
 
 if settings.DEBUG:

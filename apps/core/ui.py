@@ -51,6 +51,10 @@ TRANSLATIONS = {
     "media": {"en": "MEDIA", "fa": "تصاویر"},
     "variants": {"en": "VARIANTS", "fa": "تنوع‌ها"},
     "checkout": {"en": "CHECKOUT", "fa": "تسویه حساب"},
+    "content": {"en": "CONTENT", "fa": "محتوا"},
+    "collections": {"en": "COLLECTIONS", "fa": "کالکشن‌ها"},
+    "seo": {"en": "SEO", "fa": "سئو"},
+    "bulk_tools": {"en": "BULK TOOLS", "fa": "ابزار گروهی"},
 }
 
 

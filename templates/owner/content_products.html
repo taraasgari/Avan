@@ -1,0 +1,10 @@
+{% extends "owner/base.html" %}
+{% block title %}AVAN OWNER — PRODUCT CONTENT{% endblock %}
+{% block content %}
+<section class="content11-head"><span>CONTENT / PRODUCTS</span><h1>BILINGUAL<br>PRODUCT COPY.</h1></section>
+<div class="content11-split">
+<aside class="content11-list"><input type="search" placeholder="FILTER PRODUCTS" data-content-filter>{% for item in products %}<a data-content-row href="/owner/content/products/{{ item.id }}/" class="{% if product.id == item.id %}is-active{% endif %}"><b>{{ item.name }}</b><span>{{ item.slug }}</span><small>EN {% if item.name_en %}✓{% else %}—{% endif %} · FA {% if item.name_fa %}✓{% else %}—{% endif %}</small></a>{% endfor %}</aside>
+<section class="content11-editor">{% if product %}<header><span>EDITING</span><h2>{{ product.name }}</h2><a href="/owner/products/{{ product.id }}/">CORE PRODUCT ↗</a></header><form method="post">{% csrf_token %}{{ form.as_p }}<button class="content11-primary">SAVE CONTENT →</button></form>{% else %}<div class="content11-empty"><strong>SELECT A PRODUCT.</strong><span>Legacy name/description stay as safe fallback.</span></div>{% endif %}</section>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="/static/js/stage11-content.js" defer></script>{% endblock %}

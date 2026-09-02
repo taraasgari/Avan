@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{% static 'css/theme.css' %}">
     <link rel="stylesheet" href="{% static 'css/stage9-owner.css' %}">
     <link rel="stylesheet" href="{% static 'css/stage10-commerce.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stage11-content.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="owner-body">
@@ -31,6 +32,7 @@
             <a href="/owner/designs/" class="{% if '/owner/designs/' in request.path %}is-active{% endif %}"><span>09</span>{% avan_t "designs" %}</a>
             <a href="/owner/creators/" class="{% if '/owner/creators/' in request.path %}is-active{% endif %}"><span>10</span>{% avan_t "creators" %}</a>
             <a href="/owner/marketing/" class="{% if '/owner/marketing/' in request.path %}is-active{% endif %}"><span>11</span>{% avan_t "marketing" %}</a>
+            <a href="/owner/content/" class="{% if '/owner/content/' in request.path %}is-active{% endif %}"><span>11.5</span>{% avan_t "content" %}</a>
             <a href="/owner/finance/" class="{% if '/owner/finance/' in request.path %}is-active{% endif %}"><span>12</span>{% avan_t "finance" %} {% if owner_pending_payouts %}<b>{{ owner_pending_payouts }}</b>{% endif %}</a>
             <a href="/owner/commerce/" class="{% if '/owner/commerce/' in request.path %}is-active{% endif %}"><span>12B</span>COMMERCE</a>
             <a href="/owner/staff/" class="{% if '/owner/staff/' in request.path %}is-active{% endif %}"><span>13</span>{% avan_t "staff" %}</a>

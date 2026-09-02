@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "apps.owner",
     "apps.operations",
     "apps.commerce",
+    "apps.contentstudio",
 ]
 
 MIDDLEWARE = [

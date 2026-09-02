@@ -1,0 +1,6 @@
+{% extends "owner/base.html" %}
+{% block title %}AVAN OWNER — MEDIA LIBRARY{% endblock %}
+{% block content %}
+<section class="content11-head"><span>CONTENT / MEDIA</span><h1>SELF-HOSTED<br>MEDIA LIBRARY.</h1><p>Reusable visuals stay on AVAN infrastructure instead of depending on an external CDN.</p></section>
+<div class="content11-media-layout"><section class="content11-editor"><h2>UPLOAD ASSET</h2><form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button class="content11-primary">UPLOAD →</button></form></section><section><div class="content11-media-grid">{% for asset in assets %}<article><div>{% if asset.file %}<img src="{{ asset.file.url }}" alt="{{ asset.alt_en|default:asset.title }}">{% endif %}</div><b>{{ asset.title|default:"UNTITLED" }}</b><small>{{ asset.kind|upper }} · {{ asset.created_at|date:"Y/m/d" }}</small><code>{{ asset.file.name }}</code><form method="post" action="/owner/content/media/{{ asset.id }}/delete/">{% csrf_token %}<button>DELETE</button></form></article>{% empty %}<div class="content11-empty"><strong>NO MEDIA YET.</strong></div>{% endfor %}</div></section></div>
+{% endblock %}

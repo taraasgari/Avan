@@ -1,0 +1,22 @@
+{% extends "owner/base.html" %}{% load avan_ui %}
+{% block title %}AVAN OWNER — CONTENT{% endblock %}
+{% block content %}
+<section class="content11-head"><span>OWNER / CONTENT STUDIO</span><h1>CONTENT<br>POWER TOOLS.</h1><p>Independent Persian/English catalog copy, collections, media, SEO and bulk catalog operations.</p></section>
+<div class="content11-stats">
+<article><span>PRODUCT EN GAPS</span><strong>{{ product_missing_en }}</strong></article>
+<article><span>PRODUCT FA GAPS</span><strong>{{ product_missing_fa }}</strong></article>
+<article><span>CATEGORY FA GAPS</span><strong>{{ category_missing_fa }}</strong></article>
+<article><span>MEDIA</span><strong>{{ media_count }}</strong></article>
+<article><span>COLLECTIONS</span><strong>{{ collection_count }}</strong></article>
+<article><span>SEO ROUTES</span><strong>{{ seo_count }}</strong></article>
+</div>
+<div class="content11-grid">
+<a href="/owner/content/products/"><b>01</b><strong>PRODUCT COPY</strong><span>English + Persian + SEO fields</span></a>
+<a href="/owner/content/categories/"><b>02</b><strong>CATEGORY COPY</strong><span>Independent bilingual category content</span></a>
+<a href="/owner/content/collections/"><b>03</b><strong>COLLECTIONS</strong><span>Editorial groups and landing pages</span></a>
+<a href="/owner/content/media/"><b>04</b><strong>MEDIA LIBRARY</strong><span>Reusable self-hosted visual assets</span></a>
+<a href="/owner/content/seo/"><b>05</b><strong>SEO MANAGER</strong><span>Titles, descriptions, canonical, JSON-LD</span></a>
+<a href="/owner/content/bulk/"><b>06</b><strong>BULK CATALOG</strong><span>Validate/import/export CSV</span></a>
+</div>
+{% if import_jobs %}<section class="content11-section"><header><span>RECENT IMPORTS</span><h2>AUDIT LOG</h2></header><div class="content11-table">{% for job in import_jobs %}<div><b>{{ job.file_name }}</b><span>{{ job.status|upper }}</span><span>{{ job.successful_rows }}/{{ job.total_rows }}</span><small>{{ job.created_at }}</small></div>{% endfor %}</div></section>{% endif %}
+{% endblock %}

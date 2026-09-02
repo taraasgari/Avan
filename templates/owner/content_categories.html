@@ -1,0 +1,7 @@
+{% extends "owner/base.html" %}
+{% block title %}AVAN OWNER — CATEGORY CONTENT{% endblock %}
+{% block content %}
+<section class="content11-head"><span>CONTENT / CATEGORIES</span><h1>CATEGORY<br>LANGUAGES.</h1></section>
+<div class="content11-split"><aside class="content11-list"><input type="search" placeholder="FILTER CATEGORIES" data-content-filter>{% for item in categories %}<a data-content-row href="/owner/content/categories/{{ item.id }}/" class="{% if category.id == item.id %}is-active{% endif %}"><b>{{ item.name }}</b><span>{{ item.slug }}</span><small>EN {% if item.name_en %}✓{% else %}—{% endif %} · FA {% if item.name_fa %}✓{% else %}—{% endif %}</small></a>{% endfor %}</aside><section class="content11-editor">{% if category %}<header><span>EDITING</span><h2>{{ category.name }}</h2></header><form method="post">{% csrf_token %}{{ form.as_p }}<button class="content11-primary">SAVE CATEGORY COPY →</button></form>{% else %}<div class="content11-empty"><strong>SELECT A CATEGORY.</strong></div>{% endif %}</section></div>
+{% endblock %}
+{% block extra_js %}<script src="/static/js/stage11-content.js" defer></script>{% endblock %}
