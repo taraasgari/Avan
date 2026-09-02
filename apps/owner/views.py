@@ -23,7 +23,7 @@ from apps.orders.models import Order, OrderItem, StockReservation
 from apps.orders.services import release_order
 from apps.payments.models import PaymentAttempt
 
-from .decorators import owner_required
+from .decorators import owner_required, superuser_required
 from .forms import MarketplaceSettingsForm, OwnerSettingsForm, ProductForm
 from .models import OwnerSettings
 
@@ -39,8 +39,14 @@ PAID_STATUSES = [
 
 def _owner_context(request, **extra):
     settings_obj = OwnerSettings.load()
+    try:
+        from apps.launchops.permissions import get_staff_access
+        owner_access = get_staff_access(request.user)
+    except Exception:
+        owner_access = None
     context = {
         "owner_settings": settings_obj,
+        "owner_access": owner_access,
         "owner_pending_orders": Order.objects.filter(status=Order.Status.PENDING_PAYMENT).count(),
         "owner_review_orders": Order.objects.filter(status=Order.Status.NEEDS_REVIEW).count(),
         "owner_pending_payouts": PayoutRequest.objects.filter(status=PayoutRequest.Status.PENDING).count(),
@@ -456,16 +462,26 @@ def payout_action(request, payout_id):
     return redirect("owner:finance")
 
 
-@owner_required
+@superuser_required
 def staff(request):
-    staff_users = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True)).order_by("-is_superuser", "username")
+    from apps.launchops.models import StaffAccess
+
+    staff_users = list(User.objects.filter(Q(is_staff=True) | Q(is_superuser=True)).order_by("-is_superuser", "username"))
+    access_map = {obj.user_id: obj for obj in StaffAccess.objects.filter(user_id__in=[u.id for u in staff_users])}
+    staff_rows = [{"user": user, "access": access_map.get(user.id)} for user in staff_users]
     other_users = User.objects.filter(is_staff=False, is_superuser=False, is_active=True).order_by("username")[:100]
-    return render(request, "owner/staff.html", _owner_context(request, staff_users=staff_users, other_users=other_users))
+    return render(
+        request,
+        "owner/staff.html",
+        _owner_context(request, staff_rows=staff_rows, other_users=other_users, role_choices=StaffAccess.Role.choices),
+    )
 
 
 @require_POST
-@owner_required
+@superuser_required
 def staff_toggle(request, user_id):
+    from apps.launchops.models import StaffAccess
+
     user = get_object_or_404(User, pk=user_id)
     if user.is_superuser:
         messages.error(request, "Superuser access cannot be changed from this panel.")
@@ -474,7 +490,45 @@ def staff_toggle(request, user_id):
     else:
         user.is_staff = not user.is_staff
         user.save(update_fields=["is_staff"])
+        if user.is_staff:
+            access, _ = StaffAccess.objects.get_or_create(user=user)
+            access.apply_role_preset(StaffAccess.Role.SUPPORT)
+            access.updated_by = request.user
+            access.save()
+        else:
+            StaffAccess.objects.filter(user=user).delete()
         messages.success(request, "Staff access updated.")
+    return redirect("owner:staff")
+
+
+@require_POST
+@superuser_required
+def staff_access_update(request, user_id):
+    from apps.launchops.models import StaffAccess
+
+    user = get_object_or_404(User, pk=user_id, is_staff=True, is_superuser=False)
+    access, _ = StaffAccess.objects.get_or_create(user=user)
+    role = request.POST.get("role", StaffAccess.Role.CUSTOM)
+    valid_roles = {value for value, _ in StaffAccess.Role.choices}
+    if role not in valid_roles:
+        role = StaffAccess.Role.CUSTOM
+
+    permission_fields = [
+        "can_view_dashboard", "can_view_analytics", "can_manage_catalog",
+        "can_manage_inventory", "can_manage_orders", "can_manage_customers",
+        "can_manage_designs", "can_manage_marketing", "can_manage_finance",
+        "can_manage_content", "can_manage_reports", "can_manage_security",
+        "can_manage_settings",
+    ]
+    if request.POST.get("apply_preset") == "1":
+        access.apply_role_preset(role)
+    else:
+        access.role = role
+        for field in permission_fields:
+            setattr(access, field, request.POST.get(field) == "1")
+    access.updated_by = request.user
+    access.save()
+    messages.success(request, f"Owner Console permissions updated for {user.username}.")
     return redirect("owner:staff")
 
 
@@ -513,50 +567,14 @@ def export_report(request, report_name):
 
 
 @owner_required
-def data_center(request):
-    from apps.accounts.models import CreatorFollow
-    from apps.cart.models import Cart, CartItem
-    from apps.designs.models import DesignAsset, DesignLike, DesignSave, GarmentMockup
-    from apps.experience.models import RewardTransaction
-    from apps.wardrobe.models import Outfit, SizePassport
-    from apps.wishlist.models import WishlistItem
-
-    modules = [
-        {"label": "CARTS", "count": Cart.objects.count(), "url": "/admin/cart/cart/", "note": "Open, converted and abandoned carts."},
-        {"label": "CART ITEMS", "count": CartItem.objects.count(), "url": "/admin/cart/cart/", "note": "Variants and design snapshots are visible inline inside each cart."},
-        {"label": "PAYMENTS", "count": PaymentAttempt.objects.count(), "url": "/admin/payments/paymentattempt/", "note": "Payment attempts and provider references."},
-        {"label": "NOTIFICATIONS", "count": Notification.objects.count(), "url": "/admin/notifications/notification/", "note": "Order, social, reward and system alerts."},
-        {"label": "SIZE PASSPORTS", "count": SizePassport.objects.count(), "url": "/admin/wardrobe/sizepassport/", "note": "Private fit profiles. Owner-only access should be used carefully."},
-        {"label": "OUTFITS", "count": Outfit.objects.count(), "url": "/admin/wardrobe/outfit/", "note": "Saved customer outfits."},
-        {"label": "WISHLIST", "count": WishlistItem.objects.count(), "url": "/admin/wishlist/wishlistitem/", "note": "Saved products."},
-        {"label": "CREATOR FOLLOWS", "count": CreatorFollow.objects.count(), "url": "/admin/accounts/creatorfollow/", "note": "Creator follow relationships."},
-        {"label": "DESIGN ASSETS", "count": DesignAsset.objects.count(), "url": "/admin/designs/designasset/", "note": "Uploaded artwork assets."},
-        {"label": "GARMENT MOCKUPS", "count": GarmentMockup.objects.count(), "url": "/admin/designs/garmentmockup/", "note": "Front/back garment mockups and print areas."},
-        {"label": "DESIGN LIKES", "count": DesignLike.objects.count(), "url": "/admin/designs/designlike/", "note": "Design likes."},
-        {"label": "SAVED DESIGNS", "count": DesignSave.objects.count(), "url": "/admin/designs/designsave/", "note": "Saved public designs."},
-        {"label": "REWARD WALLETS", "count": RewardWallet.objects.count(), "url": "/admin/experience/rewardwallet/", "note": "Current AVAN Points balances."},
-        {"label": "REWARD LEDGER", "count": RewardTransaction.objects.count(), "url": "/admin/experience/rewardtransaction/", "note": "Point credits and debits."},
-    ]
-    return render(request, "owner/data_center.html", _owner_context(request, modules=modules))
-
-
-@owner_required
 def settings_view(request):
     owner_settings = OwnerSettings.load()
     marketplace_settings = MarketplaceSettings.load()
-    section = request.POST.get("section") if request.method == "POST" else None
-    owner_form = OwnerSettingsForm(
-        request.POST if section == "owner" else None,
-        instance=owner_settings,
-        prefix="owner",
-    )
-    marketplace_form = MarketplaceSettingsForm(
-        request.POST if section == "marketplace" else None,
-        instance=marketplace_settings,
-        prefix="marketplace",
-    )
+    owner_form = OwnerSettingsForm(request.POST or None, instance=owner_settings, prefix="owner")
+    marketplace_form = MarketplaceSettingsForm(request.POST or None, instance=marketplace_settings, prefix="marketplace")
 
     if request.method == "POST":
+        section = request.POST.get("section")
         if section == "owner" and owner_form.is_valid():
             owner_form.save()
             messages.success(request, "Owner settings saved.")

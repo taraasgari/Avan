@@ -1,41 +1,20 @@
-# Environment / secrets
 .env
-.env.*
-!.env.example
-
-# Python
+.venv/
+venv/
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-.Python
-venv/
-.venv/
-
-# Django
-db.sqlite3
-db.sqlite3.*
-staticfiles/
-private_media/
-
-# User uploads / runtime media
-media/
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Test/cache
+*.sqlite3
 .pytest_cache/
 .coverage
 htmlcov/
+media/*
+!media/.gitkeep
+staticfiles/
+.DS_Store
+.idea/
+.vscode/
 
-# Docker/runtime
-*.pid
+# Stage 13 production secrets and local backups
+.env.production
+backups/
+*.dump

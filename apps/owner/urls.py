@@ -30,6 +30,7 @@ urlpatterns = [
     path("finance/payout/<uuid:payout_id>/", views.payout_action, name="payout-action"),
     path("staff/", views.staff, name="staff"),
     path("staff/<int:user_id>/toggle/", views.staff_toggle, name="staff-toggle"),
+    path("staff/<int:user_id>/permissions/", views.staff_access_update, name="staff-access-update"),
     path("reports/", views.reports, name="reports"),
     path("reports/export/<str:report_name>/", views.export_report, name="export-report"),
     path("settings/", views.settings_view, name="settings"),

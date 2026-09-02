@@ -30,35 +30,30 @@ INSTALLED_APPS = [
     "apps.wishlist",
     "apps.notifications",
     "apps.payments",
-    "apps.designs",
-    "apps.experience",
+    "apps.growth",
+    "apps.launchops",
+    "apps.contentstudio",
+    "apps.commerce",
+    "apps.operations",
+    "apps.owner",
     "apps.wardrobe",
     "apps.marketplace",
-    "apps.owner",
-    "apps.operations",
-    "apps.commerce",
-    "apps.contentstudio",
-    "apps.growth",
+    "apps.experience",
+    "apps.designs",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-
+    "apps.launchops.middleware.RequestTelemetryMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-
     "apps.core.middleware.AvanLocaleMiddleware",
-
     "django.middleware.common.CommonMiddleware",
-
     "django.middleware.csrf.CsrfViewMiddleware",
-
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-
+    "apps.launchops.middleware.OwnerAuditMiddleware",
     "apps.growth.middleware.SeoRedirectMiddleware",
     "apps.growth.middleware.AvanSecurityMiddleware",
-
     "django.contrib.messages.middleware.MessageMiddleware",
-
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -103,11 +98,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "accounts.User"
 
-LANGUAGE_CODE = "en"
-LANGUAGES = [
-    ("en", "English"),
-    ("fa", "فارسی"),
-]
+LANGUAGE_CODE = "fa-ir"
 TIME_ZONE = "Asia/Tehran"
 USE_I18N = True
 USE_TZ = True
@@ -154,5 +145,8 @@ ORDER_RESERVATION_MINUTES = int(env("ORDER_RESERVATION_MINUTES", "20"))
 DEFAULT_SHIPPING_AMOUNT = int(env("DEFAULT_SHIPPING_AMOUNT", "0"))
 
 from config.security_settings import apply_security_settings
-
 apply_security_settings(globals())
+
+
+from config.launch_settings import apply_launch_settings
+apply_launch_settings(globals())

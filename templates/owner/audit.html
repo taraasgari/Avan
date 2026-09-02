@@ -1,0 +1,13 @@
+{% extends "owner/base.html" %}
+{% block title %}Audit Log — AVAN OWNER{% endblock %}
+{% block content %}
+<header class="owner-page-head"><div><span>IMMUTABLE-STYLE OPERATION HISTORY</span><h1>AUDIT.</h1><p>Owner Console write operations. Request bodies are deliberately excluded to avoid logging passwords, tokens and customer-sensitive fields.</p></div><a class="owner-btn" href="/owner/launch/">LAUNCH CENTER</a></header>
+<form class="owner-filters" method="get">
+  <input type="text" name="actor" placeholder="Actor username" value="{{ actor_query }}">
+  <select name="action"><option value="">ALL ACTIONS</option>{% for value in actions %}<option value="{{ value }}" {% if selected_action == value %}selected{% endif %}>{{ value }}</option>{% endfor %}</select>
+  <button type="submit">FILTER</button>
+</form>
+<section class="owner-panel"><div class="owner-table-wrap"><table class="owner-table"><thead><tr><th>TIME</th><th>ACTOR</th><th>ACTION</th><th>METHOD</th><th>STATUS</th><th>PATH</th><th>REQUEST ID</th></tr></thead><tbody>
+{% for event in events %}<tr><td>{{ event.created_at }}</td><td>{{ event.actor|default:"deleted user" }}</td><td>{{ event.action }}</td><td>{{ event.method }}</td><td><span class="owner-status {% if event.status_code >= 400 %}is-red{% else %}is-good{% endif %}">{{ event.status_code }}</span></td><td>{{ event.path }}</td><td><small>{{ event.request_id|default:"—" }}</small></td></tr>{% empty %}<tr><td colspan="7">NO AUDIT EVENTS.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

@@ -1,0 +1,61 @@
+name: Deploy AVAN Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to deploy
+        required: true
+        default: main
+
+permissions:
+  contents: read
+
+environment: production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare SSH
+        env:
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$PROD_HOST"
+          test -n "$PROD_SSH_KEY"
+          mkdir -p ~/.ssh
+          printf '%s\n' "$PROD_SSH_KEY" > ~/.ssh/id_avan
+          chmod 600 ~/.ssh/id_avan
+          ssh-keyscan -H "$PROD_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy on server
+        env:
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_USER: ${{ secrets.PROD_USER }}
+          PROD_PATH: ${{ secrets.PROD_PATH }}
+          DEPLOY_REF: ${{ inputs.ref }}
+        run: |
+          set -euo pipefail
+          test -n "$PROD_USER"
+          test -n "$PROD_PATH"
+          ssh -i ~/.ssh/id_avan "$PROD_USER@$PROD_HOST" \
+            "PROD_PATH='$PROD_PATH' DEPLOY_REF='$DEPLOY_REF' bash -s" <<'REMOTE'
+          set -euo pipefail
+          cd "$PROD_PATH"
+          if [ -x scripts/backup.sh ]; then
+            AVAN_BACKUP_KEEP_DAYS=14 ./scripts/backup.sh
+          fi
+          git fetch --all --prune
+          git checkout "$DEPLOY_REF"
+          git reset --hard "origin/$DEPLOY_REF" 2>/dev/null || true
+          export AVAN_COMMIT_SHA="$(git rev-parse HEAD)"
+          docker compose -f docker-compose.production.yml build
+          docker compose -f docker-compose.production.yml up -d
+          docker compose -f docker-compose.production.yml exec -T web python manage.py migrate --noinput
+          docker compose -f docker-compose.production.yml exec -T web python manage.py collectstatic --noinput
+          docker compose -f docker-compose.production.yml exec -T web python manage.py launch_check --strict
+          docker compose -f docker-compose.production.yml exec -T web python manage.py avan_smoke_test
+          docker compose -f docker-compose.production.yml ps
+          REMOTE

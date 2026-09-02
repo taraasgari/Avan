@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="{% static 'css/stage10-commerce.css' %}">
     <link rel="stylesheet" href="{% static 'css/stage11-content.css' %}">
     <link rel="stylesheet" href="{% static 'css/stage12-growth.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stage13-launch.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="owner-body">
@@ -22,26 +23,27 @@
         <div class="owner-brand"><a href="/owner/"><strong>AVAN</strong><span>{% avan_t "owner" %}</span></a><button type="button" data-owner-menu-close aria-label="Close">×</button></div>
         <div class="owner-preferences"><button type="button" data-theme-toggle><span data-theme-label>{% avan_t "night" %}</span></button><button type="button" data-language-toggle>{% avan_t "language" %}</button></div>
         <nav class="owner-nav">
-            <a href="/owner/" class="{% if request.path == '/owner/' %}is-active{% endif %}"><span>01</span>{% avan_t "overview" %}</a>
-            <a href="/owner/analytics/" class="{% if '/owner/analytics/' in request.path %}is-active{% endif %}"><span>02</span>{% avan_t "analytics" %}</a>
-            <a href="/owner/products/" class="{% if '/owner/products/' in request.path %}is-active{% endif %}"><span>03</span>{% avan_t "products" %}</a>
-            <a href="/owner/catalog/" class="{% if '/owner/catalog/' in request.path %}is-active{% endif %}"><span>04</span>{% avan_t "catalog_manager" %}</a>
-            <a href="/owner/warehouse/" class="{% if '/owner/warehouse/' in request.path %}is-active{% endif %}"><span>05</span>{% avan_t "warehouse" %}</a>
-            <a href="/owner/orders/" class="{% if '/owner/orders/' in request.path %}is-active{% endif %}"><span>06</span>{% avan_t "orders" %} {% if owner_pending_orders %}<b>{{ owner_pending_orders }}</b>{% endif %}</a>
-            <a href="/owner/operations/" class="{% if '/owner/operations/' in request.path or '/owner/shipping/' in request.path or '/owner/returns/' in request.path or '/owner/inventory-movements/' in request.path or '/owner/production/' in request.path or '/owner/shipping-methods/' in request.path %}is-active{% endif %}"><span>07</span>{% avan_t "operations" %}</a>
-            <a href="/owner/customers/" class="{% if '/owner/customers/' in request.path %}is-active{% endif %}"><span>08</span>{% avan_t "customers" %}</a>
-            <a href="/owner/designs/" class="{% if '/owner/designs/' in request.path %}is-active{% endif %}"><span>09</span>{% avan_t "designs" %}</a>
-            <a href="/owner/creators/" class="{% if '/owner/creators/' in request.path %}is-active{% endif %}"><span>10</span>{% avan_t "creators" %}</a>
-            <a href="/owner/marketing/" class="{% if '/owner/marketing/' in request.path %}is-active{% endif %}"><span>11</span>{% avan_t "marketing" %}</a>
-            <a href="/owner/content/" class="{% if '/owner/content/' in request.path %}is-active{% endif %}"><span>11.5</span>{% avan_t "content" %}</a>
-            <a href="/owner/finance/" class="{% if '/owner/finance/' in request.path %}is-active{% endif %}"><span>12</span>{% avan_t "finance" %} {% if owner_pending_payouts %}<b>{{ owner_pending_payouts }}</b>{% endif %}</a>
-            <a href="/owner/commerce/" class="{% if '/owner/commerce/' in request.path %}is-active{% endif %}"><span>12B</span>COMMERCE</a>
-            <a href="/owner/staff/" class="{% if '/owner/staff/' in request.path %}is-active{% endif %}"><span>13</span>{% avan_t "staff" %}</a>
-            <a href="/owner/reports/" class="{% if '/owner/reports/' in request.path %}is-active{% endif %}"><span>14</span>{% avan_t "reports" %}</a>
-            <a href="/owner/growth/" class="{% if '/owner/growth/' in request.path %}is-active{% endif %}"><span>15</span>{% avan_t "growth" %}</a>
-            <a href="/owner/moderation/" class="{% if '/owner/moderation/' in request.path %}is-active{% endif %}"><span>16</span>{% avan_t "moderation" %}</a>
-            <a href="/owner/security/" class="{% if '/owner/security/' in request.path %}is-active{% endif %}"><span>17</span>{% avan_t "security" %}</a>
-            <a href="/owner/settings/" class="{% if '/owner/settings/' in request.path %}is-active{% endif %}"><span>18</span>{% avan_t "settings" %}</a>
+            {% if request.user.is_superuser or owner_access.can_view_dashboard %}<a href="/owner/" class="{% if request.path == '/owner/' %}is-active{% endif %}"><span>01</span>{% avan_t "overview" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_view_analytics %}<a href="/owner/analytics/" class="{% if '/owner/analytics/' in request.path %}is-active{% endif %}"><span>02</span>{% avan_t "analytics" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_catalog %}<a href="/owner/products/" class="{% if '/owner/products/' in request.path %}is-active{% endif %}"><span>03</span>{% avan_t "products" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_catalog %}<a href="/owner/catalog/" class="{% if '/owner/catalog/' in request.path %}is-active{% endif %}"><span>04</span>{% avan_t "catalog_manager" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_inventory %}<a href="/owner/warehouse/" class="{% if '/owner/warehouse/' in request.path %}is-active{% endif %}"><span>05</span>{% avan_t "warehouse" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_orders %}<a href="/owner/orders/" class="{% if '/owner/orders/' in request.path %}is-active{% endif %}"><span>06</span>{% avan_t "orders" %} {% if owner_pending_orders %}<b>{{ owner_pending_orders }}</b>{% endif %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_orders or owner_access.can_manage_inventory %}<a href="/owner/operations/" class="{% if '/owner/operations/' in request.path or '/owner/shipping/' in request.path or '/owner/returns/' in request.path or '/owner/inventory-movements/' in request.path or '/owner/production/' in request.path or '/owner/shipping-methods/' in request.path %}is-active{% endif %}"><span>07</span>{% avan_t "operations" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_customers %}<a href="/owner/customers/" class="{% if '/owner/customers/' in request.path %}is-active{% endif %}"><span>08</span>{% avan_t "customers" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_designs %}<a href="/owner/designs/" class="{% if '/owner/designs/' in request.path %}is-active{% endif %}"><span>09</span>{% avan_t "designs" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_designs %}<a href="/owner/creators/" class="{% if '/owner/creators/' in request.path %}is-active{% endif %}"><span>10</span>{% avan_t "creators" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_marketing %}<a href="/owner/marketing/" class="{% if '/owner/marketing/' in request.path %}is-active{% endif %}"><span>11</span>{% avan_t "marketing" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_content %}<a href="/owner/content/" class="{% if '/owner/content/' in request.path %}is-active{% endif %}"><span>11.5</span>{% avan_t "content" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_finance %}<a href="/owner/finance/" class="{% if '/owner/finance/' in request.path %}is-active{% endif %}"><span>12</span>{% avan_t "finance" %} {% if owner_pending_payouts %}<b>{{ owner_pending_payouts }}</b>{% endif %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_orders or owner_access.can_manage_finance or owner_access.can_manage_marketing %}<a href="/owner/commerce/" class="{% if '/owner/commerce/' in request.path %}is-active{% endif %}"><span>12B</span>COMMERCE</a>{% endif %}
+            {% if request.user.is_superuser %}<a href="/owner/staff/" class="{% if '/owner/staff/' in request.path %}is-active{% endif %}"><span>13</span>{% avan_t "staff" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_reports %}<a href="/owner/reports/" class="{% if '/owner/reports/' in request.path %}is-active{% endif %}"><span>14</span>{% avan_t "reports" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_marketing %}<a href="/owner/growth/" class="{% if '/owner/growth/' in request.path %}is-active{% endif %}"><span>15</span>{% avan_t "growth" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_designs %}<a href="/owner/moderation/" class="{% if '/owner/moderation/' in request.path %}is-active{% endif %}"><span>16</span>{% avan_t "moderation" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_security %}<a href="/owner/security/" class="{% if '/owner/security/' in request.path %}is-active{% endif %}"><span>17</span>{% avan_t "security" %}</a>{% endif %}
+            {% if request.user.is_superuser or owner_access.can_manage_settings %}<a href="/owner/settings/" class="{% if '/owner/settings/' in request.path %}is-active{% endif %}"><span>18</span>{% avan_t "settings" %}</a>{% endif %}
+            {% if request.user.is_superuser %}<a href="/owner/launch/" class="{% if '/owner/launch/' in request.path %}is-active{% endif %}"><span>19</span>LAUNCH / OPS</a>{% endif %}
         </nav>
         <div class="owner-sidebar__foot"><a href="/admin/" target="_blank">{% avan_t "django_admin" %} ↗</a><a href="/" target="_blank">{% avan_t "open_store" %} ↗</a><small>{{ request.user.username }}</small></div>
     </aside>

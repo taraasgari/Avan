@@ -1,0 +1,57 @@
+{% extends "owner/base.html" %}
+{% block title %}Launch / Ops — AVAN OWNER{% endblock %}
+{% block content %}
+<header class="owner-page-head">
+  <div><span>STAGE 13 · PRODUCTION CONTROL</span><h1>LAUNCH.</h1><p>Deployment readiness, production security, observability and audit status. This section is superuser-only.</p></div>
+  <div class="owner-head-actions"><a class="owner-btn" href="/_health/ready/" target="_blank">READINESS ↗</a><a class="owner-btn" href="/owner/launch/audit/">AUDIT LOG</a></div>
+</header>
+
+<section class="owner-kpis owner-kpis--4 stage13-kpis">
+  <article class="{% if critical_failures %}is-alert{% endif %}"><span>CRITICAL FAILURES</span><strong>{{ critical_failures }}</strong><small>Must be zero before production launch.</small></article>
+  <article><span>NON-BLOCKING WARNINGS</span><strong>{{ warnings }}</strong><small>Review before go-live.</small></article>
+  <article><span>ACTIVE STAFF</span><strong>{{ active_staff }}</strong><small>{{ staff_profiles }} permission profiles configured.</small></article>
+  <article><span>RELEASE</span><strong class="stage13-release">{{ version }}</strong><small>{% if commit_sha %}{{ commit_sha }}{% else %}no commit SHA supplied{% endif %}</small></article>
+</section>
+
+<section class="owner-panel">
+  <div class="owner-panel__head"><div><span>GO / NO-GO</span><h2>PRODUCTION READINESS</h2></div><p>These are live checks against the current running environment, not documentation promises.</p></div>
+  <div class="stage13-check-grid">
+    {% for check in checks %}
+      <article class="stage13-check {% if check.ok %}is-pass{% elif check.critical %}is-fail{% else %}is-warn{% endif %}">
+        <span>{% if check.ok %}PASS{% elif check.critical %}FAIL{% else %}WARN{% endif %}</span>
+        <strong>{{ check.label }}</strong>
+        <small>{{ check.detail }}</small>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="owner-grid owner-grid--2">
+  <section class="owner-panel">
+    <div class="owner-panel__head"><div><span>OBSERVABILITY</span><h2>HEALTH / METRICS</h2></div></div>
+    <dl class="owner-dl">
+      <div><dt>LIVENESS</dt><dd><code>/_health/live/</code></dd></div>
+      <div><dt>READINESS</dt><dd><code>/_health/ready/</code></dd></div>
+      <div><dt>METRICS</dt><dd><code>/_metrics/</code> requires <code>X-AVAN-Metrics-Token</code>.</dd></div>
+      <div><dt>REQUEST ID</dt><dd>Every response carries <code>X-Request-ID</code> and production logs can be JSON.</dd></div>
+    </dl>
+  </section>
+  <section class="owner-panel">
+    <div class="owner-panel__head"><div><span>OPERATIONS</span><h2>RUNBOOK</h2></div></div>
+    <div class="owner-stack-list">
+      <a href="/owner/staff/"><div><strong>Least-privilege staff</strong><span>Separate catalog, fulfillment, support, marketing, finance and security access.</span></div><b>→</b></a>
+      <a href="/owner/security/"><div><strong>Security center</strong><span>Login failures, throttles and high-severity events.</span></div><b>→</b></a>
+      <a href="/owner/launch/audit/"><div><strong>Owner write audit</strong><span>State-changing Owner Console actions with actor, request id and result.</span></div><b>→</b></a>
+    </div>
+  </section>
+</div>
+
+<section class="owner-panel">
+  <div class="owner-panel__head"><div><span>LATEST OWNER WRITES</span><h2>AUDIT TRAIL</h2></div><a href="/owner/launch/audit/">VIEW ALL</a></div>
+  <div class="owner-table-wrap"><table class="owner-table"><thead><tr><th>TIME</th><th>ACTOR</th><th>ACTION</th><th>METHOD</th><th>STATUS</th><th>REQUEST</th></tr></thead><tbody>
+    {% for event in recent_audit %}<tr><td>{{ event.created_at }}</td><td>{{ event.actor|default:"deleted user" }}</td><td>{{ event.action }}</td><td>{{ event.method }}</td><td>{{ event.status_code }}</td><td><small>{{ event.request_id|default:"—" }}</small><strong>{{ event.path }}</strong></td></tr>{% empty %}<tr><td colspan="6">NO OWNER WRITE EVENTS YET.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+
+<section class="owner-warning"><strong>PRODUCTION RULE</strong><p>Do not enable HSTS, secure-cookie enforcement or HTTPS redirect on localhost. Use the production environment file and reverse proxy only when the real domain has working HTTPS.</p></section>
+{% endblock %}

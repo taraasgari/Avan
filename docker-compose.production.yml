@@ -1,0 +1,108 @@
+services:
+  db:
+    image: postgres:17-alpine
+    env_file: .env.production
+    volumes:
+      - avan_prod_postgres:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [backend]
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - avan_prod_redis:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [backend]
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    env_file: .env.production
+    environment:
+      POSTGRES_HOST: db
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      AVAN_COMMIT_SHA: ${AVAN_COMMIT_SHA:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application
+             --bind 0.0.0.0:8000
+             --workers $${AVAN_GUNICORN_WORKERS:-3}
+             --threads $${AVAN_GUNICORN_THREADS:-2}
+             --timeout 60 --graceful-timeout 30
+             --max-requests 1200 --max-requests-jitter 120
+             --access-logfile -"
+    volumes:
+      - avan_prod_static:/app/staticfiles
+      - avan_prod_media:/app/media
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/_health/ready/', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    networks: [backend]
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    env_file: .env.production
+    environment:
+      POSTGRES_HOST: db
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: sh -c "celery -A config worker -l INFO --concurrency=$${AVAN_CELERY_CONCURRENCY:-2}"
+    restart: unless-stopped
+    networks: [backend]
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "127.0.0.1:${AVAN_HTTP_PORT:-8080}:80"
+    volumes:
+      - ./docker/nginx/production.conf:/etc/nginx/conf.d/default.conf:ro
+      - avan_prod_static:/static:ro
+      - avan_prod_media:/media:ro
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [backend, edge]
+
+volumes:
+  avan_prod_postgres:
+  avan_prod_redis:
+  avan_prod_static:
+  avan_prod_media:
+
+networks:
+  backend:
+    internal: true
+  edge:
