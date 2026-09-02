@@ -1,16 +1,11 @@
 from django.urls import path
 
-from .web_views import checkout_page, order_page
+from . import web_views
 
 
 app_name = "orders_web"
 
-
 urlpatterns = [
-    path("checkout/", checkout_page, name="checkout"),
-    path(
-        "orders/<uuid:number>/",
-        order_page,
-        name="order-detail",
-    ),
+    path("checkout/", web_views.checkout_page, name="checkout"),
+    path("orders/<uuid:number>/", web_views.order_detail_page, name="order-detail"),
 ]

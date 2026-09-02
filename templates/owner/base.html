@@ -1,65 +1,49 @@
-{% load static %}
+{% load static avan_ui %}
+{% avan_lang as AVAN_PAGE_LANG %}{% avan_dir as AVAN_PAGE_DIR %}
 <!doctype html>
-<html lang="en" dir="ltr">
+<html lang="{{ AVAN_PAGE_LANG }}" dir="{{ AVAN_PAGE_DIR }}" data-avan-language="{{ AVAN_PAGE_LANG }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#111111">
+    <script>(function(){try{var t=localStorage.getItem('avan_theme');if(t!=='dark'&&t!=='light')t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}})();</script>
     <title>{% block title %}AVAN OWNER{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/owner.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stage9-owner.css' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body class="owner-body">
 <div class="owner-shell">
     <aside class="owner-sidebar" data-owner-sidebar>
-        <div class="owner-brand">
-            <a href="/owner/"><strong>AVAN</strong><span>OWNER</span></a>
-            <button type="button" data-owner-menu-close aria-label="Close">×</button>
-        </div>
-
+        <div class="owner-brand"><a href="/owner/"><strong>AVAN</strong><span>{% avan_t "owner" %}</span></a><button type="button" data-owner-menu-close aria-label="Close">×</button></div>
+        <div class="owner-preferences"><button type="button" data-theme-toggle><span data-theme-label>{% avan_t "night" %}</span></button><button type="button" data-language-toggle>{% avan_t "language" %}</button></div>
         <nav class="owner-nav">
-            <a href="/owner/" class="{% if request.path == '/owner/' %}is-active{% endif %}"><span>01</span>OVERVIEW</a>
-            <a href="/owner/products/" class="{% if '/owner/products/' in request.path %}is-active{% endif %}"><span>02</span>PRODUCTS</a>
-            <a href="/owner/warehouse/" class="{% if '/owner/warehouse/' in request.path %}is-active{% endif %}"><span>03</span>WAREHOUSE</a>
-            <a href="/owner/orders/" class="{% if '/owner/orders/' in request.path %}is-active{% endif %}"><span>04</span>ORDERS {% if owner_pending_orders %}<b>{{ owner_pending_orders }}</b>{% endif %}</a>
-            <a href="/owner/customers/" class="{% if '/owner/customers/' in request.path %}is-active{% endif %}"><span>05</span>CUSTOMERS</a>
-            <a href="/owner/designs/" class="{% if '/owner/designs/' in request.path %}is-active{% endif %}"><span>06</span>DESIGNS</a>
-            <a href="/owner/creators/" class="{% if '/owner/creators/' in request.path %}is-active{% endif %}"><span>07</span>CREATORS</a>
-            <a href="/owner/marketing/" class="{% if '/owner/marketing/' in request.path %}is-active{% endif %}"><span>08</span>MARKETING</a>
-            <a href="/owner/finance/" class="{% if '/owner/finance/' in request.path %}is-active{% endif %}"><span>09</span>FINANCE {% if owner_pending_payouts %}<b>{{ owner_pending_payouts }}</b>{% endif %}</a>
-            <a href="/owner/staff/" class="{% if '/owner/staff/' in request.path %}is-active{% endif %}"><span>10</span>STAFF</a>
-            <a href="/owner/reports/" class="{% if '/owner/reports/' in request.path %}is-active{% endif %}"><span>11</span>REPORTS</a>
-            <a href="/owner/data/" class="{% if '/owner/data/' in request.path %}is-active{% endif %}"><span>12</span>ALL DATA</a>
-            <a href="/owner/settings/" class="{% if '/owner/settings/' in request.path %}is-active{% endif %}"><span>13</span>SETTINGS</a>
+            <a href="/owner/" class="{% if request.path == '/owner/' %}is-active{% endif %}"><span>01</span>{% avan_t "overview" %}</a>
+            <a href="/owner/analytics/" class="{% if '/owner/analytics/' in request.path %}is-active{% endif %}"><span>02</span>{% avan_t "analytics" %}</a>
+            <a href="/owner/products/" class="{% if '/owner/products/' in request.path %}is-active{% endif %}"><span>03</span>{% avan_t "products" %}</a>
+            <a href="/owner/catalog/" class="{% if '/owner/catalog/' in request.path %}is-active{% endif %}"><span>04</span>{% avan_t "catalog_manager" %}</a>
+            <a href="/owner/warehouse/" class="{% if '/owner/warehouse/' in request.path %}is-active{% endif %}"><span>05</span>{% avan_t "warehouse" %}</a>
+            <a href="/owner/orders/" class="{% if '/owner/orders/' in request.path %}is-active{% endif %}"><span>06</span>{% avan_t "orders" %} {% if owner_pending_orders %}<b>{{ owner_pending_orders }}</b>{% endif %}</a>
+            <a href="/owner/operations/" class="{% if '/owner/operations/' in request.path or '/owner/shipping/' in request.path or '/owner/returns/' in request.path or '/owner/inventory-movements/' in request.path or '/owner/production/' in request.path or '/owner/shipping-methods/' in request.path %}is-active{% endif %}"><span>07</span>{% avan_t "operations" %}</a>
+            <a href="/owner/customers/" class="{% if '/owner/customers/' in request.path %}is-active{% endif %}"><span>08</span>{% avan_t "customers" %}</a>
+            <a href="/owner/designs/" class="{% if '/owner/designs/' in request.path %}is-active{% endif %}"><span>09</span>{% avan_t "designs" %}</a>
+            <a href="/owner/creators/" class="{% if '/owner/creators/' in request.path %}is-active{% endif %}"><span>10</span>{% avan_t "creators" %}</a>
+            <a href="/owner/marketing/" class="{% if '/owner/marketing/' in request.path %}is-active{% endif %}"><span>11</span>{% avan_t "marketing" %}</a>
+            <a href="/owner/finance/" class="{% if '/owner/finance/' in request.path %}is-active{% endif %}"><span>12</span>{% avan_t "finance" %} {% if owner_pending_payouts %}<b>{{ owner_pending_payouts }}</b>{% endif %}</a>
+            <a href="/owner/staff/" class="{% if '/owner/staff/' in request.path %}is-active{% endif %}"><span>13</span>{% avan_t "staff" %}</a>
+            <a href="/owner/reports/" class="{% if '/owner/reports/' in request.path %}is-active{% endif %}"><span>14</span>{% avan_t "reports" %}</a>
+            <a href="/owner/settings/" class="{% if '/owner/settings/' in request.path %}is-active{% endif %}"><span>15</span>{% avan_t "settings" %}</a>
         </nav>
-
-        <div class="owner-sidebar__foot">
-            <a href="/admin/" target="_blank">DJANGO ADMIN ↗</a>
-            <a href="/" target="_blank">OPEN STORE ↗</a>
-            <small>{{ request.user.username }}</small>
-        </div>
+        <div class="owner-sidebar__foot"><a href="/admin/" target="_blank">{% avan_t "django_admin" %} ↗</a><a href="/" target="_blank">{% avan_t "open_store" %} ↗</a><small>{{ request.user.username }}</small></div>
     </aside>
-
     <div class="owner-main">
-        <header class="owner-topbar">
-            <button type="button" class="owner-menu-button" data-owner-menu-open>MENU</button>
-            <div><span>OWNER CONSOLE</span><strong>{{ owner_settings.store_name|default:'AVAN' }}</strong></div>
-            <div class="owner-topbar__alerts">
-                {% if owner_review_orders %}<a href="/owner/orders/?status=needs_review">REVIEW {{ owner_review_orders }}</a>{% endif %}
-                {% if owner_pending_payouts %}<a href="/owner/finance/">PAYOUTS {{ owner_pending_payouts }}</a>{% endif %}
-            </div>
-        </header>
-
-        {% if messages %}
-        <div class="owner-flashes">
-            {% for message in messages %}<div class="owner-flash owner-flash--{{ message.tags|default:'info' }}">{{ message }}</div>{% endfor %}
-        </div>
-        {% endif %}
-
-        <main class="owner-content">
-            {% block content %}{% endblock %}
-        </main>
+        <header class="owner-topbar"><button type="button" class="owner-menu-button" data-owner-menu-open>{% avan_t "menu" %}</button><div><span>{% avan_t "owner_console" %}</span><strong>{{ owner_settings.store_name|default:'AVAN' }}</strong></div><div class="owner-topbar__alerts">{% if owner_review_orders %}<a href="/owner/orders/?status=needs_review">REVIEW {{ owner_review_orders }}</a>{% endif %}{% if owner_pending_payouts %}<a href="/owner/finance/">PAYOUTS {{ owner_pending_payouts }}</a>{% endif %}</div></header>
+        {% if messages %}<div class="owner-flashes">{% for message in messages %}<div class="owner-flash owner-flash--{{ message.tags|default:'info' }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+        <main class="owner-content">{% block content %}{% endblock %}</main>
     </div>
 </div>
+<script src="{% static 'js/preferences.js' %}" defer></script>
 <script src="{% static 'js/owner.js' %}" defer></script>
 {% block extra_js %}{% endblock %}
 </body>

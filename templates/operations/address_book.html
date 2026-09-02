@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Addresses — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/operations.css' %}">{% endblock %}
+{% block content %}
+<section class="ops-page">
+  <header class="ops-hero"><span>MY AVAN / ADDRESSES</span><h1 data-i18n="ADDRESSES">ADDRESSES.</h1><p data-i18n="SAVE DELIVERY ADDRESSES FOR FASTER CHECKOUT.">SAVE DELIVERY ADDRESSES FOR FASTER CHECKOUT.</p></header>
+  <div class="ops-grid ops-grid--2">
+    <section class="ops-panel">
+      <div class="ops-panel__head"><div><span>{% if editing %}EDIT{% else %}NEW{% endif %}</span><h2>DELIVERY ADDRESS</h2></div></div>
+      <form method="post" class="ops-form">{% csrf_token %}
+        {% for field in form %}<label><span>{{ field.label|upper }}</span>{{ field }}{% if field.errors %}<small>{{ field.errors|join:", " }}</small>{% endif %}</label>{% endfor %}
+        <div class="ops-actions"><button class="ops-btn ops-btn--primary" type="submit">SAVE ADDRESS</button>{% if editing %}<a class="ops-btn" href="/account/addresses/">CANCEL</a>{% endif %}</div>
+      </form>
+    </section>
+    <section class="ops-panel">
+      <div class="ops-panel__head"><div><span>SAVED</span><h2>YOUR ADDRESSES</h2></div></div>
+      <div class="ops-cards">
+        {% for address in addresses %}
+        <article class="ops-address {% if address.is_default %}is-default{% endif %}">
+          <div><span>{{ address.title }}{% if address.is_default %} / DEFAULT{% endif %}</span><h3>{{ address.recipient_name }}</h3><p>{{ address.province }} / {{ address.city }}<br>{{ address.address }}<br>{{ address.phone }}{% if address.postal_code %}<br>{{ address.postal_code }}{% endif %}</p></div>
+          <div class="ops-inline-actions"><a href="?edit={{ address.id }}">EDIT</a>{% if not address.is_default %}<form method="post" action="/account/addresses/{{ address.id }}/default/">{% csrf_token %}<button>MAKE DEFAULT</button></form>{% endif %}<form method="post" action="/account/addresses/{{ address.id }}/delete/">{% csrf_token %}<button class="is-danger">DELETE</button></form></div>
+        </article>
+        {% empty %}<div class="ops-empty">NO SAVED ADDRESSES YET.</div>{% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}

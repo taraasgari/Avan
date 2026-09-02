@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Returns — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/operations.css' %}">{% endblock %}
+{% block content %}
+<section class="ops-page">
+<header class="ops-hero"><span>MY AVAN / RETURNS</span><h1>RETURNS.</h1><p>TRACK RETURN REQUESTS FROM YOUR DELIVERED ORDERS.</p></header>
+<section class="ops-panel"><div class="ops-panel__head"><div><span>HISTORY</span><h2>RETURN REQUESTS</h2></div></div>
+<div class="ops-table-wrap"><table class="ops-table"><thead><tr><th>ORDER</th><th>REASON</th><th>STATUS</th><th>REFUND</th><th>CREATED</th></tr></thead><tbody>
+{% for item in returns %}<tr><td><a href="/orders/{{ item.order.number }}/">{{ item.order.number|stringformat:"s"|slice:":8" }}</a></td><td>{{ item.get_reason_display }}</td><td><span class="ops-status">{{ item.get_status_display|upper }}</span></td><td>{{ item.refund_amount|floatformat:"0" }}</td><td>{{ item.created_at|date:"Y-m-d" }}</td></tr>{% empty %}<tr><td colspan="5">NO RETURN REQUESTS.</td></tr>{% endfor %}
+</tbody></table></div></section>
+</section>
+{% endblock %}

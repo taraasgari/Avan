@@ -1,15 +1,21 @@
 from django.urls import path
 
-from . import views
+from . import analytics_views, catalog_views, views
 
 
 app_name = "owner"
 
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
+    path("analytics/", analytics_views.analytics, name="analytics"),
+    path("catalog/", catalog_views.catalog_manager, name="catalog-manager"),
+    path("catalog/<str:entity>/<int:object_id>/delete/", catalog_views.catalog_delete, name="catalog-delete"),
     path("products/", views.products, name="products"),
     path("products/new/", views.product_edit, name="product-new"),
     path("products/<int:product_id>/", views.product_edit, name="product-edit"),
+    path("products/<int:product_id>/media/", catalog_views.product_media, name="product-media"),
+    path("products/<int:product_id>/variants/", catalog_views.variant_manager, name="variant-manager"),
+    path("shipping-methods/", catalog_views.shipping_methods, name="shipping-methods"),
     path("warehouse/", views.warehouse, name="warehouse"),
     path("orders/", views.orders, name="orders"),
     path("orders/<int:order_id>/", views.order_detail, name="order-detail"),
@@ -25,7 +31,6 @@ urlpatterns = [
     path("staff/", views.staff, name="staff"),
     path("staff/<int:user_id>/toggle/", views.staff_toggle, name="staff-toggle"),
     path("reports/", views.reports, name="reports"),
-    path("data/", views.data_center, name="data-center"),
     path("reports/export/<str:report_name>/", views.export_report, name="export-report"),
     path("settings/", views.settings_view, name="settings"),
 ]

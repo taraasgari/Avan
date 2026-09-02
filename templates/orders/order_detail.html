@@ -1,47 +1,13 @@
-{% extends "base.html" %}
-{% load static %}
-
-
-{% block title %}
-Order — AVAN
-{% endblock %}
-
-
-{% block extra_css %}
-<link
-    rel="stylesheet"
-    href="{% static 'css/order-detail.css' %}"
->
-{% endblock %}
-
-
+{% extends "base.html" %}{% load static %}
+{% block title %}Order {{ order.number }} — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/checkout-v2.css' %}">{% endblock %}
 {% block content %}
-
-<section
-    class="order-page"
-    data-order-page
-    data-order-number="{{ order_number }}"
->
-
-    <div class="order-loading">
-        LOADING YOUR ORDER...
-    </div>
-
+<section class="order-v2">
+<header><span>AVAN / ORDER</span><h1>ORDER<br>{{ order.number|stringformat:'s'|slice:':8' }}.</h1><div class="order-v2__status">{{ order.get_status_display|upper }}</div></header>
+<div class="order-v2__grid"><section class="checkout-card"><div class="checkout-card__head"><span>01</span><h2>ITEMS</h2></div>{% for item in order.items.all %}<div class="order-item-v2"><div><strong>{{ item.product_name }}</strong><small>{{ item.color_name }} / {{ item.size_name }} · {{ item.sku }}</small>{% if item.is_customized %}<small>CUSTOM DESIGN{% if item.design_title %} · {{ item.design_title }}{% endif %}</small>{% endif %}</div><span>{{ item.quantity }} × {{ item.unit_price|floatformat:'0' }}</span><b>{{ item.line_total|floatformat:'0' }}</b></div>{% endfor %}</section>
+<aside><section class="checkout-card"><div class="checkout-card__head"><span>02</span><h2>DELIVERY</h2></div><p>{{ order.customer_name }}<br>{{ order.phone }}<br>{{ order.province }} / {{ order.city }}<br>{{ order.address }}{% if order.postal_code %}<br>{{ order.postal_code }}{% endif %}</p>{% if shipment %}<div class="order-shipment"><strong>{{ shipment.get_status_display|upper }}</strong>{% if shipment.method %}<span>{% if request.LANGUAGE_CODE == 'fa' %}{{ shipment.method.name_fa }}{% else %}{{ shipment.method.name_en }}{% endif %}</span>{% endif %}{% if shipment.tracking_code %}<span>TRACKING: {{ shipment.tracking_code }}</span>{% endif %}</div>{% endif %}</section>
+<section class="checkout-card"><div class="checkout-money"><div><span>SUBTOTAL</span><b>{{ order.subtotal|floatformat:'0' }}</b></div><div><span>DISCOUNT</span><b>{{ order.discount_amount|floatformat:'0' }}</b></div><div><span>SHIPPING</span><b>{{ order.shipping_amount|floatformat:'0' }}</b></div><div class="is-total"><span>TOTAL</span><strong>{{ order.total_amount|floatformat:'0' }}</strong></div></div></section>
+{% if payment and payment.status == 'pending' and debug_payment %}<section class="checkout-card dev-payment"><strong>DEVELOPMENT PAYMENT</strong><p>This button only exists while Django DEBUG=True.</p><button type="button" data-dev-pay="{{ payment.id }}" data-order-number="{{ order.number }}">SIMULATE SUCCESSFUL PAYMENT</button><div data-dev-pay-message></div></section>{% endif %}</aside></div>
 </section>
-
-
-<div hidden id="order-csrf">
-    {% csrf_token %}
-</div>
-
 {% endblock %}
-
-
-{% block extra_js %}
-
-<script
-    src="{% static 'js/order-detail.js' %}"
-    defer
-></script>
-
-{% endblock %}
+{% block extra_js %}{% if payment and payment.status == 'pending' and debug_payment %}<script>document.addEventListener('DOMContentLoaded',()=>{const b=document.querySelector('[data-dev-pay]');if(!b)return;b.addEventListener('click',async()=>{b.disabled=true;const csrf=document.querySelector('#avan-csrf input')?.value||'';try{const r=await fetch(`/api/payments/${b.dataset.devPay}/dev-success/`,{method:'POST',headers:{'X-CSRFToken':csrf}});const d=await r.json();if(!r.ok)throw new Error(d.detail||'Payment failed');location.reload();}catch(e){document.querySelector('[data-dev-pay-message]').textContent=e.message;b.disabled=false;}});});</script>{% endif %}{% endblock %}

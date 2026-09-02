@@ -1,0 +1,64 @@
+TRANSLATIONS = {
+    "menu": {"en": "MENU", "fa": "منو"},
+    "shop": {"en": "SHOP", "fa": "فروشگاه"},
+    "design": {"en": "DESIGN", "fa": "طراحی"},
+    "explore": {"en": "EXPLORE", "fa": "کاوش"},
+    "for_you": {"en": "FOR YOU", "fa": "برای شما"},
+    "drops": {"en": "DROPS", "fa": "دراپ‌ها"},
+    "challenges": {"en": "CHALLENGES", "fa": "چالش‌ها"},
+    "search": {"en": "SEARCH", "fa": "جستجو"},
+    "owner": {"en": "OWNER", "fa": "مالک"},
+    "alerts": {"en": "ALERTS", "fa": "اعلان‌ها"},
+    "sign_in": {"en": "SIGN IN", "fa": "ورود"},
+    "bag": {"en": "BAG", "fa": "سبد"},
+    "close": {"en": "Close", "fa": "بستن"},
+    "quick_access": {"en": "QUICK ACCESS", "fa": "دسترسی سریع"},
+    "following": {"en": "FOLLOWING", "fa": "دنبال‌شده‌ها"},
+    "outfits": {"en": "OUTFITS", "fa": "استایل‌ها"},
+    "home": {"en": "HOME", "fa": "خانه"},
+    "my_avan": {"en": "MY AVAN", "fa": "آوان من"},
+    "size_passport": {"en": "SIZE PASSPORT", "fa": "پروفایل سایز"},
+    "creator_wallet": {"en": "CREATOR WALLET", "fa": "کیف پول طراح"},
+    "following_feed": {"en": "FOLLOWING FEED", "fa": "فید دنبال‌شده‌ها"},
+    "my_outfits": {"en": "MY OUTFITS", "fa": "استایل‌های من"},
+    "owner_console": {"en": "OWNER CONSOLE", "fa": "پنل مالک"},
+    "open_store": {"en": "OPEN STORE", "fa": "باز کردن فروشگاه"},
+    "django_admin": {"en": "DJANGO ADMIN", "fa": "ادمین جنگو"},
+    "overview": {"en": "OVERVIEW", "fa": "نمای کلی"},
+    "products": {"en": "PRODUCTS", "fa": "محصولات"},
+    "warehouse": {"en": "WAREHOUSE", "fa": "انبار"},
+    "orders": {"en": "ORDERS", "fa": "سفارش‌ها"},
+    "customers": {"en": "CUSTOMERS", "fa": "مشتریان"},
+    "designs": {"en": "DESIGNS", "fa": "طرح‌ها"},
+    "creators": {"en": "CREATORS", "fa": "طراحان"},
+    "marketing": {"en": "MARKETING", "fa": "بازاریابی"},
+    "finance": {"en": "FINANCE", "fa": "مالی"},
+    "operations": {"en": "OPERATIONS", "fa": "عملیات"},
+    "staff": {"en": "STAFF", "fa": "کارمندان"},
+    "reports": {"en": "REPORTS", "fa": "گزارش‌ها"},
+    "settings": {"en": "SETTINGS", "fa": "تنظیمات"},
+    "shipping": {"en": "SHIPPING", "fa": "ارسال"},
+    "returns": {"en": "RETURNS", "fa": "مرجوعی"},
+    "inventory_history": {"en": "INVENTORY HISTORY", "fa": "گردش موجودی"},
+    "production": {"en": "PRODUCTION", "fa": "تولید"},
+    "day": {"en": "DAY", "fa": "روز"},
+    "night": {"en": "NIGHT", "fa": "شب"},
+    "language": {"en": "FA", "fa": "EN"},
+    "addresses": {"en": "ADDRESSES", "fa": "آدرس‌ها"},
+    "analytics": {"en": "ANALYTICS", "fa": "تحلیل‌ها"},
+    "catalog_manager": {"en": "CATALOG MANAGER", "fa": "مدیریت کاتالوگ"},
+    "shipping_methods": {"en": "SHIPPING METHODS", "fa": "روش‌های ارسال"},
+    "media": {"en": "MEDIA", "fa": "تصاویر"},
+    "variants": {"en": "VARIANTS", "fa": "تنوع‌ها"},
+    "checkout": {"en": "CHECKOUT", "fa": "تسویه حساب"},
+}
+
+
+def normalize_language(value):
+    return "fa" if str(value or "").lower().startswith("fa") else "en"
+
+
+def translate(key, language="en"):
+    language = normalize_language(language)
+    item = TRANSLATIONS.get(key, {})
+    return item.get(language) or item.get("en") or key

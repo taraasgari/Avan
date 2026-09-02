@@ -1,0 +1,54 @@
+/* AVAN Stage 8 — shared light/dark + RTL shell */
+:root {
+  color-scheme: light;
+  --avan-bg: #ffffff;
+  --avan-surface: #f7f7f7;
+  --avan-surface-2: #eeeeee;
+  --avan-text: #111111;
+  --avan-muted: #6b6b6b;
+  --avan-line: #e8e8e8;
+  --avan-overlay: rgba(255,255,255,.96);
+  --avan-input: #ffffff;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --white: #0d0d0f;
+  --ink: #f4f4f4;
+  --muted: #a7a7aa;
+  --line: #2b2b2f;
+  --surface: #17171a;
+  --avan-bg: #0d0d0f;
+  --avan-surface: #17171a;
+  --avan-surface-2: #202024;
+  --avan-text: #f4f4f4;
+  --avan-muted: #a7a7aa;
+  --avan-line: #2b2b2f;
+  --avan-overlay: rgba(13,13,15,.96);
+  --avan-input: #141417;
+}
+html, body { background: var(--avan-bg); color: var(--avan-text); transition: background-color .18s ease,color .18s ease; }
+.site-header { background: var(--avan-overlay)!important; border-color: var(--avan-line)!important; }
+.avan-search__panel { background: var(--avan-bg)!important; color: var(--avan-text)!important; }
+.avan-search form { border-color: var(--avan-text)!important; }
+.avan-search input { background: transparent!important; color: var(--avan-text)!important; }
+.mobile-bottom-nav { background: var(--avan-overlay)!important; border-color: var(--avan-line)!important; }
+.avan-pref,.mobile-preferences button,.owner-preferences button { border:1px solid var(--avan-line); background:transparent; color:inherit; padding:7px 9px; font-size:.58rem; font-weight:900; cursor:pointer; }
+.mobile-preferences { display:flex; gap:8px; padding:16px 0 0; direction:ltr; }
+.owner-preferences { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:12px 16px; border-bottom:1px solid #2b2b2b; direction:ltr; }
+html[data-theme="dark"] :where(.auth-panel,.account-content,.shop-page,.product-page,.bag-page,.checkout-page,.order-page,.wishlist-page,.account-page,.stage5-page,.marketplace-page,.experience-page,.community-page,.notifications-page) { background:var(--avan-bg); color:var(--avan-text); }
+html[data-theme="dark"] :where(.account-stats,.account-order,.saved-product__image,.wishlist-card__image,.product-card,.shop-card,.cart-drawer,.cart-summary,.checkout-summary,.account-section,.stage5-panel,.marketplace-panel,.experience-card,.community-card) { border-color:var(--avan-line)!important; }
+html[data-theme="dark"] :where(input,select,textarea) { background:var(--avan-input); color:var(--avan-text); border-color:var(--avan-line); }
+html[data-theme="dark"] :where(.saved-product__image,.wishlist-card__image,.product-card__image,.shop-card__image) { background:var(--avan-surface)!important; }
+html[data-theme="dark"] .hero { background:linear-gradient(135deg,#0d0d0f 0 67%,#17171a 67% 100%)!important; }
+html[data-theme="dark"] .auth-art { background:#080809; }
+html[data-theme="dark"] .mobile-menu__panel { background:#080809; }
+/* Owner console */
+html[data-theme="dark"] .owner-body, html[data-theme="dark"] .owner-main, html[data-theme="dark"] .owner-content { background:#0d0d0f!important; color:#f4f4f4!important; }
+html[data-theme="dark"] :where(.owner-panel,.owner-kpis article,.owner-topbar,.owner-table,.owner-table td,.owner-table th) { background:#151518!important; color:#f4f4f4!important; border-color:#2b2b2f!important; }
+html[data-theme="dark"] :where(.owner-form input,.owner-form select,.owner-form textarea,.owner-action-form select,.owner-mini-form input,.owner-mini-form select,.owner-mini-form textarea) { background:#0f0f11!important; color:#f4f4f4!important; border-color:#34343a!important; }
+html[dir="rtl"] body { direction:rtl; }
+html[dir="rtl"] :where(.site-header nav,.header-actions,.mobile-bottom-nav,.owner-nav,.owner-topbar,.owner-content,.ops-page) { direction:rtl; }
+html[dir="rtl"] :where(h1,h2,h3,.lead,.owner-page-head,.ops-hero) { text-align:right; }
+html[dir="rtl"] .mobile-menu__panel { left:auto; right:0; transform:translateX(105%); }
+html[dir="rtl"] .mobile-menu.is-open .mobile-menu__panel { transform:translateX(0); }
+@media (max-width:960px){ .site-header .avan-pref { display:none; } }

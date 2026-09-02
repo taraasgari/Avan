@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Return Request — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/operations.css' %}">{% endblock %}
+{% block content %}
+<section class="ops-page ops-page--narrow"><header class="ops-hero"><span>ORDER {{ order.number|stringformat:"s"|slice:":8" }}</span><h1>RETURN.</h1><p>SUBMIT A RETURN REQUEST. APPROVAL AND REFUND ARE REVIEWED BY AVAN OPERATIONS.</p></header>
+<section class="ops-panel"><form method="post" class="ops-form">{% csrf_token %}{% for field in form %}<label><span>{{ field.label|upper }}</span>{{ field }}{% if field.errors %}<small>{{ field.errors|join:", " }}</small>{% endif %}</label>{% endfor %}<button class="ops-btn ops-btn--primary">SUBMIT REQUEST</button></form></section></section>
+{% endblock %}

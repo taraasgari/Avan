@@ -75,7 +75,11 @@ def place_order(*, cart: Cart, checkout_data: dict, idempotency_key=None, user=N
     if not valid:
         raise CheckoutError(message)
     discount = calculate_coupon_discount(cart.coupon, subtotal=subtotal, user=user)
-    shipping = Decimal(str(getattr(settings, "DEFAULT_SHIPPING_AMOUNT", 0)))
+    shipping_method = checkout_data.get("_shipping_method")
+    if shipping_method is not None:
+        shipping = Decimal(shipping_method.base_price or 0)
+    else:
+        shipping = Decimal(str(getattr(settings, "DEFAULT_SHIPPING_AMOUNT", 0)))
     total = max(Decimal("0"), subtotal - discount + shipping)
 
     order = Order.objects.create(
@@ -95,6 +99,10 @@ def place_order(*, cart: Cart, checkout_data: dict, idempotency_key=None, user=N
         postal_code=checkout_data.get("postal_code", ""),
         customer_note=checkout_data.get("customer_note", ""),
     )
+
+    if shipping_method is not None:
+        from apps.operations.models import Shipment
+        Shipment.objects.get_or_create(order=order, defaults={"method": shipping_method})
 
     expires_at = now + timedelta(minutes=reservation_minutes())
     for item in items:

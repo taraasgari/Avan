@@ -35,11 +35,13 @@ INSTALLED_APPS = [
     "apps.wardrobe",
     "apps.marketplace",
     "apps.owner",
+    "apps.operations",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "apps.core.middleware.AvanLocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -88,7 +90,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "accounts.User"
 
-LANGUAGE_CODE = "fa-ir"
+LANGUAGE_CODE = "en"
+LANGUAGES = [
+    ("en", "English"),
+    ("fa", "فارسی"),
+]
 TIME_ZONE = "Asia/Tehran"
 USE_I18N = True
 USE_TZ = True

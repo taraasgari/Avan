@@ -1,0 +1,16 @@
+{% extends "owner/base.html" %}
+{% block title %}Catalog Manager — AVAN OWNER{% endblock %}
+{% block content %}
+<header class="owner-page-head"><div><span>CATALOG SYSTEM</span><h1>CATALOG MANAGER.</h1><p>Manage categories, colors and sizes without Django Admin.</p></div><a class="owner-btn" href="/owner/products/">PRODUCTS →</a></header>
+<div class="s9-three-grid">
+<section class="owner-panel"><div class="owner-panel__head"><div><span>CATEGORIES</span><h2>PRODUCT GROUPS</h2></div></div>
+<form method="post" class="s9-mini-form">{% csrf_token %}<input type="hidden" name="entity" value="category">{% for field in category_form %}<label class="owner-field"><span>{{ field.label|upper }}</span>{{ field }}{% for error in field.errors %}<b>{{ error }}</b>{% endfor %}</label>{% endfor %}<button class="owner-btn owner-btn--primary">+ ADD CATEGORY</button></form>
+<div class="s9-entity-list">{% for item in categories %}<div><div><strong>{{ item.name }}</strong><small>{{ item.slug }} · ORDER {{ item.sort_order }}{% if not item.is_active %} · INACTIVE{% endif %}</small></div><form method="post" action="/owner/catalog/category/{{ item.id }}/delete/">{% csrf_token %}<button class="s9-text-danger" onclick="return confirm('Delete this category?')">DELETE</button></form></div>{% empty %}<p class="owner-empty">NO CATEGORIES.</p>{% endfor %}</div></section>
+<section class="owner-panel"><div class="owner-panel__head"><div><span>COLORS</span><h2>COLOR LIBRARY</h2></div></div>
+<form method="post" class="s9-mini-form">{% csrf_token %}<input type="hidden" name="entity" value="color">{% for field in color_form %}<label class="owner-field"><span>{{ field.label|upper }}</span>{{ field }}{% for error in field.errors %}<b>{{ error }}</b>{% endfor %}</label>{% endfor %}<button class="owner-btn owner-btn--primary">+ ADD COLOR</button></form>
+<div class="s9-entity-list">{% for item in colors %}<div><div class="s9-color-name"><i style="background:{{ item.hex_code|default:'#ddd' }}"></i><div><strong>{{ item.name }}</strong><small>{{ item.slug }} · {{ item.hex_code|default:'NO HEX' }}</small></div></div><form method="post" action="/owner/catalog/color/{{ item.id }}/delete/">{% csrf_token %}<button class="s9-text-danger" onclick="return confirm('Delete this color?')">DELETE</button></form></div>{% empty %}<p class="owner-empty">NO COLORS.</p>{% endfor %}</div></section>
+<section class="owner-panel"><div class="owner-panel__head"><div><span>SIZES</span><h2>SIZE LIBRARY</h2></div></div>
+<form method="post" class="s9-mini-form">{% csrf_token %}<input type="hidden" name="entity" value="size">{% for field in size_form %}<label class="owner-field"><span>{{ field.label|upper }}</span>{{ field }}{% for error in field.errors %}<b>{{ error }}</b>{% endfor %}</label>{% endfor %}<button class="owner-btn owner-btn--primary">+ ADD SIZE</button></form>
+<div class="s9-entity-list">{% for item in sizes %}<div><div><strong>{{ item.name }}</strong><small>ORDER {{ item.sort_order }}</small></div><form method="post" action="/owner/catalog/size/{{ item.id }}/delete/">{% csrf_token %}<button class="s9-text-danger" onclick="return confirm('Delete this size?')">DELETE</button></form></div>{% empty %}<p class="owner-empty">NO SIZES.</p>{% endfor %}</div></section>
+</div>
+{% endblock %}

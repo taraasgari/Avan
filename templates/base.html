@@ -1,50 +1,53 @@
-{% load static %}
+{% load static avan_ui %}
+{% avan_lang as AVAN_PAGE_LANG %}{% avan_dir as AVAN_PAGE_DIR %}
 <!doctype html>
-<html lang="fa" dir="rtl">
+<html lang="{{ AVAN_PAGE_LANG }}" dir="{{ AVAN_PAGE_DIR }}" data-avan-language="{{ AVAN_PAGE_LANG }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <meta name="theme-color" content="#D50000">
     <meta name="description" content="AVAN — fashion, design and drops">
-
+    <script>(function(){try{var t=localStorage.getItem('avan_theme');if(t!=='dark'&&t!=='light')t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}})();</script>
     <link rel="manifest" href="{% static 'pwa/manifest.webmanifest' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/cart.css' %}">
     <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
     <link rel="stylesheet" href="{% static 'css/shell.css' %}">
-
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
     {% block extra_css %}{% endblock %}
     <title>{% block title %}{{ AVAN_BRAND_NAME }}{% endblock %}</title>
 </head>
 <body>
 <header class="site-header">
-    <button type="button" class="mobile-menu-trigger" data-menu-open aria-label="Open menu">MENU</button>
+    <button type="button" class="mobile-menu-trigger" data-menu-open aria-label="{% avan_t 'menu' %}">{% avan_t "menu" %}</button>
     <a class="brand" href="/">{{ AVAN_BRAND_NAME }}</a>
 
     <nav aria-label="Main navigation">
-        <a href="/shop/">SHOP</a>
-        <a href="/design/">DESIGN</a>
-        <a href="/explore/">EXPLORE</a>
-        {% if request.user.is_authenticated %}<a href="/for-you/">FOR YOU</a>{% endif %}
-        <a href="/drops/">DROPS</a>
-        <a href="/challenges/">CHALLENGES</a>
+        <a href="/shop/">{% avan_t "shop" %}</a>
+        <a href="/design/">{% avan_t "design" %}</a>
+        <a href="/explore/">{% avan_t "explore" %}</a>
+        {% if request.user.is_authenticated %}<a href="/for-you/">{% avan_t "for_you" %}</a>{% endif %}
+        <a href="/drops/">{% avan_t "drops" %}</a>
+        <a href="/challenges/">{% avan_t "challenges" %}</a>
     </nav>
 
     <div class="header-actions">
-        <button type="button" class="header-action" data-search-open aria-label="Search">SEARCH</button>
+        <button type="button" class="header-action" data-search-open aria-label="{% avan_t 'search' %}">{% avan_t "search" %}</button>
+        <button type="button" class="avan-pref" data-theme-toggle aria-label="Theme"><span data-theme-label>{% avan_t "night" %}</span></button>
+        <button type="button" class="avan-pref" data-language-toggle aria-label="Language">{% avan_t "language" %}</button>
 
         {% if request.user.is_authenticated %}
-        {% if request.user.is_superuser %}<a href="/owner/" class="header-action">OWNER</a>{% endif %}
+        {% if request.user.is_superuser %}<a href="/owner/" class="header-action">{% avan_t "owner" %}</a>{% endif %}
         <a href="/account/notifications/" class="header-notifications" aria-label="Notifications">
-            ALERTS
+            {% avan_t "alerts" %}
             <span class="header-notifications__badge" data-notification-badge {% if not AVAN_UNREAD_NOTIFICATIONS %}hidden{% endif %}>{{ AVAN_UNREAD_NOTIFICATIONS }}</span>
         </a>
         <a href="/account/" class="header-action">{{ request.user.display_name|default:request.user.username|upper }}</a>
         {% else %}
-        <a href="/account/login/" class="header-action">SIGN IN</a>
+        <a href="/account/login/" class="header-action">{% avan_t "sign_in" %}</a>
         {% endif %}
 
-        <button type="button" class="header-bag" data-cart-open>BAG <span data-cart-count>0</span></button>
+        <button type="button" class="header-bag" data-cart-open>{% avan_t "bag" %} <span data-cart-count>0</span></button>
     </div>
 </header>
 
@@ -53,41 +56,43 @@
 {% include "partials/cart_drawer.html" %}
 
 <div class="avan-search" data-search-overlay aria-hidden="true">
-    <button type="button" class="avan-search__backdrop" data-search-close aria-label="Close search"></button>
+    <button type="button" class="avan-search__backdrop" data-search-close aria-label="{% avan_t 'close' %}"></button>
     <div class="avan-search__panel">
-        <div class="avan-search__head"><span>AVAN / SEARCH</span><button type="button" data-search-close>×</button></div>
+        <div class="avan-search__head"><span>AVAN / {% avan_t "search" %}</span><button type="button" data-search-close>×</button></div>
         <form action="/search/" method="get">
             <input type="search" name="q" placeholder="WHAT ARE YOU LOOKING FOR?" data-search-input autocomplete="off">
-            <button type="submit">SEARCH →</button>
+            <button type="submit">{% avan_t "search" %} →</button>
         </form>
-        <div class="avan-search__quick"><span>QUICK ACCESS</span><a href="/shop/">SHOP</a><a href="/explore/">EXPLORE</a>{% if request.user.is_authenticated %}<a href="/following/">FOLLOWING</a><a href="/outfits/">OUTFITS</a>{% endif %}</div>
+        <div class="avan-search__quick"><span>{% avan_t "quick_access" %}</span><a href="/shop/">{% avan_t "shop" %}</a><a href="/explore/">{% avan_t "explore" %}</a>{% if request.user.is_authenticated %}<a href="/following/">{% avan_t "following" %}</a><a href="/outfits/">{% avan_t "outfits" %}</a>{% endif %}</div>
     </div>
 </div>
 
 <div class="mobile-menu" data-mobile-menu aria-hidden="true">
-    <button type="button" class="mobile-menu__backdrop" data-menu-close aria-label="Close menu"></button>
+    <button type="button" class="mobile-menu__backdrop" data-menu-close aria-label="{% avan_t 'close' %}"></button>
     <aside class="mobile-menu__panel">
         <div class="mobile-menu__head"><strong>AVAN</strong><button type="button" data-menu-close>×</button></div>
+        <div class="mobile-preferences"><button type="button" data-theme-toggle><span data-theme-label>{% avan_t "night" %}</span></button><button type="button" data-language-toggle>{% avan_t "language" %}</button></div>
         <nav>
-            <a href="/shop/"><span>01</span>SHOP</a>
-            <a href="/design/"><span>02</span>DESIGN</a>
-            <a href="/explore/"><span>03</span>EXPLORE</a>
-            <a href="/drops/"><span>04</span>DROPS</a>
-            <a href="/challenges/"><span>05</span>CHALLENGES</a>
+            <a href="/shop/"><span>01</span>{% avan_t "shop" %}</a>
+            <a href="/design/"><span>02</span>{% avan_t "design" %}</a>
+            <a href="/explore/"><span>03</span>{% avan_t "explore" %}</a>
+            <a href="/drops/"><span>04</span>{% avan_t "drops" %}</a>
+            <a href="/challenges/"><span>05</span>{% avan_t "challenges" %}</a>
         </nav>
         <div class="mobile-menu__account">
             {% if request.user.is_authenticated %}
-            {% if request.user.is_superuser %}<a href="/owner/">OWNER CONSOLE</a>{% endif %}<a href="/for-you/">FOR YOU</a><a href="/following/">FOLLOWING FEED</a><a href="/outfits/">MY OUTFITS</a><a href="/size-passport/">SIZE PASSPORT</a><a href="/account/creator/wallet/">CREATOR WALLET</a><a href="/account/">MY AVAN</a>
-            {% else %}<a href="/account/login/">SIGN IN</a>{% endif %}
+            {% if request.user.is_superuser %}<a href="/owner/">{% avan_t "owner_console" %}</a>{% endif %}<a href="/for-you/">{% avan_t "for_you" %}</a><a href="/following/">{% avan_t "following_feed" %}</a><a href="/outfits/">{% avan_t "my_outfits" %}</a><a href="/size-passport/">{% avan_t "size_passport" %}</a><a href="/account/addresses/">{% avan_t "addresses" %}</a><a href="/account/returns/">{% avan_t "returns" %}</a><a href="/account/creator/wallet/">{% avan_t "creator_wallet" %}</a><a href="/account/">{% avan_t "my_avan" %}</a>
+            {% else %}<a href="/account/login/">{% avan_t "sign_in" %}</a>{% endif %}
         </div>
     </aside>
 </div>
 
 <nav class="mobile-bottom-nav" aria-label="Mobile quick navigation">
-    <a href="/">HOME</a><a href="/shop/">SHOP</a><a href="/design/" class="mobile-bottom-nav__design">+</a><a href="/explore/">EXPLORE</a><button type="button" data-cart-open>BAG <span data-cart-count>0</span></button>
+    <a href="/">{% avan_t "home" %}</a><a href="/shop/">{% avan_t "shop" %}</a><a href="/design/" class="mobile-bottom-nav__design">+</a><a href="/explore/">{% avan_t "explore" %}</a><button type="button" data-cart-open>{% avan_t "bag" %} <span data-cart-count>0</span></button>
 </nav>
 
 <div hidden id="avan-csrf">{% csrf_token %}</div>
+<script src="{% static 'js/preferences.js' %}" defer></script>
 <script src="{% static 'js/app.js' %}" defer></script>
 <script src="{% static 'js/cart-ui.js' %}" defer></script>
 {% block extra_js %}{% endblock %}
