@@ -32,6 +32,7 @@ def _snapshot_design(design):
         "base_color_id": design.base_color_id,
         "parent_design_id": str(design.parent_design_id) if design.parent_design_id else None,
         "design_data": deepcopy(design.design_data),
+        "sale_price": int(design.sale_price or 0),
     }
 
 
@@ -78,6 +79,9 @@ class CartItemCreateAPIView(APIView):
             product__is_active=True,
         )
         design = _allowed_design(request, request.data.get("design_id"))
+        design_fee = 0
+        if design and not (request.user.is_authenticated and design.owner_id == request.user.id):
+            design_fee = design.sale_price if design.is_for_sale else 0
 
         if design:
             if design.base_product_id != variant.product_id:
@@ -105,6 +109,7 @@ class CartItemCreateAPIView(APIView):
                 variant=variant,
                 design=design,
                 design_snapshot=snapshot,
+                design_fee=design_fee,
                 quantity=new_quantity,
             )
         else:

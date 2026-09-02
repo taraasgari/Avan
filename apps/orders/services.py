@@ -11,6 +11,7 @@ from apps.coupons.models import CouponRedemption
 from apps.coupons.services import calculate_coupon_discount, validate_coupon
 from apps.payments.models import PaymentAttempt
 from apps.notifications.models import Notification
+from apps.marketplace.services import record_creator_earnings, split_design_fee
 from .models import Order, OrderItem, StockReservation
 
 
@@ -68,7 +69,7 @@ def place_order(*, cart: Cart, checkout_data: dict, idempotency_key=None, user=N
         available = int(variant.stock) - reserved
         if item.quantity > available:
             raise CheckoutError(f"Not enough stock for SKU {variant.sku}.")
-        subtotal += Decimal(variant.price) * item.quantity
+        subtotal += item.unit_price_total * item.quantity
 
     valid, message = validate_coupon(cart.coupon, user=user, subtotal=subtotal)
     if not valid:
@@ -99,6 +100,8 @@ def place_order(*, cart: Cart, checkout_data: dict, idempotency_key=None, user=N
     for item in items:
         variant = locked_variants[item.variant_id]
         snapshot = item.design_snapshot or {}
+        commission_amount, creator_amount, commission_percent = split_design_fee(item.design_fee)
+        unit_price = Decimal(variant.price) + Decimal(item.design_fee or 0)
         OrderItem.objects.create(
             order=order,
             variant=variant,
@@ -106,11 +109,17 @@ def place_order(*, cart: Cart, checkout_data: dict, idempotency_key=None, user=N
             sku=variant.sku,
             color_name=variant.color.name,
             size_name=variant.size.name,
-            unit_price=variant.price,
+            unit_price=unit_price,
+            garment_unit_price=variant.price,
+            design_fee=item.design_fee,
+            creator_id_snapshot=snapshot.get("owner_id") if item.design_fee else None,
+            platform_commission_percent=commission_percent,
+            platform_commission_amount=commission_amount,
+            creator_earning_amount=creator_amount,
             quantity=item.quantity,
-            line_total=Decimal(variant.price) * item.quantity,
+            line_total=unit_price * item.quantity,
             is_customized=bool(item.design_id or snapshot),
-            design_id_snapshot=item.design_id,
+            design_id_snapshot=snapshot.get("id") or item.design_id,
             design_title=snapshot.get("title", "")[:120],
             design_owner_name=snapshot.get("owner_name", "")[:120],
             design_snapshot=snapshot,
@@ -185,6 +194,7 @@ def confirm_payment(order: Order, payment_attempt: PaymentAttempt, *, external_r
     payment_attempt.save(update_fields=["status", "external_reference", "updated_at"])
     if order.cart and order.cart.coupon:
         CouponRedemption.objects.get_or_create(coupon=order.cart.coupon, user=order.user, order=order)
+    record_creator_earnings(order)
     if order.user_id:
         Notification.objects.create(
             user=order.user,

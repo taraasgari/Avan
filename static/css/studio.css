@@ -103,3 +103,6 @@
 .studio-add-bag{width:100%;min-height:49px;margin-top:7px;border:0;background:var(--red);color:#fff;cursor:pointer;font-size:.65rem;font-weight:950}
 .studio-add-bag:disabled{background:#ccc;cursor:not-allowed}.studio-buy-message{min-height:28px;padding-top:8px;font-size:.6rem;font-weight:800}
 .studio-publish-options{margin-top:20px;padding-top:18px;border-top:1px solid #ddd;display:grid;gap:9px}.studio-publish-options label{display:flex;align-items:center;gap:8px;font-size:.58rem;font-weight:900;cursor:pointer}.studio-publish-options input{accent-color:var(--red)}
+
+/* Stage 6 creator fee */
+.studio-sale-fee{display:block!important;margin-top:15px}.studio-sale-fee>span{display:block;margin-bottom:7px}.studio-sale-fee input{width:100%;box-sizing:border-box;min-height:42px;padding:0 10px}.studio-sale-fee small{display:block;margin-top:6px;color:var(--muted);font-size:.55rem;line-height:1.4}

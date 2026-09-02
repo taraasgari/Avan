@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Outfits — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/wardrobe.css' %}">{% endblock %}
+
+{% block content %}
+<section class="outfits-page">
+    <header class="wardrobe-hero">
+        <div><p>MY AVAN / OUTFITS</p><h1>BUILD<br>THE FIT.</h1></div>
+        <div class="wardrobe-hero__copy">
+            <p>Combine exact AVAN variants into a reusable outfit, then add every available piece to your bag in one move.</p>
+            <form method="post" action="/outfits/create/">{% csrf_token %}<input type="hidden" name="title" value="New Outfit"><button class="wardrobe-primary" type="submit">NEW OUTFIT +</button></form>
+        </div>
+    </header>
+
+    <div class="outfit-list-grid">
+        {% for outfit in outfits %}
+        <article class="outfit-list-card">
+            <a href="/outfits/{{ outfit.id }}/">
+                <div class="outfit-list-card__media">
+                    {% for item in outfit.items.all|slice:":4" %}
+                        {% with image=item.variant.product.images.first %}
+                        <div>{% if image %}<img src="{{ image.image.url }}" alt="{{ item.variant.product.name }}">{% else %}<span>AVAN</span>{% endif %}</div>
+                        {% endwith %}
+                    {% empty %}
+                        <div class="outfit-list-card__empty">ADD PIECES</div>
+                    {% endfor %}
+                </div>
+                <div class="outfit-list-card__body"><span>{{ outfit.items.count }} PIECES</span><h2>{{ outfit.title }}</h2><small>UPDATED {{ outfit.updated_at|date:"Y/m/d H:i" }}</small></div>
+            </a>
+            <form method="post" action="/outfits/{{ outfit.id }}/delete/" onsubmit="return confirm('Delete this outfit?');">{% csrf_token %}<button type="submit">DELETE</button></form>
+        </article>
+        {% empty %}
+        <div class="wardrobe-empty"><span>OUTFIT BUILDER</span><h2>NO OUTFITS YET.</h2><p>Create your first complete AVAN fit.</p></div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

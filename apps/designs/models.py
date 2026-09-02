@@ -37,6 +37,7 @@ class Design(models.Model):
     visibility = models.CharField(max_length=16, choices=Visibility.choices, default=Visibility.PRIVATE)
     allow_remix = models.BooleanField(default=False)
     is_for_sale = models.BooleanField(default=False)
+    sale_price = models.DecimalField(max_digits=12, decimal_places=0, default=0)
     parent_design = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,

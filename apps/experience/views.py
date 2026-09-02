@@ -5,6 +5,8 @@ from django.utils import timezone
 
 from apps.designs.models import Design
 from apps.designs.web_views import _preview_payload
+from apps.marketplace.models import MarketplaceSettings
+
 from .models import Challenge, ChallengeEntry, Drop, RewardWallet
 
 
@@ -145,5 +147,5 @@ def rewards(request):
     return render(
         request,
         "experience/rewards.html",
-        {"wallet": wallet, "transactions": transactions},
+        {"wallet": wallet, "transactions": transactions, "marketplace_config": MarketplaceSettings.load()},
     )

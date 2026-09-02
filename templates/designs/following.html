@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Following — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/stage5.css' %}">{% endblock %}
+
+{% block content %}
+<section class="explore-page">
+    <header class="explore-hero">
+        <div><p>AVAN / FOLLOWING</p><h1>YOUR<br>CREATORS.</h1></div>
+        <div class="explore-intro"><p>A focused feed of new work from creators you chose to follow.</p><a href="/explore/">DISCOVER MORE CREATORS →</a></div>
+    </header>
+    <div class="stage5-tabs"><a href="/explore/">EXPLORE</a><a href="/following/" class="is-active">FOLLOWING</a></div>
+    <div class="explore-grid">
+        {% for card in cards %}
+        <article class="explore-card">
+            <a class="explore-card__preview" href="/explore/{{ card.design.id }}/">{% include "designs/_preview.html" with design=card.design preview=card.preview compact=True %}</a>
+            <div class="explore-card__body">
+                <div class="explore-card__creator"><span>BY</span><a href="/creator/{{ card.design.owner.username }}/"><strong>{{ card.design.owner.display_name|default:card.design.owner.username }}</strong></a></div>
+                <a href="/explore/{{ card.design.id }}/"><h2>{{ card.design.title }}</h2></a>
+                <p>{{ card.design.base_product.name }}{% if card.design.base_color %} / {{ card.design.base_color.name }}{% endif %}</p>
+                <div class="explore-card__stats"><span>♥ {{ card.design.likes_total }}</span><span>REMIX {{ card.design.remixes_total }}</span>{% if card.design.is_for_sale %}<span class="for-sale">WEAR IT</span>{% endif %}</div>
+            </div>
+        </article>
+        {% empty %}<div class="explore-empty"><span>FOLLOWING FEED</span><h2>YOUR FEED IS QUIET.</h2><p>Follow creators you like and their new published designs will appear here.</p><a href="/explore/">EXPLORE CREATORS</a></div>{% endfor %}
+    </div>
+</section>
+{% endblock %}

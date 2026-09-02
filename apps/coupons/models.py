@@ -16,6 +16,7 @@ class Coupon(models.Model):
     ends_at = models.DateTimeField(null=True, blank=True)
     usage_limit = models.PositiveIntegerField(null=True, blank=True)
     usage_limit_per_user = models.PositiveIntegerField(default=1)
+    assigned_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="assigned_coupons", null=True, blank=True, help_text="Optional account lock. Used by AVAN Points reward coupons.")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

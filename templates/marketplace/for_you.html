@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}For You — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/marketplace.css' %}">{% endblock %}
+{% block content %}
+<section class="for-you-page">
+  <header class="market-hero"><span>AVAN / PERSONAL FEED</span><h1>FOR<br>YOU.</h1><p>A local rule-based feed using creators you follow, designs you save, wishlist categories and paid orders. No external AI dependency.</p></header>
+  <section class="for-you-section"><div class="market-section-head"><div><span>DESIGNS</span><h2>YOUR CREATOR MIX.</h2></div><a href="/following/">FOLLOWING →</a></div>
+    <div class="explore-grid">{% for card in cards %}<article class="explore-card" data-design-card><a href="/explore/{{ card.design.id }}/" class="explore-card__preview">{% include "designs/_preview.html" with design=card.design preview=card.preview compact=True %}</a><div class="explore-card__meta"><div><a href="/explore/{{ card.design.id }}/"><strong>{{ card.design.title }}</strong></a><span>BY {{ card.design.owner.display_name|default:card.design.owner.username }}</span></div><div class="explore-card__stats"><span>♥ {{ card.design.likes.count }}</span><span>↻ {{ card.design.remixes.count }}</span></div></div></article>{% empty %}<div class="market-empty">FOLLOW CREATORS OR SAVE DESIGNS TO PERSONALIZE THIS FEED.</div>{% endfor %}</div>
+  </section>
+  <section class="for-you-section"><div class="market-section-head"><div><span>SHOP</span><h2>PICKS FROM YOUR CATEGORIES.</h2></div><a href="/shop/">ALL SHOP →</a></div>
+    <div class="recommend-product-grid">{% for product in products %}<a href="/shop/{{ product.slug }}/" class="recommend-product"><div>{% with image=product.images.first %}{% if image %}<img src="{{ image.image.url }}" alt="{{ product.name }}">{% else %}<span>AVAN</span>{% endif %}{% endwith %}</div><strong>{{ product.name }}</strong><small>{{ product.base_price|floatformat:"0" }} TOMAN</small></a>{% empty %}<div class="market-empty">NO PRODUCT SIGNALS YET.</div>{% endfor %}</div>
+  </section>
+</section>
+{% endblock %}

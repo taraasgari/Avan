@@ -19,3 +19,6 @@
 @media(max-width:1100px){.explore-grid{grid-template-columns:repeat(3,1fr)}.public-design-page{grid-template-columns:1fr 420px}.related-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:800px){.explore-hero{grid-template-columns:1fr}.explore-intro{justify-self:start}.explore-grid{grid-template-columns:repeat(2,1fr);padding-inline:15px}.public-design-page{display:block}.public-design-visual>.design-preview,.public-design-visual .design-preview__stage{min-height:70vh;height:auto}.public-design-info{border-left:0}.public-design-info__inner{position:static;max-height:none;padding:35px 20px 60px}}
 @media(max-width:480px){.explore-hero{padding:55px 20px 35px}.explore-hero h1{font-size:4.4rem}.explore-toolbar{padding-inline:20px}.explore-grid{gap:8px;row-gap:30px}.explore-card__actions{flex-wrap:wrap}.related-designs{padding:60px 20px}.related-grid{grid-template-columns:1fr 1fr;gap:8px}}
+
+/* Stage 6 creator pricing */
+.creator-fee-line{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:.65rem}

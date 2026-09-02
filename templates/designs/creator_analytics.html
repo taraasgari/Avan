@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Creator Analytics — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/stage5.css' %}"><link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/marketplace.css' %}">{% endblock %}
+
+{% block content %}
+<section class="analytics-page">
+    <header class="analytics-hero">
+        <div><p>MY AVAN / CREATOR</p><h1>CREATOR<br>ANALYTICS.</h1></div>
+        <div><p>Performance for your public AVAN designs, paid wears and finalized creator earnings.</p>{% if request.user.public_profile_enabled %}<a href="/creator/{{ request.user.username }}/">VIEW PUBLIC PROFILE →</a>{% else %}<a href="/account/profile/">ENABLE CREATOR PROFILE →</a>{% endif %}</div>
+    </header>
+
+    <div class="creator-commerce-banner"><div><span>CREATOR COMMERCE</span><strong>{{ totals.available|floatformat:"0" }} TOMAN AVAILABLE</strong><small>{{ totals.earned|floatformat:"0" }} TOTAL EARNED / {{ totals.pending|floatformat:"0" }} PENDING PAYOUT</small></div><a href="/account/creator/wallet/">OPEN WALLET →</a></div>
+
+    <div class="analytics-stats">
+        <article><span>PUBLISHED</span><strong>{{ totals.published }}</strong></article>
+        <article><span>FOLLOWERS</span><strong>{{ totals.followers }}</strong></article>
+        <article><span>LIKES</span><strong>{{ totals.likes }}</strong></article>
+        <article><span>SAVES</span><strong>{{ totals.saves }}</strong></article>
+        <article><span>REMIXES</span><strong>{{ totals.remixes }}</strong></article>
+        <article><span>PAID WEARS</span><strong>{{ totals.wears }}</strong><small>{{ totals.orders }} ORDERS</small></article>
+    </div>
+
+    <section class="analytics-designs">
+        <div class="analytics-section-head"><div><span>PER DESIGN</span><h2>WHAT'S WORKING.</h2></div><a href="/design/">CREATE NEW →</a></div>
+        <div class="analytics-table">
+            {% for row in rows %}
+            <a class="analytics-row" href="/explore/{{ row.design.id }}/">
+                <div class="analytics-thumb">{% include "designs/_preview.html" with design=row.design preview=row.preview compact=True %}</div>
+                <div><small>DESIGN</small><strong>{{ row.design.title }}</strong></div>
+                <div><small>LIKES</small><strong>{{ row.design.likes_total }}</strong></div>
+                <div><small>SAVES</small><strong>{{ row.design.saves_total }}</strong></div>
+                <div><small>REMIXES</small><strong>{{ row.design.remixes_total }}</strong></div>
+                <div><small>PAID WEARS</small><strong>{{ row.wears }}</strong></div>
+                <span>→</span>
+            </a>
+            {% empty %}<div class="wardrobe-empty"><h2>NO PUBLISHED DESIGNS YET.</h2><a href="/design/">OPEN AVAN STUDIO</a></div>{% endfor %}
+        </div>
+    </section>
+</section>
+{% endblock %}

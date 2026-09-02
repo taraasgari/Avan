@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Size Passport — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/wardrobe.css' %}">{% endblock %}
+
+{% block content %}
+<section class="passport-page">
+    <header class="wardrobe-hero">
+        <div>
+            <p>MY AVAN / SIZE PASSPORT</p>
+            <h1>YOUR FIT.<br>REMEMBERED.</h1>
+        </div>
+        <div class="wardrobe-hero__copy">
+            <p>Your measurements stay private. AVAN uses this profile only to make size selection faster and more consistent.</p>
+            {% if passport.usual_top_size %}<strong>USUAL TOP SIZE: {{ passport.usual_top_size.name }}</strong>{% endif %}
+        </div>
+    </header>
+
+    <div class="passport-layout">
+        <form method="post" class="passport-form">
+            {% csrf_token %}
+            {% if saved %}<div class="wardrobe-success">SIZE PASSPORT UPDATED ✓</div>{% endif %}
+
+            <section class="passport-section">
+                <div class="passport-section__head"><span>01</span><div><h2>BODY MEASUREMENTS</h2><p>Centimeters and kilograms.</p></div></div>
+                <div class="passport-grid">
+                    <label><span>HEIGHT / CM</span>{{ form.height_cm }}</label>
+                    <label><span>WEIGHT / KG</span>{{ form.weight_kg }}</label>
+                    <label><span>CHEST / CM</span>{{ form.chest_cm }}</label>
+                    <label><span>WAIST / CM</span>{{ form.waist_cm }}</label>
+                    <label><span>HIP / CM</span>{{ form.hip_cm }}</label>
+                </div>
+            </section>
+
+            <section class="passport-section">
+                <div class="passport-section__head"><span>02</span><div><h2>HOW YOU LIKE IT</h2><p>Use your normal AVAN preference, not a one-off look.</p></div></div>
+                <div class="passport-grid passport-grid--two">
+                    <label><span>PREFERRED FIT</span>{{ form.preferred_fit }}</label>
+                    <label><span>USUAL TOP SIZE</span>{{ form.usual_top_size }}</label>
+                </div>
+            </section>
+
+            <section class="passport-section">
+                <div class="passport-section__head"><span>03</span><div><h2>NOTES</h2><p>Optional fit notes for yourself.</p></div></div>
+                <label class="passport-wide"><span>FIT NOTES</span>{{ form.notes }}</label>
+            </section>
+
+            {% if form.errors %}<div class="wardrobe-error">Please check the highlighted fields.</div>{% endif %}
+            <button type="submit" class="wardrobe-primary">SAVE SIZE PASSPORT →</button>
+        </form>
+
+        <aside class="passport-side">
+            <div class="passport-card passport-card--dark">
+                <span>PRIVATE BY DEFAULT</span>
+                <h3>YOUR MEASUREMENTS ARE NOT PUBLIC.</h3>
+                <p>Creator profiles, Explore and public designs never expose this data.</p>
+            </div>
+            <div class="passport-card">
+                <span>NEXT</span>
+                <h3>BUILD A COMPLETE FIT.</h3>
+                <p>Your usual size is highlighted when building outfits.</p>
+                <a href="/outfits/">OPEN OUTFIT BUILDER →</a>
+            </div>
+        </aside>
+    </div>
+</section>
+{% endblock %}

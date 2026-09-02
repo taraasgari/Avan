@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="public-design-page" data-public-design="{{ design.id }}">
+<section class="public-design-page" data-public-design="{{ design.id }}" data-design-fee="{{ purchase_design_fee|default:0 }}">
     <div class="public-design-visual">
         {% include "designs/_preview.html" with design=design preview=preview compact=False %}
     </div>
@@ -54,6 +54,7 @@
                 <span>WEAR THIS DESIGN</span>
                 <h2>{{ design.base_product.name }}</h2>
                 <p>{{ design.base_color.name|default:"AVAN garment" }} / choose your size</p>
+                {% if purchase_design_fee %}<div class="creator-fee-line"><span>CREATOR DESIGN FEE</span><strong>{{ purchase_design_fee|floatformat:"0" }} TOMAN</strong></div>{% endif %}
 
                 <div class="public-size-grid" data-public-sizes></div>
                 <div class="public-stock" data-public-stock>SELECT A SIZE</div>
@@ -75,6 +76,7 @@
                 <div><span>COLOR</span><strong>{{ design.base_color.name|default:"—" }}</strong></div>
                 <div><span>PUBLISHED</span><strong>{{ design.published_at|date:"Y/m/d" }}</strong></div>
                 <div><span>REMIX</span><strong>{% if design.allow_remix %}ALLOWED{% else %}OFF{% endif %}</strong></div>
+                <div><span>CREATOR FEE</span><strong>{{ design.sale_price|floatformat:"0" }} TOMAN</strong></div>
             </div>
         </div>
     </aside>

@@ -1,4 +1,5 @@
 from copy import deepcopy
+from decimal import Decimal, InvalidOperation
 
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
@@ -91,10 +92,18 @@ class DesignPublishAPIView(APIView):
         design.visibility = Design.Visibility.PUBLIC
         design.allow_remix = bool(request.data.get("allow_remix", design.allow_remix))
         design.is_for_sale = bool(request.data.get("is_for_sale", design.is_for_sale))
+        raw_sale_price = request.data.get("sale_price", design.sale_price)
+        try:
+            sale_price = Decimal(str(raw_sale_price or 0))
+        except (InvalidOperation, TypeError, ValueError):
+            return Response({"detail": "Invalid creator design fee."}, status=400)
+        if sale_price < 0 or sale_price != sale_price.quantize(Decimal("1")):
+            return Response({"detail": "Creator design fee must be a non-negative whole Toman amount."}, status=400)
+        design.sale_price = sale_price
         if not design.published_at:
             design.published_at = timezone.now()
         design.save(update_fields=[
-            "status", "visibility", "allow_remix", "is_for_sale", "published_at", "updated_at"
+            "status", "visibility", "allow_remix", "is_for_sale", "sale_price", "published_at", "updated_at"
         ])
         return Response(DesignSerializer(design, context={"request": request}).data)
 

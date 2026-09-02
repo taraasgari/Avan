@@ -11,46 +11,39 @@
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/cart.css' %}">
     <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+    <link rel="stylesheet" href="{% static 'css/shell.css' %}">
 
     {% block extra_css %}{% endblock %}
-
     <title>{% block title %}{{ AVAN_BRAND_NAME }}{% endblock %}</title>
 </head>
 <body>
 <header class="site-header">
+    <button type="button" class="mobile-menu-trigger" data-menu-open aria-label="Open menu">MENU</button>
     <a class="brand" href="/">{{ AVAN_BRAND_NAME }}</a>
 
     <nav aria-label="Main navigation">
         <a href="/shop/">SHOP</a>
         <a href="/design/">DESIGN</a>
         <a href="/explore/">EXPLORE</a>
+        {% if request.user.is_authenticated %}<a href="/for-you/">FOR YOU</a>{% endif %}
         <a href="/drops/">DROPS</a>
         <a href="/challenges/">CHALLENGES</a>
     </nav>
 
     <div class="header-actions">
-        <button type="button" class="header-action" aria-label="Search">SEARCH</button>
+        <button type="button" class="header-action" data-search-open aria-label="Search">SEARCH</button>
 
         {% if request.user.is_authenticated %}
         <a href="/account/notifications/" class="header-notifications" aria-label="Notifications">
             ALERTS
-            <span
-                class="header-notifications__badge"
-                data-notification-badge
-                {% if not AVAN_UNREAD_NOTIFICATIONS %}hidden{% endif %}
-            >{{ AVAN_UNREAD_NOTIFICATIONS }}</span>
+            <span class="header-notifications__badge" data-notification-badge {% if not AVAN_UNREAD_NOTIFICATIONS %}hidden{% endif %}>{{ AVAN_UNREAD_NOTIFICATIONS }}</span>
         </a>
-
-        <a href="/account/" class="header-action">
-            {{ request.user.display_name|default:request.user.username|upper }}
-        </a>
+        <a href="/account/" class="header-action">{{ request.user.display_name|default:request.user.username|upper }}</a>
         {% else %}
         <a href="/account/login/" class="header-action">SIGN IN</a>
         {% endif %}
 
-        <button type="button" class="header-bag" data-cart-open>
-            BAG <span data-cart-count>0</span>
-        </button>
+        <button type="button" class="header-bag" data-cart-open>BAG <span data-cart-count>0</span></button>
     </div>
 </header>
 
@@ -58,8 +51,42 @@
 
 {% include "partials/cart_drawer.html" %}
 
-<div hidden id="avan-csrf">{% csrf_token %}</div>
+<div class="avan-search" data-search-overlay aria-hidden="true">
+    <button type="button" class="avan-search__backdrop" data-search-close aria-label="Close search"></button>
+    <div class="avan-search__panel">
+        <div class="avan-search__head"><span>AVAN / SEARCH</span><button type="button" data-search-close>×</button></div>
+        <form action="/search/" method="get">
+            <input type="search" name="q" placeholder="WHAT ARE YOU LOOKING FOR?" data-search-input autocomplete="off">
+            <button type="submit">SEARCH →</button>
+        </form>
+        <div class="avan-search__quick"><span>QUICK ACCESS</span><a href="/shop/">SHOP</a><a href="/explore/">EXPLORE</a>{% if request.user.is_authenticated %}<a href="/following/">FOLLOWING</a><a href="/outfits/">OUTFITS</a>{% endif %}</div>
+    </div>
+</div>
 
+<div class="mobile-menu" data-mobile-menu aria-hidden="true">
+    <button type="button" class="mobile-menu__backdrop" data-menu-close aria-label="Close menu"></button>
+    <aside class="mobile-menu__panel">
+        <div class="mobile-menu__head"><strong>AVAN</strong><button type="button" data-menu-close>×</button></div>
+        <nav>
+            <a href="/shop/"><span>01</span>SHOP</a>
+            <a href="/design/"><span>02</span>DESIGN</a>
+            <a href="/explore/"><span>03</span>EXPLORE</a>
+            <a href="/drops/"><span>04</span>DROPS</a>
+            <a href="/challenges/"><span>05</span>CHALLENGES</a>
+        </nav>
+        <div class="mobile-menu__account">
+            {% if request.user.is_authenticated %}
+            <a href="/for-you/">FOR YOU</a><a href="/following/">FOLLOWING FEED</a><a href="/outfits/">MY OUTFITS</a><a href="/size-passport/">SIZE PASSPORT</a><a href="/account/creator/wallet/">CREATOR WALLET</a><a href="/account/">MY AVAN</a>
+            {% else %}<a href="/account/login/">SIGN IN</a>{% endif %}
+        </div>
+    </aside>
+</div>
+
+<nav class="mobile-bottom-nav" aria-label="Mobile quick navigation">
+    <a href="/">HOME</a><a href="/shop/">SHOP</a><a href="/design/" class="mobile-bottom-nav__design">+</a><a href="/explore/">EXPLORE</a><button type="button" data-cart-open>BAG <span data-cart-count>0</span></button>
+</nav>
+
+<div hidden id="avan-csrf">{% csrf_token %}</div>
 <script src="{% static 'js/app.js' %}" defer></script>
 <script src="{% static 'js/cart-ui.js' %}" defer></script>
 {% block extra_js %}{% endblock %}

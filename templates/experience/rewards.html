@@ -1,35 +1,23 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block title %}AVAN Points{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/experience.css' %}">{% endblock %}
-
+{% block title %}AVAN Rewards{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/experience.css' %}"><link rel="stylesheet" href="{% static 'css/marketplace.css' %}">{% endblock %}
 {% block content %}
 <section class="rewards-page">
-    <header class="rewards-hero">
-        <div>
-            <p>MY AVAN / REWARDS</p>
-            <h1>{{ wallet.balance }}</h1>
-            <span>AVAN POINTS</span>
-        </div>
-        <div>
-            <h2>CREATE. PARTICIPATE. EARN.</h2>
-            <p>Points are recorded in a server-side ledger. Coupon conversion rules can be configured later without changing the wallet history.</p>
-            <a href="/challenges/">VIEW CHALLENGES →</a>
-        </div>
-    </header>
-
-    <div class="reward-ledger">
-        <div class="reward-ledger-head"><span>POINT HISTORY</span><strong>{{ transactions|length }} TRANSACTIONS</strong></div>
-        {% for transaction in transactions %}
-        <div class="reward-row">
-            <span>{{ transaction.created_at|date:"Y/m/d H:i" }}</span>
-            <strong>{{ transaction.reason }}</strong>
-            <b class="{% if transaction.amount > 0 %}is-positive{% endif %}">{{ transaction.amount|stringformat:"+d" }}</b>
-        </div>
-        {% empty %}
-        <div class="experience-empty"><span>NO POINT ACTIVITY YET.</span></div>
-        {% endfor %}
+  <header class="experience-hero"><span>MY AVAN / REWARDS</span><h1>AVAN<br>POINTS.</h1><p>Earn through challenges and turn configured points into account-locked coupons.</p></header>
+  <section class="reward-balance"><span>CURRENT BALANCE</span><strong>{{ wallet.balance|default:0 }}</strong><small>AVAN POINTS</small></section>
+  <section class="points-redeem">
+    <div><span>POINTS → COUPON</span><h2>USE YOUR POINTS.</h2>
+      {% if marketplace_config.points_redemption_cost and marketplace_config.points_coupon_value %}
+      <p>{{ marketplace_config.points_redemption_cost }} points creates a {{ marketplace_config.points_coupon_value|floatformat:"0" }} Toman coupon locked to your account.</p>
+      {% else %}<p>Points redemption is currently disabled by AVAN admin.</p>{% endif %}
     </div>
+    {% if marketplace_config.points_redemption_cost and marketplace_config.points_coupon_value %}<form action="/rewards/redeem/" method="post">{% csrf_token %}<button type="submit" {% if wallet.balance < marketplace_config.points_redemption_cost %}disabled{% endif %}>CREATE REWARD COUPON →</button></form>{% endif %}
+  </section>
+  {% if request.GET.coupon %}<div class="reward-result success"><span>YOUR COUPON</span><strong>{{ request.GET.coupon }}</strong><small>It is locked to this AVAN account.</small></div>{% endif %}
+  {% if request.GET.redeem_error %}<div class="reward-result error">{{ request.GET.redeem_error }}</div>{% endif %}
+  <section class="reward-history"><div class="experience-section-head"><span>LEDGER</span><h2>POINT HISTORY.</h2></div>
+    {% for entry in transactions %}<div class="reward-row"><div><strong>{{ entry.reason }}</strong><small>{{ entry.created_at|date:"Y/m/d H:i" }}</small></div><b class="{% if entry.amount > 0 %}is-positive{% endif %}">{{ entry.amount|stringformat:"+d" }}</b></div>{% empty %}<div class="experience-empty">NO POINT ACTIVITY YET.</div>{% endfor %}
+  </section>
 </section>
 {% endblock %}

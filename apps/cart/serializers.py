@@ -12,7 +12,9 @@ class CartItemSerializer(serializers.ModelSerializer):
     sku = serializers.CharField(source="variant.sku", read_only=True)
     color = serializers.CharField(source="variant.color.name", read_only=True)
     size = serializers.CharField(source="variant.size.name", read_only=True)
-    unit_price = serializers.DecimalField(source="variant.price", max_digits=12, decimal_places=0, read_only=True)
+    unit_price = serializers.SerializerMethodField()
+    garment_unit_price = serializers.DecimalField(source="variant.price", max_digits=12, decimal_places=0, read_only=True)
+    design_fee = serializers.DecimalField(max_digits=12, decimal_places=0, read_only=True)
     line_total = serializers.SerializerMethodField()
     available_stock = serializers.SerializerMethodField()
     is_customized = serializers.BooleanField(read_only=True)
@@ -24,7 +26,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         model = CartItem
         fields = [
             "id", "variant", "product", "product_slug", "product_image", "sku", "color", "size",
-            "quantity", "unit_price", "line_total", "available_stock", "is_customized",
+            "quantity", "unit_price", "garment_unit_price", "design_fee", "line_total", "available_stock", "is_customized",
             "design_id", "design_title", "design_owner",
         ]
         extra_kwargs = {"variant": {"queryset": ProductVariant.objects.filter(is_active=True)}}
@@ -55,8 +57,11 @@ class CartItemSerializer(serializers.ModelSerializer):
         except ValueError:
             return None
 
+    def get_unit_price(self, obj):
+        return obj.unit_price_total
+
     def get_line_total(self, obj):
-        return obj.variant.price * obj.quantity
+        return obj.unit_price_total * obj.quantity
 
     def get_available_stock(self, obj):
         return available_stock(obj.variant)

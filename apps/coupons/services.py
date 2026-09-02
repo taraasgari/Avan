@@ -8,6 +8,9 @@ def validate_coupon(coupon: Coupon | None, *, user=None, subtotal=None):
     if coupon is None:
         return True, ""
     now = timezone.now()
+    if coupon.assigned_user_id:
+        if not user or not user.is_authenticated or coupon.assigned_user_id != user.id:
+            return False, "This coupon belongs to another AVAN account."
     if not coupon.is_active:
         return False, "Coupon is inactive."
     if coupon.starts_at and coupon.starts_at > now:

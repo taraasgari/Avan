@@ -45,6 +45,7 @@
         buyMessage: document.querySelector("[data-studio-buy-message]"),
         publishRemix: document.querySelector("[data-publish-remix]"),
         publishSale: document.querySelector("[data-publish-sale]"),
+        publishPrice: document.querySelector("[data-publish-price]"),
     };
 
     const freshDesignData = () => ({ version: 1, sides: { front: [], back: [] } });
@@ -330,10 +331,11 @@
         if (!saved) return;
         const allowRemix = Boolean(els.publishRemix?.checked);
         const isForSale = Boolean(els.publishSale?.checked);
+        const salePrice = Math.max(0, Math.trunc(Number(els.publishPrice?.value || 0)));
         els.publish.disabled = true;
         els.saveState.textContent = "PUBLISHING...";
         const response = await fetch(`/api/designs/${state.designId}/publish/`, {
-            method:"POST", headers:{"Content-Type":"application/json","X-CSRFToken":csrf}, body:JSON.stringify({allow_remix:allowRemix,is_for_sale:isForSale}),
+            method:"POST", headers:{"Content-Type":"application/json","X-CSRFToken":csrf}, body:JSON.stringify({allow_remix:allowRemix,is_for_sale:isForSale,sale_price:salePrice}),
         });
         const data = await response.json();
         els.publish.disabled = false;

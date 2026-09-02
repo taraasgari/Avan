@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ outfit.title }} — AVAN Outfit Builder{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/wardrobe.css' %}">{% endblock %}
+
+{% block content %}
+<section class="builder-page" data-outfit-id="{{ outfit.id }}">
+    <header class="builder-head">
+        <div>
+            <a href="/outfits/">← MY OUTFITS</a>
+            <p>AVAN / OUTFIT BUILDER</p>
+            <div class="builder-title-row"><input value="{{ outfit.title }}" maxlength="120" data-outfit-title><button type="button" data-save-title>SAVE NAME</button></div>
+        </div>
+        <div class="builder-head__actions">
+            {% if passport and passport.usual_top_size %}<span>YOUR SIZE: {{ passport.usual_top_size.name }}</span>{% else %}<a href="/size-passport/">SET SIZE PASSPORT</a>{% endif %}
+            <button type="button" class="wardrobe-primary" data-add-outfit-to-bag {% if not outfit.items.count %}disabled{% endif %}>ADD OUTFIT TO BAG →</button>
+        </div>
+    </header>
+
+    <div class="builder-layout">
+        <aside class="builder-canvas">
+            <div class="builder-canvas__label"><span>YOUR FIT</span><strong data-piece-count>{{ outfit.items.count }}</strong></div>
+            <div class="builder-selected" data-selected-items>
+                {% for item in outfit.items.all %}
+                <article class="builder-selected-item" data-outfit-item="{{ item.id }}" data-variant-id="{{ item.variant.id }}">
+                    <div class="builder-selected-item__image">{% with image=item.variant.product.images.first %}{% if image %}<img src="{{ image.image.url }}" alt="{{ item.variant.product.name }}">{% else %}<span>AVAN</span>{% endif %}{% endwith %}</div>
+                    <div><small>{{ item.get_position_display|upper }}</small><h3>{{ item.variant.product.name }}</h3><p>{{ item.variant.color.name }} / {{ item.variant.size.name }}</p><strong>{{ item.variant.price|floatformat:"0" }} TOMAN</strong></div>
+                    <button type="button" data-remove-outfit-item="{{ item.id }}">×</button>
+                </article>
+                {% empty %}<div class="builder-selected-empty" data-selected-empty><strong>START YOUR FIT.</strong><span>Add pieces from the catalog →</span></div>{% endfor %}
+            </div>
+            <div class="builder-message" data-builder-message aria-live="polite"></div>
+        </aside>
+
+        <section class="builder-catalog">
+            <div class="builder-catalog__head"><div><span>AVAN CATALOG</span><h2>ADD PIECES.</h2></div><input type="search" placeholder="FILTER PRODUCTS..." data-outfit-search></div>
+            <div class="builder-products" data-builder-products>
+                {% for card in product_cards %}
+                <article class="builder-product" data-product-name="{{ card.product.name|lower }} {{ card.product.category.name|lower }}">
+                    <div class="builder-product__media">{% if card.image_url %}<img src="{{ card.image_url }}" alt="{{ card.product.name }}">{% else %}<span>AVAN</span>{% endif %}</div>
+                    <div class="builder-product__body">
+                        <small>{{ card.product.category.name }}</small><h3>{{ card.product.name }}</h3>
+                        <label><span>VARIANT</span><select data-variant-select>
+                            {% for variant in card.variants %}<option value="{{ variant.id }}">{{ variant.color }} / {{ variant.size }}{% if recommended_size_id == variant.size_id %} — YOUR SIZE{% endif %} — {{ variant.price }} TOMAN</option>{% endfor %}
+                        </select></label>
+                        <label><span>OUTFIT ROLE</span><select data-position-select><option value="top">TOP</option><option value="bottom">BOTTOM</option><option value="outerwear">OUTERWEAR</option><option value="shoes">SHOES</option><option value="accessory">ACCESSORY</option><option value="other">OTHER</option></select></label>
+                        <button type="button" data-add-outfit-item>ADD TO OUTFIT +</button>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</section>
+<div hidden id="wardrobe-csrf">{% csrf_token %}</div>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/outfit-builder.js' %}" defer></script>{% endblock %}

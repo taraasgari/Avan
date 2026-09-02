@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
@@ -47,6 +48,7 @@ class CartItem(models.Model):
         blank=True,
     )
     design_snapshot = models.JSONField(default=dict, blank=True)
+    design_fee = models.DecimalField(max_digits=12, decimal_places=0, default=0)
     quantity = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -60,6 +62,10 @@ class CartItem(models.Model):
             )
         ]
         ordering = ["id"]
+
+    @property
+    def unit_price_total(self):
+        return Decimal(self.variant.price) + Decimal(self.design_fee or 0)
 
     @property
     def is_customized(self):

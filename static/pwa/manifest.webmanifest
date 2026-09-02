@@ -1,9 +1,19 @@
 {
+  "id": "/",
   "name": "AVAN",
   "short_name": "AVAN",
+  "description": "AVAN fashion, custom design, drops and creator marketplace",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#d50000",
-  "icons": []
+  "lang": "en",
+  "icons": [],
+  "shortcuts": [
+    {"name": "Shop", "short_name": "Shop", "url": "/shop/"},
+    {"name": "AVAN Studio", "short_name": "Design", "url": "/design/"},
+    {"name": "Explore", "short_name": "Explore", "url": "/explore/"}
+  ]
 }

@@ -136,6 +136,7 @@ def studio(request, design_id=None):
             "visibility": design.visibility,
             "allow_remix": design.allow_remix,
             "is_for_sale": design.is_for_sale,
+            "sale_price": int(design.sale_price or 0),
             "design_data": design.design_data,
         }
 
@@ -226,6 +227,7 @@ def public_design(request, design_id):
             "related": related,
             "liked": liked,
             "saved": saved,
+            "purchase_design_fee": 0 if (request.user.is_authenticated and request.user.id == design.owner_id) else int(design.sale_price or 0),
         },
     )
 

@@ -7,7 +7,7 @@ from .models import Design, DesignAsset, DesignLike, DesignSave, GarmentMockup
 class DesignAdmin(admin.ModelAdmin):
     list_display = (
         "title", "owner", "base_product", "base_color", "status", "visibility",
-        "is_for_sale", "allow_remix", "published_at", "updated_at",
+        "is_for_sale", "sale_price", "allow_remix", "published_at", "updated_at",
     )
     list_filter = ("status", "visibility", "is_for_sale", "allow_remix", "base_product")
     search_fields = ("title", "owner__username", "owner__display_name", "base_product__name")

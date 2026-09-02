@@ -1,0 +1,87 @@
+/* AVAN Stage 5 — Size Passport & Outfit Builder */
+.passport-page,.outfits-page,.builder-page { min-height:100vh; direction:ltr; }
+.wardrobe-hero { padding:70px 5vw 50px; display:grid; grid-template-columns:1.25fr .75fr; gap:50px; align-items:end; border-bottom:1px solid var(--line); }
+.wardrobe-hero p,.builder-head p { margin:0 0 12px; color:var(--red); font-size:.64rem; font-weight:900; letter-spacing:.14em; }
+.wardrobe-hero h1 { margin:0; font-size:clamp(4rem,8vw,8rem); line-height:.82; letter-spacing:-.065em; }
+.wardrobe-hero__copy { max-width:520px; }
+.wardrobe-hero__copy p { color:var(--muted); font-size:.82rem; line-height:1.8; letter-spacing:0; font-weight:400; }
+.wardrobe-hero__copy strong { display:block; margin:18px 0; font-size:.7rem; }
+.wardrobe-primary { min-height:52px; padding:0 22px; border:0; background:var(--red); color:#fff; font-weight:950; cursor:pointer; }
+.wardrobe-primary:disabled { background:#ccc; cursor:not-allowed; }
+.passport-layout { display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:55px; padding:55px 5vw 100px; }
+.passport-form { max-width:900px; }
+.passport-section { margin-bottom:45px; padding-bottom:45px; border-bottom:1px solid var(--line); }
+.passport-section__head { display:grid; grid-template-columns:45px 1fr; gap:14px; margin-bottom:25px; }
+.passport-section__head>span { color:var(--red); font-size:.68rem; font-weight:900; }
+.passport-section__head h2 { margin:0 0 5px; font-size:1.25rem; }
+.passport-section__head p { margin:0; color:var(--muted); font-size:.72rem; }
+.passport-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+.passport-grid--two { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.passport-grid label,.passport-wide { display:block; }
+.passport-grid label>span,.passport-wide>span { display:block; margin-bottom:8px; font-size:.6rem; font-weight:900; }
+.passport-grid input,.passport-grid select,.passport-wide input { width:100%; min-height:50px; padding:0 12px; border:1px solid #ccc; background:#fff; outline:0; }
+.passport-grid input:focus,.passport-grid select:focus,.passport-wide input:focus { border-color:var(--ink); }
+.wardrobe-success,.wardrobe-error { padding:14px; margin-bottom:25px; font-size:.68rem; font-weight:900; }
+.wardrobe-success { background:#eef8f0; color:#1f7b39; }
+.wardrobe-error { background:#fff0f0; color:var(--red); }
+.passport-side { display:grid; gap:15px; align-content:start; }
+.passport-card { padding:28px; border:1px solid var(--line); }
+.passport-card--dark { background:#111; color:#fff; border-color:#111; }
+.passport-card span { color:var(--red); font-size:.6rem; font-weight:900; }
+.passport-card h3 { margin:10px 0; font-size:1.3rem; }
+.passport-card p { color:var(--muted); line-height:1.7; font-size:.76rem; }
+.passport-card--dark p { color:#aaa; }
+.passport-card a { display:inline-block; margin-top:12px; border-bottom:1px solid; font-size:.65rem; font-weight:900; }
+.outfit-list-grid { padding:50px 5vw 100px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+.outfit-list-card { border:1px solid var(--line); }
+.outfit-list-card__media { min-height:310px; display:grid; grid-template-columns:1fr 1fr; gap:2px; background:#f3f3f1; overflow:hidden; }
+.outfit-list-card__media>div { min-height:150px; display:grid; place-items:center; background:#eee; overflow:hidden; }
+.outfit-list-card__media img { width:100%; height:100%; object-fit:cover; }
+.outfit-list-card__empty { grid-column:1/-1; min-height:310px!important; color:#bbb; font-weight:900; }
+.outfit-list-card__body { padding:20px; }
+.outfit-list-card__body span,.outfit-list-card__body small { color:var(--muted); font-size:.58rem; }
+.outfit-list-card__body h2 { margin:7px 0; }
+.outfit-list-card form { padding:0 20px 20px; }
+.outfit-list-card form button { border:0; border-bottom:1px solid; background:transparent; color:var(--red); font-size:.6rem; font-weight:900; cursor:pointer; }
+.wardrobe-empty { grid-column:1/-1; min-height:360px; display:grid; place-items:center; align-content:center; text-align:center; }
+.wardrobe-empty>span { color:var(--red); font-size:.65rem; font-weight:900; }
+.builder-head { padding:35px 4vw; display:flex; justify-content:space-between; gap:30px; align-items:end; border-bottom:1px solid var(--line); direction:ltr; }
+.builder-head>a,.builder-head>div>a { font-size:.6rem; font-weight:900; }
+.builder-title-row { display:flex; gap:8px; margin-top:8px; }
+.builder-title-row input { min-width:min(58vw,520px); border:0; border-bottom:2px solid var(--ink); padding:8px 0; outline:0; font-size:clamp(2rem,4vw,4.2rem); font-weight:950; letter-spacing:-.045em; }
+.builder-title-row button { border:0; background:transparent; font-size:.6rem; font-weight:900; cursor:pointer; }
+.builder-head__actions { display:flex; gap:10px; align-items:center; }
+.builder-head__actions span,.builder-head__actions a { font-size:.62rem; font-weight:900; }
+.builder-layout { display:grid; grid-template-columns:minmax(360px,.7fr) minmax(0,1.3fr); min-height:850px; }
+.builder-canvas { position:sticky; top:72px; height:calc(100vh - 72px); padding:30px 4vw; background:#111; color:#fff; overflow:auto; }
+.builder-canvas__label { display:flex; justify-content:space-between; margin-bottom:20px; font-size:.65rem; font-weight:900; }
+.builder-canvas__label span { color:var(--red); }
+.builder-selected { display:grid; gap:8px; }
+.builder-selected-item { position:relative; display:grid; grid-template-columns:100px 1fr; gap:15px; padding:12px; background:#1b1b1b; }
+.builder-selected-item__image { aspect-ratio:.8; display:grid; place-items:center; background:#262626; overflow:hidden; }
+.builder-selected-item__image img { width:100%; height:100%; object-fit:cover; }
+.builder-selected-item small,.builder-selected-item p { color:#999; font-size:.58rem; }
+.builder-selected-item h3 { margin:5px 0; font-size:.82rem; }
+.builder-selected-item strong { font-size:.65rem; }
+.builder-selected-item>button { position:absolute; top:8px; right:8px; border:0; background:transparent; color:#aaa; font-size:1.2rem; cursor:pointer; }
+.builder-selected-empty { min-height:420px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#888; }
+.builder-selected-empty strong { color:#fff; font-size:1.5rem; }
+.builder-message { min-height:35px; padding-top:15px; color:#aaa; font-size:.65rem; }
+.builder-catalog { padding:35px 3vw 80px; }
+.builder-catalog__head { display:flex; justify-content:space-between; gap:20px; align-items:end; margin-bottom:28px; }
+.builder-catalog__head span { color:var(--red); font-size:.6rem; font-weight:900; }
+.builder-catalog__head h2 { margin:5px 0 0; font-size:2rem; }
+.builder-catalog__head input { width:min(320px,45%); border:0; border-bottom:1px solid var(--ink); padding:10px 0; outline:0; }
+.builder-products { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:15px; }
+.builder-product { border:1px solid var(--line); }
+.builder-product__media { aspect-ratio:.82; display:grid; place-items:center; background:#f1f1ef; overflow:hidden; }
+.builder-product__media img { width:100%; height:100%; object-fit:cover; }
+.builder-product__body { padding:15px; }
+.builder-product__body>small { color:var(--muted); font-size:.55rem; }
+.builder-product__body h3 { margin:5px 0 15px; font-size:.85rem; }
+.builder-product__body label { display:block; margin-top:10px; }
+.builder-product__body label span { display:block; margin-bottom:5px; font-size:.55rem; font-weight:900; }
+.builder-product__body select { width:100%; min-height:38px; border:1px solid #ccc; background:#fff; font-size:.65rem; }
+.builder-product__body button { width:100%; min-height:42px; margin-top:12px; border:0; background:var(--ink); color:#fff; font-size:.62rem; font-weight:900; cursor:pointer; }
+@media(max-width:1000px){.outfit-list-grid{grid-template-columns:repeat(2,1fr)}.builder-products{grid-template-columns:repeat(2,1fr)}.passport-layout{grid-template-columns:1fr}.passport-side{grid-template-columns:1fr 1fr}.builder-layout{grid-template-columns:1fr}.builder-canvas{position:static;height:auto;min-height:500px}.builder-head{align-items:flex-start;flex-direction:column}.builder-head__actions{width:100%;justify-content:space-between}}
+@media(max-width:650px){.wardrobe-hero{grid-template-columns:1fr;padding:50px 20px 35px}.wardrobe-hero h1{font-size:4rem}.passport-layout{padding:35px 20px 70px}.passport-grid,.passport-grid--two{grid-template-columns:1fr}.passport-side{grid-template-columns:1fr}.outfit-list-grid{padding:35px 15px 70px;grid-template-columns:1fr}.builder-head{padding:25px 18px}.builder-title-row{display:block}.builder-title-row input{min-width:100%;width:100%;font-size:2.2rem}.builder-title-row button{margin-top:10px}.builder-head__actions{align-items:flex-start;flex-direction:column}.builder-catalog{padding:30px 15px 70px}.builder-catalog__head{align-items:flex-start;flex-direction:column}.builder-catalog__head input{width:100%}.builder-products{grid-template-columns:1fr 1fr;gap:8px}.builder-product__body{padding:10px}}

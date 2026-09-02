@@ -29,7 +29,7 @@ def cart_totals(cart: Cart) -> dict:
     items = list(
         cart.items.select_related("variant__product", "variant__color", "variant__size")
     )
-    subtotal = sum((Decimal(item.variant.price) * item.quantity for item in items), Decimal("0"))
+    subtotal = sum((item.unit_price_total * item.quantity for item in items), Decimal("0"))
     discount = calculate_coupon_discount(cart.coupon, subtotal=subtotal, user=cart.user)
     total = max(Decimal("0"), subtotal - discount)
     return {

@@ -21,7 +21,7 @@ class DesignSerializer(serializers.ModelSerializer):
         model = Design
         fields = [
             "id", "owner_name", "owner_username", "title", "base_product", "product_name", "product_slug",
-            "base_color", "color_name", "status", "visibility", "allow_remix", "is_for_sale",
+            "base_color", "color_name", "status", "visibility", "allow_remix", "is_for_sale", "sale_price",
             "parent_design", "design_data", "remix_count", "like_count", "save_count",
             "liked_by_me", "saved_by_me", "published_at", "created_at", "updated_at",
         ]
@@ -51,6 +51,9 @@ class DesignSerializer(serializers.ModelSerializer):
         color = attrs.get("base_color") if "base_color" in attrs else getattr(self.instance, "base_color", None)
         if product and color and not product.variants.filter(color=color, is_active=True).exists():
             raise serializers.ValidationError({"base_color": "This color is not available for the selected garment."})
+        sale_price = attrs.get("sale_price") if "sale_price" in attrs else getattr(self.instance, "sale_price", 0)
+        if sale_price is not None and sale_price < 0:
+            raise serializers.ValidationError({"sale_price": "Creator design fee cannot be negative."})
         return attrs
 
 

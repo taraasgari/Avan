@@ -6,8 +6,8 @@ class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
     readonly_fields = (
-        "variant", "product_name", "sku", "color_name", "size_name", "unit_price", "quantity", "line_total",
-        "is_customized", "design_id_snapshot", "design_title", "design_owner_name", "design_snapshot",
+        "variant", "product_name", "sku", "color_name", "size_name", "garment_unit_price", "design_fee", "unit_price", "quantity", "line_total",
+        "is_customized", "design_id_snapshot", "design_title", "design_owner_name", "creator_id_snapshot", "platform_commission_percent", "platform_commission_amount", "creator_earning_amount", "design_snapshot",
     )
     can_delete = False
 

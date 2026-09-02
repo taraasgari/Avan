@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Search — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/stage5.css' %}"><link rel="stylesheet" href="{% static 'css/explore.css' %}">{% endblock %}
+
+{% block content %}
+<section class="search-page">
+    <header class="search-page__head">
+        <p>AVAN / SEARCH</p>
+        <form action="/search/" method="get"><input type="search" name="q" value="{{ query }}" placeholder="SEARCH AVAN..." autofocus><button type="submit">SEARCH →</button></form>
+    </header>
+
+    {% if query|length < 2 %}
+    <div class="search-prompt"><h2>TYPE AT LEAST 2 CHARACTERS.</h2><p>Search products, public designs and creators from one place.</p></div>
+    {% else %}
+    <section class="search-section"><div class="search-section__head"><span>SHOP</span><h2>PRODUCTS</h2><strong>{{ products|length }}</strong></div><div class="search-product-grid">
+        {% for product in products %}<a href="/shop/{{ product.slug }}/" class="search-product"><div>{% with image=product.images.first %}{% if image %}<img src="{{ image.image.url }}" alt="{{ product.name }}">{% else %}<span>AVAN</span>{% endif %}{% endwith %}</div><small>{{ product.category.name }}</small><h3>{{ product.name }}</h3><strong>{{ product.base_price|floatformat:"0" }} TOMAN</strong></a>{% empty %}<p>NO PRODUCTS FOUND.</p>{% endfor %}
+    </div></section>
+
+    <section class="search-section"><div class="search-section__head"><span>COMMUNITY</span><h2>DESIGNS</h2><strong>{{ design_cards|length }}</strong></div><div class="search-design-grid">
+        {% for card in design_cards %}<a href="/explore/{{ card.design.id }}/" class="search-design"><div>{% include "designs/_preview.html" with design=card.design preview=card.preview compact=True %}</div><small>BY {{ card.design.owner.display_name|default:card.design.owner.username }}</small><h3>{{ card.design.title }}</h3><span>♥ {{ card.design.likes_total }}</span></a>{% empty %}<p>NO DESIGNS FOUND.</p>{% endfor %}
+    </div></section>
+
+    <section class="search-section"><div class="search-section__head"><span>PEOPLE</span><h2>CREATORS</h2><strong>{{ creators|length }}</strong></div><div class="creator-search-grid">
+        {% for creator in creators %}<a href="/creator/{{ creator.username }}/" class="creator-search-card">{% if creator.avatar %}<img src="{{ creator.avatar.url }}" alt="{{ creator.username }}">{% else %}<div>{{ creator.display_name|default:creator.username|slice:":1"|upper }}</div>{% endif %}<span>@{{ creator.username }}</span><h3>{{ creator.display_name|default:creator.username }}</h3><p>{{ creator.bio|truncatechars:90 }}</p><strong>{{ creator.followers_total }} FOLLOWERS</strong></a>{% empty %}<p>NO CREATORS FOUND.</p>{% endfor %}
+    </div></section>
+    {% endif %}
+</section>
+{% endblock %}

@@ -81,7 +81,9 @@
     if (!productNode || !wearButton) return;
 
     const product = JSON.parse(productNode.textContent);
-    const designId = document.querySelector("[data-public-design]")?.dataset.publicDesign;
+    const designRoot = document.querySelector("[data-public-design]");
+    const designId = designRoot?.dataset.publicDesign;
+    const designFee = Number(designRoot?.dataset.designFee || 0);
     const sizesBox = document.querySelector("[data-public-sizes]");
     const stockBox = document.querySelector("[data-public-stock]");
     const message = document.querySelector("[data-wear-message]");
@@ -107,7 +109,7 @@
                 button.classList.add("is-active");
                 selectedVariant = product.variants.find(v => Number(v.size_id) === Number(button.dataset.publicSize) && Number(v.stock) > 0) || null;
                 if (selectedVariant) {
-                    stockBox.textContent = `${selectedVariant.stock} AVAILABLE / ${Number(selectedVariant.price).toLocaleString("en-US")} TOMAN`;
+                    stockBox.textContent = `${selectedVariant.stock} AVAILABLE / ${(Number(selectedVariant.price) + designFee).toLocaleString("en-US")} TOMAN TOTAL`;
                     wearButton.disabled = false;
                 } else {
                     stockBox.textContent = "OUT OF STOCK";

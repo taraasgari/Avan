@@ -22,6 +22,9 @@ urlpatterns = [
     path("", include("apps.designs.web_urls")),
     path("api/designs/", include("apps.designs.urls")),
     path("", include("apps.experience.urls")),
+    path("", include("apps.wardrobe.urls")),
+    path("", include("apps.core.search_urls")),
+    path("", include("apps.marketplace.urls")),
 ]
 
 if settings.DEBUG:

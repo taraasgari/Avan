@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Creator Wallet — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/marketplace.css' %}">{% endblock %}
+{% block content %}
+<section class="creator-wallet-page">
+  <header class="market-hero"><span>MY AVAN / CREATOR COMMERCE</span><h1>CREATOR<br>WALLET.</h1><p>Revenue is created only from successfully paid public-design orders. Order snapshots keep historical pricing immutable.</p></header>
+
+  <section class="wallet-stats">
+    <article><span>AVAILABLE</span><strong>{{ wallet.available_balance|floatformat:"0" }}</strong><small>TOMAN</small></article>
+    <article><span>PENDING PAYOUT</span><strong>{{ wallet.pending_payout|floatformat:"0" }}</strong><small>TOMAN</small></article>
+    <article><span>TOTAL EARNED</span><strong>{{ wallet.total_earned|floatformat:"0" }}</strong><small>TOMAN</small></article>
+    <article><span>TOTAL PAID</span><strong>{{ wallet.total_paid|floatformat:"0" }}</strong><small>TOMAN</small></article>
+  </section>
+
+  <section class="payout-panel">
+    <div><span>PAYOUT REQUEST</span><h2>MOVE EARNINGS OUT.</h2><p>Minimum: {{ marketplace_config.minimum_payout_amount|floatformat:"0" }} Toman. AVAN does not store bank details in this version; payout settlement is handled by admin outside this form.</p></div>
+    <form method="post" action="/account/creator/wallet/request-payout/">{% csrf_token %}
+      <label><span>AMOUNT / TOMAN</span><input type="number" name="amount" min="1" step="1000" max="{{ wallet.available_balance|floatformat:'0' }}" required></label>
+      <label><span>NOTE / OPTIONAL</span><input type="text" name="note" maxlength="240" placeholder="Reference or payout note"></label>
+      {% if payout_error %}<div class="market-error">{{ payout_error }}</div>{% endif %}
+      <button type="submit" {% if not wallet.available_balance %}disabled{% endif %}>REQUEST PAYOUT →</button>
+    </form>
+  </section>
+
+  <section class="market-ledger">
+    <div class="market-section-head"><div><span>REVENUE</span><h2>EARNING LEDGER.</h2></div><a href="/account/creator/analytics/">ANALYTICS →</a></div>
+    {% for entry in earnings %}
+    <div class="earning-row"><div><small>DESIGN</small><strong>{{ entry.design.title|default:"Design snapshot" }}</strong></div><div><small>ORDER</small><strong>{{ entry.order_item.order.number }}</strong></div><div><small>DESIGN FEE</small><strong>{{ entry.gross_design_fee|floatformat:"0" }}</strong></div><div><small>AVAN COMMISSION</small><strong>{{ entry.platform_commission|floatformat:"0" }}</strong></div><div class="earning-positive"><small>YOUR EARNING</small><strong>+{{ entry.creator_amount|floatformat:"0" }}</strong></div></div>
+    {% empty %}<div class="market-empty">NO PAID CREATOR SALES YET.</div>{% endfor %}
+  </section>
+
+  <section class="market-ledger">
+    <div class="market-section-head"><div><span>PAYOUTS</span><h2>REQUEST HISTORY.</h2></div></div>
+    {% for payout in payouts %}<div class="payout-row"><strong>{{ payout.amount|floatformat:"0" }} TOMAN</strong><span>{{ payout.get_status_display|upper }}</span><small>{{ payout.requested_at|date:"Y/m/d H:i" }}</small></div>{% empty %}<div class="market-empty">NO PAYOUT REQUESTS YET.</div>{% endfor %}
+  </section>
+</section>
+{% endblock %}
