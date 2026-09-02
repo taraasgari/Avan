@@ -1,0 +1,4 @@
+{% extends "owner/base.html" %}{% block title %}Campaigns — AVAN OWNER{% endblock %}{% block content %}
+<header class="owner-page-head"><div><span>COMMERCE / MARKETING</span><h1>CAMPAIGNS.</h1><p>Operational campaign windows linked to your existing coupon engine.</p></div></header>
+<div class="stage10-two"><section class="owner-panel"><h2>NEW CAMPAIGN</h2><form method="post" class="owner-form">{% csrf_token %}{{ form.as_p }}<button class="owner-primary">SAVE CAMPAIGN</button></form></section><section class="owner-panel"><h2>CAMPAIGNS</h2><div class="stage10-list">{% for c in campaigns %}<article><div><strong>{{ c.name }}</strong><small>{{ c.slug }} · coupon {{ c.coupon|default:"—" }}</small><small>{% if c.is_active %}ACTIVE{% else %}INACTIVE{% endif %}</small></div></article>{% empty %}<p>No campaigns yet.</p>{% endfor %}</div></section></div>
+{% endblock %}

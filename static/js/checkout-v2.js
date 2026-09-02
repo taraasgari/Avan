@@ -19,7 +19,8 @@
   const showError = message => { if(!errorBox)return; errorBox.hidden=false; errorBox.textContent=message || "Checkout failed."; };
   const clearError = () => { if(errorBox){errorBox.hidden=true;errorBox.textContent="";} };
   const selectedShipping = () => form?.querySelector('input[name="shipping_method"]:checked');
-  const shippingPrice = () => Number(selectedShipping()?.dataset.shippingPrice || 0);
+  let quotedShipping = null;
+  const shippingPrice = () => quotedShipping === null ? Number(selectedShipping()?.dataset.shippingPrice || 0) : Number(quotedShipping || 0);
 
   function renderMoney(){
     if(!cart) return;
@@ -29,18 +30,35 @@
   function renderCart(){
     if(!cart || !cart.items?.length){ itemsBox.innerHTML="<p>YOUR BAG IS EMPTY.</p>"; if(submit)submit.disabled=true; return; }
     itemsBox.innerHTML=cart.items.map(item=>`<div class="checkout-summary-item"><div><strong>${item.product}</strong><small>${item.color} / ${item.size} · ${item.quantity} × ${money(item.unit_price)}</small></div><b>${money(item.line_total)}</b></div>`).join("");
-    renderMoney();
+    renderMoney(); refreshShippingQuote();
   }
   async function loadCart(){
     if(!token){showError("Your bag is empty. Add a product before checkout."); if(submit)submit.disabled=true; return;}
     try{const r=await fetch(`/api/cart/${token}/`,{headers:{Accept:"application/json"}});if(!r.ok)throw new Error("Could not load your bag.");cart=await r.json();renderCart();}catch(e){showError(e.message);if(submit)submit.disabled=true;}
   }
 
-  form?.querySelectorAll('input[name="shipping_method"]').forEach(r=>r.addEventListener("change",renderMoney));
+  async function refreshShippingQuote(){
+    if(!cart) return renderMoney();
+    const ship=selectedShipping(); if(!ship) return;
+    const fd=new FormData(form);
+    const selectedAddress=form.querySelector('input[name="address_choice"]:checked');
+    let province=String(fd.get("province")||""), city=String(fd.get("city")||"");
+    if(selectedAddress && selectedAddress.value!=="manual"){
+      const label=selectedAddress.closest("label");
+      province=label?.dataset.province||province; city=label?.dataset.city||city;
+    }
+    try{
+      const r=await fetch('/api/commerce/shipping-quote/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf,Accept:'application/json'},body:JSON.stringify({shipping_method_id:Number(ship.value),subtotal:Number(cart.totals?.subtotal||0),province,city})});
+      if(!r.ok) throw new Error();
+      const data=await r.json(); quotedShipping=Number(data.shipping_amount||0); renderMoney();
+    }catch(e){ quotedShipping=null; renderMoney(); }
+  }
+  form?.querySelectorAll('input[name="shipping_method"]').forEach(r=>r.addEventListener("change",()=>{quotedShipping=null;refreshShippingQuote();}));
   const addressRadios=[...(form?.querySelectorAll('input[name="address_choice"]')||[])];
   const manualWrap=page.querySelector("[data-manual-address]");
   function syncAddress(){ if(!manualWrap||!addressRadios.length)return; const selected=form.querySelector('input[name="address_choice"]:checked'); manualWrap.hidden=!!selected && selected.value!=="manual"; }
-  addressRadios.forEach(r=>r.addEventListener("change",syncAddress)); syncAddress();
+  addressRadios.forEach(r=>r.addEventListener("change",()=>{syncAddress();quotedShipping=null;refreshShippingQuote();})); syncAddress();
+  form?.querySelectorAll('input[name="province"],input[name="city"]').forEach(el=>el.addEventListener("change",()=>{quotedShipping=null;refreshShippingQuote();}));
 
   form?.addEventListener("submit", async event => {
     event.preventDefault(); clearError(); if(!cart||!token)return showError("Bag unavailable.");

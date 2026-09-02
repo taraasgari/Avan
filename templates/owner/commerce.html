@@ -1,0 +1,14 @@
+{% extends "owner/base.html" %}
+{% block title %}Commerce Engine — AVAN OWNER{% endblock %}
+{% block content %}
+<header class="owner-page-head"><div><span>STAGE 10 / COMMERCE ENGINE</span><h1>COMMERCE.</h1><p>Launch controls are conservative by default. Enable rules only when you are ready.</p></div></header>
+<div class="stage10-metrics">
+  <article><span>SHIPPING RULES</span><strong>{{ rules_count }}</strong></article>
+  <article><span>ACTIVE CAMPAIGNS</span><strong>{{ campaigns_active }}</strong></article>
+  <article><span>OPEN REFUNDS</span><strong>{{ refunds_open }}</strong></article>
+  <article><span>ABANDONED CARTS</span><strong>{{ abandoned_open }}</strong></article>
+  <article><span>REFUNDED TOTAL</span><strong>{{ refunded_total|floatformat:"0" }}</strong></article>
+</div>
+<div class="stage10-links"><a href="/owner/commerce/shipping-rules/">SHIPPING RULES →</a><a href="/owner/commerce/campaigns/">CAMPAIGNS →</a><a href="/owner/commerce/abandoned-carts/">ABANDONED CARTS →</a><a href="/owner/commerce/refunds/">REFUNDS →</a></div>
+<section class="owner-panel"><h2>ENGINE SETTINGS</h2><form method="post" class="owner-form">{% csrf_token %}<input type="hidden" name="form_kind" value="settings">{{ form.as_p }}<button class="owner-primary" type="submit">SAVE SETTINGS</button></form><p class="stage10-note">Payment provider defaults to <b>dev</b>. Do not switch to a real gateway code until its adapter and credentials are configured.</p></section>
+{% endblock %}

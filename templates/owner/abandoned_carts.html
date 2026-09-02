@@ -1,0 +1,4 @@
+{% extends "owner/base.html" %}{% block title %}Abandoned Carts — AVAN OWNER{% endblock %}{% block content %}
+<header class="owner-page-head"><div><span>COMMERCE / RECOVERY</span><h1>ABANDONED CARTS.</h1></div><form method="post">{% csrf_token %}<input type="hidden" name="action" value="scan"><button class="owner-primary">RUN SCAN</button></form></header>
+<section class="owner-panel"><div class="stage10-list">{% for e in events %}<article><div><strong>{{ e.cart.user|default:"GUEST" }}</strong><small>{{ e.item_count }} items · {{ e.value_snapshot|floatformat:"0" }} TOMAN</small><small>{{ e.status|upper }} · {{ e.detected_at }}</small></div></article>{% empty %}<p>No abandoned carts detected.</p>{% endfor %}</div></section>
+{% endblock %}

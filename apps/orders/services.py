@@ -12,6 +12,7 @@ from apps.coupons.services import calculate_coupon_discount, validate_coupon
 from apps.payments.models import PaymentAttempt
 from apps.notifications.models import Notification
 from apps.marketplace.services import record_creator_earnings, split_design_fee
+from apps.commerce.services import shipping_quote
 from .models import Order, OrderItem, StockReservation
 
 
@@ -77,7 +78,12 @@ def place_order(*, cart: Cart, checkout_data: dict, idempotency_key=None, user=N
     discount = calculate_coupon_discount(cart.coupon, subtotal=subtotal, user=user)
     shipping_method = checkout_data.get("_shipping_method")
     if shipping_method is not None:
-        shipping = Decimal(shipping_method.base_price or 0)
+        shipping, _shipping_source = shipping_quote(
+            method=shipping_method,
+            subtotal=subtotal,
+            province=checkout_data.get("province", ""),
+            city=checkout_data.get("city", ""),
+        )
     else:
         shipping = Decimal(str(getattr(settings, "DEFAULT_SHIPPING_AMOUNT", 0)))
     total = max(Decimal("0"), subtotal - discount + shipping)
