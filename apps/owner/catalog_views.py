@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST
 from apps.catalog.models import Category, Color, Product, ProductImage, ProductVariant, Size
 from apps.operations.models import ShippingMethod
 from apps.operations.services import adjust_stock
+from apps.growth.security import validate_uploaded_image
 
 from .decorators import owner_required
 from .forms_stage9 import CategoryForm, ColorForm, ProductVariantForm, ShippingMethodForm, SizeForm
@@ -105,8 +106,10 @@ def product_media(request, product_id):
             existing_count = product.images.count()
             uploaded = 0
             for offset, image_file in enumerate(files):
-                if image_file.size > MAX_IMAGE_BYTES:
-                    messages.error(request, f"{image_file.name}: file is larger than 12 MB.")
+                try:
+                    validate_uploaded_image(image_file, max_bytes=MAX_IMAGE_BYTES, max_width=10000, max_height=10000)
+                except ValidationError as exc:
+                    messages.error(request, f"{image_file.name}: {'; '.join(exc.messages)}")
                     continue
                 item = ProductImage(
                     product=product,

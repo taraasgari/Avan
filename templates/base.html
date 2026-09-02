@@ -7,9 +7,23 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <meta name="theme-color" content="#D50000">
     <meta name="description" content="{{ AVAN_SEO.description }}">
+    <meta name="robots" content="{% if AVAN_SEO.noindex %}noindex,nofollow{% else %}index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1{% endif %}">
     <link rel="canonical" href="{{ AVAN_SEO.canonical }}">
-    {% if AVAN_SEO.noindex %}<meta name="robots" content="noindex,nofollow">{% endif %}
+    <link rel="alternate" hreflang="en" href="{{ AVAN_SEO.alternate_en }}">
+    <link rel="alternate" hreflang="fa" href="{{ AVAN_SEO.alternate_fa }}">
+    <link rel="alternate" hreflang="x-default" href="{{ AVAN_SEO.alternate_en }}">
+    <meta property="og:site_name" content="AVAN">
+    <meta property="og:title" content="{{ AVAN_SEO.title }}">
+    <meta property="og:description" content="{{ AVAN_SEO.description }}">
+    <meta property="og:url" content="{{ AVAN_SEO.canonical }}">
+    <meta property="og:type" content="{{ AVAN_SEO.og_type|default:'website' }}">
+    {% if AVAN_SEO.og_image %}<meta property="og:image" content="{{ AVAN_SEO.og_image }}">{% endif %}
+    <meta name="twitter:card" content="{% if AVAN_SEO.og_image %}summary_large_image{% else %}summary{% endif %}">
+    <meta name="twitter:title" content="{{ AVAN_SEO.title }}">
+    <meta name="twitter:description" content="{{ AVAN_SEO.description }}">
+    {% if AVAN_SEO.og_image %}<meta name="twitter:image" content="{{ AVAN_SEO.og_image }}">{% endif %}
     {% if AVAN_SEO.json_ld_json %}<script type="application/ld+json">{{ AVAN_SEO.json_ld_json|safe }}</script>{% endif %}
+    {% for schema in AVAN_SEO.schemas_json %}<script type="application/ld+json">{{ schema|safe }}</script>{% endfor %}
     <script>(function(){try{var t=localStorage.getItem('avan_theme');if(t!=='dark'&&t!=='light')t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}})();</script>
     <link rel="manifest" href="{% static 'pwa/manifest.webmanifest' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
@@ -17,6 +31,7 @@
     <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
     <link rel="stylesheet" href="{% static 'css/shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stage12-growth.css' %}">
     {% block extra_css %}{% endblock %}
     <title>{% block title %}{{ AVAN_SEO.title|default:AVAN_BRAND_NAME }}{% endblock %}</title>
 </head>
@@ -84,7 +99,7 @@
         </nav>
         <div class="mobile-menu__account">
             {% if request.user.is_authenticated %}
-            {% if request.user.is_superuser %}<a href="/owner/">{% avan_t "owner_console" %}</a>{% endif %}<a href="/for-you/">{% avan_t "for_you" %}</a><a href="/following/">{% avan_t "following_feed" %}</a><a href="/outfits/">{% avan_t "my_outfits" %}</a><a href="/size-passport/">{% avan_t "size_passport" %}</a><a href="/account/addresses/">{% avan_t "addresses" %}</a><a href="/account/returns/">{% avan_t "returns" %}</a><a href="/account/creator/wallet/">{% avan_t "creator_wallet" %}</a><a href="/account/">{% avan_t "my_avan" %}</a>
+            {% if request.user.is_superuser %}<a href="/owner/">{% avan_t "owner_console" %}</a>{% endif %}<a href="/for-you/">{% avan_t "for_you" %}</a><a href="/following/">{% avan_t "following_feed" %}</a><a href="/outfits/">{% avan_t "my_outfits" %}</a><a href="/size-passport/">{% avan_t "size_passport" %}</a><a href="/account/addresses/">{% avan_t "addresses" %}</a><a href="/account/returns/">{% avan_t "returns" %}</a><a href="/account/notification-preferences/">{% avan_t "notification_preferences" %}</a><a href="/account/creator/wallet/">{% avan_t "creator_wallet" %}</a><a href="/account/">{% avan_t "my_avan" %}</a>
             {% else %}<a href="/account/login/">{% avan_t "sign_in" %}</a>{% endif %}
         </div>
     </aside>
@@ -98,6 +113,7 @@
 <script src="{% static 'js/preferences.js' %}" defer></script>
 <script src="{% static 'js/app.js' %}" defer></script>
 <script src="{% static 'js/cart-ui.js' %}" defer></script>
+<script src="{% static 'js/stage12-pwa.js' %}" defer></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,8 @@
+{% extends "owner/base.html" %}
+{% block title %}Security — AVAN OWNER{% endblock %}
+{% block content %}
+<section class="stage12-owner-head"><span>OWNER / SECURITY</span><h1>SECURITY<br>CENTER.</h1><p>Security telemetry contains hashed IP identifiers, not raw IP addresses.</p></section>
+<div class="stage12-filterbar"><a href="/owner/security/">ALL</a>{% for item in kinds %}<a href="?kind={{ item.kind }}">{{ item.kind|upper }} {{ item.total }}</a>{% endfor %}</div>
+<div class="stage12-table-wrap"><table><thead><tr><th>TIME</th><th>KIND</th><th>LEVEL</th><th>USER</th><th>PATH</th><th>IP HASH</th></tr></thead><tbody>{% for item in events %}<tr><td>{{ item.created_at|date:"Y/m/d H:i:s" }}</td><td>{{ item.kind }}</td><td>{{ item.severity|upper }}</td><td>{{ item.user|default:"—" }}</td><td>{{ item.path }}</td><td><code>{{ item.ip_hash|slice:":12" }}…</code></td></tr>{% empty %}<tr><td colspan="6">No security events yet.</td></tr>{% endfor %}</tbody></table></div>
+<section class="stage12-security-note"><h2>PRODUCTION COMMAND</h2><code>python manage.py avan_security_audit</code><p>Run this before launch. Stage 13 will turn this checklist into CI/deployment gates.</p></section>
+{% endblock %}

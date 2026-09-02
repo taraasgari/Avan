@@ -38,16 +38,27 @@ INSTALLED_APPS = [
     "apps.operations",
     "apps.commerce",
     "apps.contentstudio",
+    "apps.growth",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+
     "django.contrib.sessions.middleware.SessionMiddleware",
+
     "apps.core.middleware.AvanLocaleMiddleware",
+
     "django.middleware.common.CommonMiddleware",
+
     "django.middleware.csrf.CsrfViewMiddleware",
+
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+
+    "apps.growth.middleware.SeoRedirectMiddleware",
+    "apps.growth.middleware.AvanSecurityMiddleware",
+
     "django.contrib.messages.middleware.MessageMiddleware",
+
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -141,3 +152,7 @@ X_FRAME_OPTIONS = "DENY"
 # Commerce settings. Keep core checkout independent from Redis/Celery.
 ORDER_RESERVATION_MINUTES = int(env("ORDER_RESERVATION_MINUTES", "20"))
 DEFAULT_SHIPPING_AMOUNT = int(env("DEFAULT_SHIPPING_AMOUNT", "0"))
+
+from config.security_settings import apply_security_settings
+
+apply_security_settings(globals())

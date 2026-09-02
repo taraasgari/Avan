@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{% static 'css/stage9-owner.css' %}">
     <link rel="stylesheet" href="{% static 'css/stage10-commerce.css' %}">
     <link rel="stylesheet" href="{% static 'css/stage11-content.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stage12-growth.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="owner-body">
@@ -37,7 +38,10 @@
             <a href="/owner/commerce/" class="{% if '/owner/commerce/' in request.path %}is-active{% endif %}"><span>12B</span>COMMERCE</a>
             <a href="/owner/staff/" class="{% if '/owner/staff/' in request.path %}is-active{% endif %}"><span>13</span>{% avan_t "staff" %}</a>
             <a href="/owner/reports/" class="{% if '/owner/reports/' in request.path %}is-active{% endif %}"><span>14</span>{% avan_t "reports" %}</a>
-            <a href="/owner/settings/" class="{% if '/owner/settings/' in request.path %}is-active{% endif %}"><span>15</span>{% avan_t "settings" %}</a>
+            <a href="/owner/growth/" class="{% if '/owner/growth/' in request.path %}is-active{% endif %}"><span>15</span>{% avan_t "growth" %}</a>
+            <a href="/owner/moderation/" class="{% if '/owner/moderation/' in request.path %}is-active{% endif %}"><span>16</span>{% avan_t "moderation" %}</a>
+            <a href="/owner/security/" class="{% if '/owner/security/' in request.path %}is-active{% endif %}"><span>17</span>{% avan_t "security" %}</a>
+            <a href="/owner/settings/" class="{% if '/owner/settings/' in request.path %}is-active{% endif %}"><span>18</span>{% avan_t "settings" %}</a>
         </nav>
         <div class="owner-sidebar__foot"><a href="/admin/" target="_blank">{% avan_t "django_admin" %} ↗</a><a href="/" target="_blank">{% avan_t "open_store" %} ↗</a><small>{{ request.user.username }}</small></div>
     </aside>

@@ -45,6 +45,10 @@
         </div>
     </header>
 
+    {% if request.user.is_authenticated and request.user != creator %}
+    <div class="stage12-profile-report"><a href="/report/creator/{{ creator.username }}/">REPORT CREATOR</a></div>
+    {% endif %}
+
     <div class="creator-work-head">
         <div>
             <span>CREATOR WORK</span>

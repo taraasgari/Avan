@@ -1,6 +1,7 @@
 from django import forms
 
 from apps.catalog.models import Category, Product
+from apps.growth.security import validate_uploaded_image
 
 from .models import Collection, MediaAsset, SeoPage
 
@@ -54,6 +55,10 @@ class MediaAssetForm(forms.ModelForm):
     class Meta:
         model = MediaAsset
         fields = ["title", "file", "kind", "alt_en", "alt_fa"]
+
+    def clean_file(self):
+        upload = self.cleaned_data["file"]
+        return validate_uploaded_image(upload, max_bytes=12 * 1024 * 1024, max_width=10000, max_height=10000)
 
 
 class SeoPageForm(forms.ModelForm):

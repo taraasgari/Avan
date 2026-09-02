@@ -1,8 +1,11 @@
-const CACHE = "avan-shell-v5";
+const CACHE = "avan-public-shell-v12";
+const OFFLINE = "/offline/";
 const SHELL = [
   "/",
+  OFFLINE,
   "/static/css/base.css",
   "/static/css/shell.css",
+  "/static/css/theme.css",
   "/static/js/app.js",
   "/static/pwa/manifest.webmanifest"
 ];
@@ -25,31 +28,31 @@ self.addEventListener("fetch", event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Private/transactional routes must always remain network-authoritative.
-  const networkOnly = ["/api/", "/admin/", "/checkout/", "/orders/", "/bag/", "/account/", "/size-passport/", "/outfits/"];
+  // Never cache personal, operational, admin, auth or transactional truth.
+  const networkOnly = [
+    "/api/", "/admin/", "/owner/", "/checkout/", "/orders/", "/bag/", "/account/",
+    "/size-passport/", "/outfits/", "/rewards/", "/report/"
+  ];
   if (networkOnly.some(prefix => url.pathname.startsWith(prefix))) return;
 
-  // Static assets: cache first, refresh in background.
   if (url.pathname.startsWith("/static/")) {
-    event.respondWith(
-      caches.match(request).then(hit => {
-        const network = fetch(request).then(response => {
-          if (response.ok) caches.open(CACHE).then(cache => cache.put(request, response.clone()));
-          return response;
-        }).catch(() => hit);
-        return hit || network;
-      })
-    );
+    event.respondWith(caches.match(request).then(hit => {
+      const fresh = fetch(request).then(response => {
+        if (response.ok) caches.open(CACHE).then(cache => cache.put(request, response.clone()));
+        return response;
+      }).catch(() => hit);
+      return hit || fresh;
+    }));
     return;
   }
 
-  // Public pages: network first, cached fallback.
+  // Public HTML is network first. Offline cache is only a fallback, never the source of commerce truth.
   event.respondWith(
-    fetch(request)
-      .then(response => {
-        if (response.ok) caches.open(CACHE).then(cache => cache.put(request, response.clone()));
-        return response;
-      })
-      .catch(() => caches.match(request).then(hit => hit || caches.match("/")))
+    fetch(request).then(response => {
+      if (response.ok && response.type === "basic") {
+        caches.open(CACHE).then(cache => cache.put(request, response.clone()));
+      }
+      return response;
+    }).catch(() => caches.match(request).then(hit => hit || caches.match(OFFLINE)))
   );
 });

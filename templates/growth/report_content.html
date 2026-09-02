@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Report — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/stage12-growth.css' %}">{% endblock %}
+{% block content %}
+<section class="stage12-page stage12-page--narrow">
+  <header class="stage12-head"><span>AVAN / SAFETY</span><h1>REPORT<br>{{ target_kind|upper }}.</h1><p>Reports go to AVAN moderation. False or abusive reports may be ignored.</p></header>
+  {% if duplicate %}<div class="stage12-notice">You already have an open report for this {{ target_kind }}.</div>{% else %}
+  <form method="post" class="stage12-form">{% csrf_token %}{{ form.as_p }}<button class="stage12-primary" type="submit">SUBMIT REPORT →</button></form>{% endif %}
+</section>
+{% endblock %}

@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from apps.notifications.models import Notification
+from apps.growth.security import clear_login_failures, login_blocked, record_login_failure
 from apps.orders.models import Order
 from apps.wishlist.models import WishlistItem
 
@@ -39,28 +40,33 @@ def login_view(request):
         identifier = request.POST.get("identifier", "").strip()
         password = request.POST.get("password", "")
 
-        user_record = (
-            User.objects.filter(
-                Q(username__iexact=identifier) | Q(email__iexact=identifier)
-            ).first()
-        )
-
-        user = None
-        if user_record:
-            user = authenticate(
-                request,
-                username=user_record.username,
-                password=password,
+        if login_blocked(request, identifier):
+            error = "Too many failed sign-in attempts. Please wait before trying again."
+        else:
+            user_record = (
+                User.objects.filter(
+                    Q(username__iexact=identifier) | Q(email__iexact=identifier)
+                ).first()
             )
 
-        if user is not None:
-            login(request, user)
-            next_url = request.GET.get("next")
-            if next_url and next_url.startswith("/") and not next_url.startswith("//"):
-                return redirect(next_url)
-            return redirect("accounts:dashboard")
+            user = None
+            if user_record:
+                user = authenticate(
+                    request,
+                    username=user_record.username,
+                    password=password,
+                )
 
-        error = "Email / username or password is incorrect."
+            if user is not None:
+                clear_login_failures(request, identifier)
+                login(request, user)
+                next_url = request.GET.get("next")
+                if next_url and next_url.startswith("/") and not next_url.startswith("//"):
+                    return redirect(next_url)
+                return redirect("accounts:dashboard")
+
+            record_login_failure(request, identifier)
+            error = "Email / username or password is incorrect."
 
     return render(
         request,
@@ -134,7 +140,12 @@ def profile_settings(request):
 
 @login_required(login_url="/account/login/")
 def notification_center(request):
-    notifications = request.user.notifications.all()[:100]
+    try:
+        from apps.growth.notifications import allowed_notification_kinds
+        kinds = allowed_notification_kinds(request.user)
+        notifications = request.user.notifications.filter(kind__in=kinds)[:100] if kinds else request.user.notifications.none()
+    except Exception:
+        notifications = request.user.notifications.all()[:100]
     return render(
         request,
         "accounts/notifications.html",

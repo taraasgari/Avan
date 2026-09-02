@@ -29,6 +29,7 @@ urlpatterns = [
     path("", include("apps.operations.urls")),
     path("", include("apps.commerce.urls")),
     path("", include("apps.contentstudio.urls")),
+    path("", include("apps.growth.urls")),
 ]
 
 if settings.DEBUG:

@@ -71,6 +71,10 @@
             </div>
             {% endif %}
 
+            {% if request.user.is_authenticated and request.user != design.owner %}
+            <a class="stage12-report-link" href="/report/design/{{ design.id }}/">REPORT DESIGN</a>
+            {% endif %}
+
             <div class="design-meta-list">
                 <div><span>GARMENT</span><strong>{{ design.base_product.name }}</strong></div>
                 <div><span>COLOR</span><strong>{{ design.base_color.name|default:"—" }}</strong></div>

@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 
 from apps.notifications.models import Notification
 from apps.marketplace.models import MarketplaceSettings
+from apps.growth.security import validate_uploaded_image
 from .models import Design, DesignAsset, DesignLike, DesignSave
 from .serializers import DesignAssetSerializer, DesignSerializer
 
@@ -210,10 +211,14 @@ class DesignAssetUploadAPIView(APIView):
         upload = request.FILES.get("image")
         if not upload:
             return Response({"detail": "Image is required."}, status=400)
-        if upload.size > self.MAX_BYTES:
-            return Response({"detail": "Image must be 8 MB or smaller."}, status=400)
         if upload.content_type not in self.ALLOWED_TYPES:
             return Response({"detail": "Use PNG, JPEG or WebP."}, status=400)
+        try:
+            validate_uploaded_image(upload, max_bytes=self.MAX_BYTES, max_width=8000, max_height=8000)
+        except Exception as exc:
+            messages = getattr(exc, "messages", None)
+            detail = "; ".join(messages) if messages else "Invalid image upload."
+            return Response({"detail": detail}, status=400)
 
         asset = DesignAsset.objects.create(
             owner=request.user,

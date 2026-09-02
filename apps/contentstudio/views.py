@@ -39,16 +39,61 @@ def collection_detail(request, slug):
 
 
 def sitemap_xml(request):
+    from xml.sax.saxutils import escape
+
     base = request.build_absolute_uri("/").rstrip("/")
-    urls = [{"loc": base + "/", "lastmod": None}, {"loc": base + "/shop/", "lastmod": None}, {"loc": base + "/collections/", "lastmod": None}]
+    entries = []
+
+    def add(path, lastmod=None):
+        entries.append({"path": path, "lastmod": lastmod})
+
+    add("/")
+    add("/shop/")
+    add("/collections/")
+    add("/explore/")
+    add("/drops/")
+    add("/challenges/")
+
     for product in Product.objects.filter(is_active=True).only("slug", "updated_at"):
-        urls.append({"loc": f"{base}/shop/{product.slug}/", "lastmod": product.updated_at.date().isoformat()})
+        add(f"/shop/{product.slug}/", product.updated_at.date().isoformat())
     for collection in _active_collections().only("slug", "updated_at"):
-        urls.append({"loc": f"{base}/collections/{collection.slug}/", "lastmod": collection.updated_at.date().isoformat()})
-    lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    for item in urls:
+        add(f"/collections/{collection.slug}/", collection.updated_at.date().isoformat())
+
+    try:
+        from apps.designs.models import Design
+        for design in Design.objects.filter(status="published", visibility="public").only("id", "updated_at")[:5000]:
+            add(f"/explore/{design.id}/", design.updated_at.date().isoformat())
+    except Exception:
+        pass
+
+    try:
+        from django.contrib.auth import get_user_model
+        for creator in get_user_model().objects.filter(public_profile_enabled=True, is_active=True).only("username")[:5000]:
+            add(f"/creator/{creator.username}/")
+    except Exception:
+        pass
+
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+    ]
+    for item in entries:
+        path = item["path"]
+        loc_en = f"{base}{path}?lang=en"
+        loc_fa = f"{base}{path}?lang=fa"
         lines.append("<url>")
-        lines.append(f"<loc>{item['loc']}</loc>")
+        lines.append(f"<loc>{escape(loc_en)}</loc>")
+        lines.append(f'<xhtml:link rel="alternate" hreflang="en" href="{escape(loc_en)}" />')
+        lines.append(f'<xhtml:link rel="alternate" hreflang="fa" href="{escape(loc_fa)}" />')
+        lines.append(f'<xhtml:link rel="alternate" hreflang="x-default" href="{escape(loc_en)}" />')
+        if item["lastmod"]:
+            lines.append(f"<lastmod>{item['lastmod']}</lastmod>")
+        lines.append("</url>")
+        lines.append("<url>")
+        lines.append(f"<loc>{escape(loc_fa)}</loc>")
+        lines.append(f'<xhtml:link rel="alternate" hreflang="en" href="{escape(loc_en)}" />')
+        lines.append(f'<xhtml:link rel="alternate" hreflang="fa" href="{escape(loc_fa)}" />')
+        lines.append(f'<xhtml:link rel="alternate" hreflang="x-default" href="{escape(loc_en)}" />')
         if item["lastmod"]:
             lines.append(f"<lastmod>{item['lastmod']}</lastmod>")
         lines.append("</url>")

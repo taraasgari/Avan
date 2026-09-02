@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Notification Settings — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/stage12-growth.css' %}">{% endblock %}
+{% block content %}
+<section class="stage12-page stage12-page--narrow">
+  <header class="stage12-head"><span>MY AVAN / NOTIFICATIONS</span><h1>CONTROL<br>THE NOISE.</h1><p>Choose what AVAN should surface inside your account.</p></header>
+  <form method="post" class="stage12-form">{% csrf_token %}
+    {% for field in form %}<label class="stage12-toggle">{{ field }}<span><strong>{{ field.label }}</strong><small>{{ field.help_text }}</small></span></label>{% endfor %}
+    <button class="stage12-primary" type="submit">SAVE SETTINGS →</button>
+  </form>
+</section>
+{% endblock %}

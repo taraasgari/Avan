@@ -1,0 +1,9 @@
+{% extends "owner/base.html" %}
+{% block title %}SEO Redirects — AVAN OWNER{% endblock %}
+{% block content %}
+<section class="stage12-owner-head"><span>GROWTH / SEO</span><h1>301<br>REDIRECTS.</h1><p>Use permanent redirects after renaming a product, collection or public landing page.</p></section>
+<div class="stage12-split">
+  <form method="post" class="stage12-owner-form">{% csrf_token %}<h2>{% if editing %}EDIT REDIRECT{% else %}NEW REDIRECT{% endif %}</h2>{{ form.as_p }}<button type="submit">SAVE 301 →</button></form>
+  <div class="stage12-table-wrap"><table><thead><tr><th>OLD</th><th>NEW</th><th>HITS</th><th>ACTIVE</th><th></th></tr></thead><tbody>{% for item in redirects %}<tr><td>{{ item.old_path }}</td><td>{{ item.new_path }}</td><td>{{ item.hit_count }}</td><td>{{ item.is_active|yesno:"YES,NO" }}</td><td><a href="?edit={{ item.id }}">EDIT</a><form method="post" action="/owner/growth/redirects/{{ item.id }}/delete/">{% csrf_token %}<button type="submit">DELETE</button></form></td></tr>{% empty %}<tr><td colspan="5">No redirects.</td></tr>{% endfor %}</tbody></table></div>
+</div>
+{% endblock %}

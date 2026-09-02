@@ -1,0 +1,18 @@
+{% extends "owner/base.html" %}
+{% block title %}Growth / SEO — AVAN OWNER{% endblock %}
+{% block content %}
+<section class="stage12-owner-head"><span>GROWTH / SEO</span><h1>SEARCH<br>ENGINE ROOM.</h1><p>Technical SEO health, redirects and public-content safety in one place.</p></section>
+<div class="stage12-metrics">
+  <article><span>PRODUCT SEO GAPS</span><strong>{{ missing_product_seo }}</strong></article>
+  <article><span>CATEGORY SEO GAPS</span><strong>{{ missing_category_seo }}</strong></article>
+  <article><span>ACTIVE 301 REDIRECTS</span><strong>{{ redirects_count }}</strong></article>
+  <article><span>OPEN MODERATION</span><strong>{{ open_reports }}</strong></article>
+</div>
+<div class="stage12-owner-grid">
+  <a class="stage12-owner-card" href="/owner/content/seo/"><span>SEO CONTENT</span><h2>Titles, descriptions, canonical and JSON-LD.</h2><strong>OPEN →</strong></a>
+  <a class="stage12-owner-card" href="/owner/growth/redirects/"><span>301 REDIRECTS</span><h2>Preserve Google equity when URLs change.</h2><strong>MANAGE →</strong></a>
+  <a class="stage12-owner-card" href="/owner/moderation/"><span>MODERATION</span><h2>{{ open_reports }} reports need attention.</h2><strong>REVIEW →</strong></a>
+  <a class="stage12-owner-card" href="/owner/security/"><span>SECURITY</span><h2>Inspect rate limits and suspicious sign-ins.</h2><strong>OPEN →</strong></a>
+</div>
+<section class="stage12-table-wrap"><div class="stage12-section-head"><h2>RECENT SECURITY EVENTS</h2></div><table><thead><tr><th>TIME</th><th>KIND</th><th>SEVERITY</th><th>PATH</th></tr></thead><tbody>{% for item in recent_security %}<tr><td>{{ item.created_at|date:"Y/m/d H:i" }}</td><td>{{ item.kind }}</td><td>{{ item.severity|upper }}</td><td>{{ item.path }}</td></tr>{% empty %}<tr><td colspan="4">No events recorded.</td></tr>{% endfor %}</tbody></table></section>
+{% endblock %}

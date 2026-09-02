@@ -55,6 +55,11 @@ TRANSLATIONS = {
     "collections": {"en": "COLLECTIONS", "fa": "کالکشن‌ها"},
     "seo": {"en": "SEO", "fa": "سئو"},
     "bulk_tools": {"en": "BULK TOOLS", "fa": "ابزار گروهی"},
+    "growth": {"en": "GROWTH / SEO", "fa": "رشد / سئو"},
+    "moderation": {"en": "MODERATION", "fa": "نظارت محتوا"},
+    "security": {"en": "SECURITY", "fa": "امنیت"},
+    "notification_preferences": {"en": "NOTIFICATION SETTINGS", "fa": "تنظیمات اعلان"},
+    "report": {"en": "REPORT", "fa": "گزارش"},
 }
 
 
