@@ -1,0 +1,9 @@
+{
+  "name": "AVAN",
+  "short_name": "AVAN",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#d50000",
+  "icons": []
+}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Notifications — AVAN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="notifications-page">
+    <header class="notifications-head">
+        <div>
+            <p>MY AVAN / NOTIFICATIONS</p>
+            <h1>WHAT'S<br>HAPPENING.</h1>
+        </div>
+        <button type="button" data-read-all>MARK ALL AS READ</button>
+    </header>
+
+    <div class="notifications-list">
+        {% for notification in notifications %}
+        <article class="notification-row {% if not notification.is_read %}is-unread{% endif %}" data-notification="{{ notification.id }}">
+            <div class="notification-kind">{{ notification.kind|upper }}</div>
+            <div class="notification-copy">
+                <h2>{{ notification.title }}</h2>
+                {% if notification.body %}<p>{{ notification.body }}</p>{% endif %}
+                <small>{{ notification.created_at|date:"Y/m/d H:i" }}</small>
+            </div>
+            <div class="notification-actions">
+                {% if notification.url %}
+                <a href="{{ notification.url }}" data-open-notification="{{ notification.id }}">OPEN →</a>
+                {% endif %}
+                {% if not notification.is_read %}
+                <button type="button" data-read-notification="{{ notification.id }}">READ</button>
+                {% endif %}
+            </div>
+        </article>
+        {% empty %}
+        <div class="notifications-empty">
+            <strong>ALL QUIET.</strong>
+            <span>No notifications yet.</span>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<div hidden id="notifications-csrf">{% csrf_token %}</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/notifications.js' %}" defer></script>
+{% endblock %}

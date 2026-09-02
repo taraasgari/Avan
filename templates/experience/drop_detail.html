@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ drop.title }} — AVAN Drop{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/experience.css' %}">
+<link rel="stylesheet" href="{% static 'css/explore.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="drop-detail-page">
+    <header class="drop-detail-hero">
+        {% if drop.cover_image %}<img src="{{ drop.cover_image.url }}" alt="{{ drop.title }}">{% endif %}
+        <div class="drop-detail-copy">
+            <span>{{ drop.phase|upper }} / AVAN DROP</span>
+            <h1>{{ drop.title }}</h1>
+            {% if drop.subtitle %}<h2>{{ drop.subtitle }}</h2>{% endif %}
+            {% if drop.description %}<p>{{ drop.description }}</p>{% endif %}
+            <div class="drop-dates">
+                {% if drop.starts_at %}<span>START {{ drop.starts_at|date:"Y/m/d H:i" }}</span>{% endif %}
+                {% if drop.ends_at %}<span>END {{ drop.ends_at|date:"Y/m/d H:i" }}</span>{% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="drop-items-grid">
+        {% for card in cards %}
+            {% if card.kind == "product" %}
+            <article class="drop-piece">
+                <a href="/shop/{{ card.item.product.slug }}/">
+                    <div class="drop-piece__visual">
+                        {% if card.image_url %}<img src="{{ card.image_url }}" alt="{{ card.item.product.name }}">{% else %}<span>AVAN</span>{% endif %}
+                        {% if card.item.label %}<em>{{ card.item.label }}</em>{% endif %}
+                    </div>
+                    <small>AVAN GARMENT</small>
+                    <h2>{{ card.item.product.name }}</h2>
+                    <strong>{{ card.item.product.base_price|floatformat:"0" }} TOMAN</strong>
+                </a>
+            </article>
+            {% else %}
+            <article class="drop-piece">
+                <a href="/explore/{{ card.item.design.id }}/">
+                    <div class="drop-piece__visual">
+                        {% include "designs/_preview.html" with design=card.item.design preview=card.preview compact=True %}
+                        {% if card.item.label %}<em>{{ card.item.label }}</em>{% endif %}
+                    </div>
+                    <small>CREATOR DESIGN / @{{ card.item.design.owner.username }}</small>
+                    <h2>{{ card.item.design.title }}</h2>
+                    <strong>VIEW DESIGN →</strong>
+                </a>
+            </article>
+            {% endif %}
+        {% empty %}
+        <div class="experience-empty"><span>THIS DROP HAS NO PIECES YET.</span></div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

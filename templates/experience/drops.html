@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Drops — AVAN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/experience.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="experience-page">
+    <header class="experience-hero">
+        <div>
+            <p>AVAN / LIMITED RELEASES</p>
+            <h1>DROPS.</h1>
+        </div>
+        <div>
+            <p>Curated garments and creator designs released as focused AVAN collections.</p>
+        </div>
+    </header>
+
+    <div class="drop-list">
+        {% for drop in drops %}
+        <a href="/drops/{{ drop.slug }}/" class="drop-list-card {% if drop.is_featured %}is-featured{% endif %}">
+            <div class="drop-list-card__visual">
+                {% if drop.cover_image %}
+                <img src="{{ drop.cover_image.url }}" alt="{{ drop.title }}">
+                {% else %}
+                <span>AVAN</span>
+                {% endif %}
+                <em>{{ drop.phase|upper }}</em>
+            </div>
+            <div class="drop-list-card__body">
+                <small>DROP</small>
+                <h2>{{ drop.title }}</h2>
+                {% if drop.subtitle %}<p>{{ drop.subtitle }}</p>{% endif %}
+                <strong>{{ drop.items.count }} PIECES →</strong>
+            </div>
+        </a>
+        {% empty %}
+        <div class="experience-empty">
+            <span>NO DROPS PUBLISHED YET.</span>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

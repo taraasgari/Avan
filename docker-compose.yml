@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-avan}
+      POSTGRES_USER: ${POSTGRES_USER:-avan}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-avan-dev-only}
+    volumes:
+      - avan_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-avan} -d ${POSTGRES_DB:-avan}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - avan_redis:/data
+
+  web:
+    build: .
+    env_file: .env
+    volumes:
+      - .:/app
+      - avan_static:/app/staticfiles
+      - avan_media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 60"
+
+  worker:
+    build: .
+    env_file: .env
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: celery -A config worker -l INFO --concurrency=1
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - avan_static:/static:ro
+      - avan_media:/media:ro
+    depends_on:
+      - web
+
+volumes:
+  avan_postgres:
+  avan_redis:
+  avan_static:
+  avan_media:

@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ product.name }} — AVAN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/product-detail.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<section class="product-page">
+
+    <!-- GALLERY -->
+    <div class="product-gallery">
+
+        {% for image in product.images.all %}
+
+        <figure class="product-image">
+            <img
+                src="{{ image.image.url }}"
+                alt="{{ image.alt_text|default:product.name }}"
+            >
+        </figure>
+
+        {% empty %}
+
+        <div class="product-image product-image--empty">
+            <span>AVAN</span>
+        </div>
+
+        <div class="product-image product-image--empty product-image--dark">
+            <span>{{ product.name }}</span>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+
+    <!-- PRODUCT INFO -->
+    <aside class="product-panel">
+
+        <div class="product-panel__inner">
+
+            <nav class="product-breadcrumb">
+                <a href="/shop/">SHOP</a>
+                <span>/</span>
+                <span>{{ product.category.name }}</span>
+            </nav>
+
+
+            <div class="product-heading">
+
+                {% if product.product_type == "customizable" %}
+                <span class="customizable-label">
+                    CUSTOMIZABLE
+                </span>
+                {% endif %}
+
+                <h1>{{ product.name }}</h1>
+
+                <div class="product-price"
+                     data-product-price>
+                    {{ product.base_price|floatformat:"0" }}
+                    <small>TOMAN</small>
+                </div>
+
+            </div>
+
+
+            {% if product.description %}
+            <p class="product-description">
+                {{ product.description }}
+            </p>
+            {% endif %}
+
+
+            <!-- COLOR -->
+            <div class="product-option">
+
+                <div class="option-head">
+                    <strong>COLOR</strong>
+
+                    <span data-selected-color>
+                        SELECT
+                    </span>
+                </div>
+
+                <div class="product-colors">
+
+                    {% for color in colors %}
+
+                    <button
+                        type="button"
+                        class="product-color"
+                        data-color="{{ color.id }}"
+                        data-color-name="{{ color.name }}"
+                        aria-label="{{ color.name }}"
+                    >
+                        <span
+                            style="--color: {{ color.hex_code|default:'#ddd' }}"
+                        ></span>
+                    </button>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <!-- SIZE -->
+            <div class="product-option">
+
+                <div class="option-head">
+
+                    <strong>SIZE</strong>
+
+                    <button
+                        type="button"
+                        class="size-guide-link"
+                        data-size-guide-open
+                    >
+                        SIZE GUIDE
+                    </button>
+
+                </div>
+
+                <div class="product-sizes">
+
+                    {% for size in sizes %}
+
+                    <button
+                        type="button"
+                        class="product-size"
+                        data-size="{{ size.id }}"
+                    >
+                        {{ size.name }}
+                    </button>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <!-- STOCK -->
+            <div class="variant-status"
+                 data-variant-status>
+                SELECT COLOR & SIZE
+            </div>
+
+
+            <!-- CSRF -->
+            <div hidden>
+                {% csrf_token %}
+            </div>
+
+
+            <!-- ACTION -->
+            <div class="product-actions">
+
+                <button
+                    type="button"
+                    class="add-to-bag"
+                    data-add-to-cart
+                    disabled
+                >
+                    ADD TO BAG
+                </button>
+
+                <button
+                    type="button"
+                    class="wishlist-action"
+                    data-wishlist
+                    data-product-id="{{ product.id }}"
+                    aria-label="Wishlist"
+                >
+                    ♡
+                </button>
+
+            </div>
+
+
+            <div
+                class="product-message"
+                data-product-message
+                aria-live="polite"
+            ></div>
+
+
+            {% if product.product_type == "customizable" %}
+
+            <div class="customize-block">
+
+                <span>MAKE IT YOURS</span>
+
+                <h2>
+                    CUSTOMIZE THIS PIECE.
+                </h2>
+
+                <p>
+                    طرح، تصویر یا نوشته خودت را روی این لباس
+                    در Avan Studio اضافه کن.
+                </p>
+
+                <a
+                    href="/design/?product={{ product.id }}"
+                    class="customize-button"
+                >
+                    OPEN IN AVAN STUDIO →
+                </a>
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- DETAIL ACCORDIONS -->
+
+            <div class="product-details">
+
+                <details open>
+                    <summary>PRODUCT DETAILS</summary>
+
+                    <div>
+                        <p>
+                            {{ product.description|default:"AVAN garment." }}
+                        </p>
+
+                        <p>
+                            Category:
+                            <strong>{{ product.category.name }}</strong>
+                        </p>
+                    </div>
+                </details>
+
+
+                <details>
+                    <summary>FIT & SIZE</summary>
+
+                    <div>
+                        <p>
+                            برای انتخاب سایز مناسب از Size Guide استفاده کن.
+                            بعداً Avan Size Passport هم مستقیماً به همین بخش
+                            متصل می‌شود.
+                        </p>
+                    </div>
+                </details>
+
+
+                <details>
+                    <summary>SHIPPING & RETURNS</summary>
+
+                    <div>
+                        <p>
+                            اطلاعات ارسال و مرجوعی نهایی Avan
+                            در این قسمت نمایش داده خواهد شد.
+                        </p>
+                    </div>
+                </details>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+</section>
+
+
+<!-- SIZE GUIDE -->
+
+<div class="size-guide-overlay"
+     data-size-guide>
+
+    <button
+        class="size-guide-backdrop"
+        type="button"
+        data-size-guide-close
+        aria-label="Close"
+    ></button>
+
+    <div class="size-guide-panel">
+
+        <div class="size-guide-head">
+
+            <div>
+                <span>AVAN</span>
+                <h2>SIZE GUIDE</h2>
+            </div>
+
+            <button
+                type="button"
+                data-size-guide-close
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="size-guide-content">
+
+            <p>
+                راهنمای دقیق اندازه‌های هر محصول را بعداً از
+                پنل مدیریت وارد می‌کنیم.
+            </p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>SIZE</th>
+                        <th>CHEST</th>
+                        <th>LENGTH</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for size in sizes %}
+                    <tr>
+                        <td>{{ size.name }}</td>
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{{ variants_data|json_script:"product-variants-data" }}
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{% static 'js/product-detail.js' %}" defer></script>
+{% endblock %}

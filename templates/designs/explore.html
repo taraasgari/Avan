@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Explore — AVAN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/explore.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="explore-page">
+    <header class="explore-hero">
+        <div>
+            <p>AVAN / COMMUNITY DESIGNS</p>
+            <h1>EXPLORE<br>THE NEXT.</h1>
+        </div>
+        <div class="explore-intro">
+            <p>Discover public designs made on AVAN garments. Like them, save them, remix them, or wear them.</p>
+            <a href="/design/">CREATE YOUR DESIGN →</a>
+        </div>
+    </header>
+
+    <div class="explore-toolbar">
+        <div>
+            <strong>{{ cards|length }}</strong>
+            <span>PUBLIC DESIGNS</span>
+        </div>
+        <nav>
+            <a href="/explore/?sort=newest" class="{% if sort == 'newest' %}is-active{% endif %}">NEWEST</a>
+            <a href="/explore/?sort=popular" class="{% if sort == 'popular' %}is-active{% endif %}">POPULAR</a>
+        </nav>
+    </div>
+
+    <div class="explore-grid">
+        {% for card in cards %}
+        <article class="explore-card" data-design-card="{{ card.design.id }}">
+            <a class="explore-card__preview" href="/explore/{{ card.design.id }}/">
+                {% include "designs/_preview.html" with design=card.design preview=card.preview compact=True %}
+            </a>
+
+            <div class="explore-card__body">
+                <div class="explore-card__creator">
+                    <span>BY</span>
+                    {% if card.design.owner.public_profile_enabled %}<a href="/creator/{{ card.design.owner.username }}/"><strong>{{ card.design.owner.display_name|default:card.design.owner.username }}</strong></a>{% else %}<strong>{{ card.design.owner.display_name|default:card.design.owner.username }}</strong>{% endif %}
+                </div>
+
+                <a href="/explore/{{ card.design.id }}/">
+                    <h2>{{ card.design.title }}</h2>
+                </a>
+
+                <p>{{ card.design.base_product.name }}{% if card.design.base_color %} / {{ card.design.base_color.name }}{% endif %}</p>
+
+                <div class="explore-card__stats">
+                    <span>♥ {{ card.design.likes_total }}</span>
+                    <span>REMIX {{ card.design.remixes_total }}</span>
+                    {% if card.design.is_for_sale %}<span class="for-sale">WEAR IT</span>{% endif %}
+                </div>
+
+                <div class="explore-card__actions">
+                    <button type="button" data-design-like="{{ card.design.id }}">LIKE</button>
+                    <button type="button" data-design-save="{{ card.design.id }}">SAVE</button>
+                    {% if card.design.allow_remix %}
+                    <button type="button" data-design-remix="{{ card.design.id }}">REMIX</button>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+        {% empty %}
+        <div class="explore-empty">
+            <span>AVAN EXPLORE</span>
+            <h2>NO PUBLIC DESIGNS YET.</h2>
+            <p>Publish the first design from AVAN Studio.</p>
+            <a href="/design/">OPEN STUDIO</a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<div hidden id="explore-csrf">{% csrf_token %}</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/explore.js' %}" defer></script>
+{% endblock %}

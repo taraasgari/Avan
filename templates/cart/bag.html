@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}
+Your Bag — AVAN
+{% endblock %}
+
+
+{% block content %}
+
+<section
+    class="bag-page"
+    data-cart-page
+>
+
+    <header class="bag-page__heading">
+
+        <p class="bag-page__kicker">
+            AVAN / BAG
+        </p>
+
+        <h1>
+            YOUR<br>
+            BAG.
+        </h1>
+
+    </header>
+
+
+    <div class="bag-layout">
+
+
+        <!-- PRODUCTS -->
+
+        <section>
+
+            <div
+                class="bag-items"
+                data-bag-items
+            >
+
+                <div class="cart-loading">
+                    LOADING...
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SUMMARY -->
+
+        <aside
+            class="bag-summary"
+            id="checkout"
+        >
+
+            <h2>
+                ORDER SUMMARY
+            </h2>
+
+
+            <div class="summary-line">
+
+                <span>
+                    SUBTOTAL
+                </span>
+
+                <strong>
+                    <span data-summary-subtotal>
+                        0
+                    </span>
+
+                    TOMAN
+                </strong>
+
+            </div>
+
+
+            <div class="summary-line">
+
+                <span>
+                    DISCOUNT
+                </span>
+
+                <strong>
+                    −
+                    <span data-summary-discount>
+                        0
+                    </span>
+
+                    TOMAN
+                </strong>
+
+            </div>
+
+
+            <div class="summary-line">
+
+                <span>
+                    SHIPPING
+                </span>
+
+                <strong>
+                    <span data-summary-shipping>
+                        0
+                    </span>
+
+                    TOMAN
+                </strong>
+
+            </div>
+
+
+            <div class="summary-line summary-line--total">
+
+                <span>
+                    TOTAL
+                </span>
+
+                <strong>
+                    <span data-summary-total>
+                        0
+                    </span>
+
+                    TOMAN
+                </strong>
+
+            </div>
+
+
+            <form
+                class="coupon-form"
+                data-coupon-form
+            >
+
+                <label for="coupon-code">
+                    COUPON CODE
+                </label>
+
+
+                <div class="coupon-row">
+
+                    <input
+                        id="coupon-code"
+                        name="coupon"
+                        placeholder="AVAN..."
+                        autocomplete="off"
+                    >
+
+                    <button type="submit">
+                        APPLY
+                    </button>
+
+                </div>
+
+
+                <div
+                    class="coupon-message"
+                    data-coupon-message
+                ></div>
+
+            </form>
+
+
+            <button
+                class="bag-checkout"
+                type="button"
+                data-checkout
+                disabled
+            >
+                CONTINUE TO CHECKOUT →
+            </button>
+
+
+            <p class="bag-security">
+                SECURE CHECKOUT / STOCK VERIFIED BEFORE PAYMENT
+            </p>
+
+        </aside>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Shop — AVAN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shop.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<section class="shop-head">
+
+    <div>
+        <p class="shop-kicker">AVAN / SHOP</p>
+        <h1>FIND YOUR<br>PIECE.</h1>
+    </div>
+
+    <div class="shop-head__meta">
+        <span>{{ page_obj.paginator.count }} PIECES</span>
+
+        <button
+            type="button"
+            class="filter-toggle"
+            data-filter-open
+        >
+            FILTERS
+        </button>
+    </div>
+
+</section>
+
+
+<section class="shop-layout">
+
+    <!-- FILTERS -->
+    <aside class="shop-filters" data-filters>
+
+        <div class="filters-mobile-head">
+            <strong>FILTERS</strong>
+
+            <button
+                type="button"
+                data-filter-close
+                aria-label="Close filters"
+            >
+                ×
+            </button>
+        </div>
+
+        <form method="get">
+
+            <!-- Search -->
+            <div class="filter-group">
+                <label class="filter-title" for="shop-search">
+                    SEARCH
+                </label>
+
+                <input
+                    id="shop-search"
+                    class="filter-input"
+                    type="search"
+                    name="q"
+                    placeholder="Search products..."
+                    value="{{ selected.q }}"
+                >
+            </div>
+
+
+            <!-- Categories -->
+            <div class="filter-group">
+
+                <p class="filter-title">
+                    CATEGORY
+                </p>
+
+                <label class="filter-radio">
+                    <input
+                        type="radio"
+                        name="category"
+                        value=""
+                        {% if not selected.category %}checked{% endif %}
+                    >
+                    <span>ALL</span>
+                </label>
+
+                {% for category in categories %}
+                <label class="filter-radio">
+                    <input
+                        type="radio"
+                        name="category"
+                        value="{{ category.slug }}"
+                        {% if selected.category == category.slug %}checked{% endif %}
+                    >
+                    <span>{{ category.name }}</span>
+                </label>
+                {% endfor %}
+
+            </div>
+
+
+            <!-- Product Type -->
+            <div class="filter-group">
+
+                <p class="filter-title">
+                    PRODUCT TYPE
+                </p>
+
+                <label class="filter-radio">
+                    <input
+                        type="radio"
+                        name="type"
+                        value=""
+                        {% if not selected.type %}checked{% endif %}
+                    >
+                    <span>ALL</span>
+                </label>
+
+                <label class="filter-radio">
+                    <input
+                        type="radio"
+                        name="type"
+                        value="ready"
+                        {% if selected.type == "ready" %}checked{% endif %}
+                    >
+                    <span>READY DESIGN</span>
+                </label>
+
+                <label class="filter-radio">
+                    <input
+                        type="radio"
+                        name="type"
+                        value="customizable"
+                        {% if selected.type == "customizable" %}checked{% endif %}
+                    >
+                    <span>CUSTOMIZABLE</span>
+                </label>
+
+            </div>
+
+
+            <!-- Colors -->
+            <div class="filter-group">
+
+                <p class="filter-title">
+                    COLOR
+                </p>
+
+                <div class="color-filter">
+
+                    {% for color in colors %}
+
+                    <label
+                        class="color-option"
+                        title="{{ color.name }}"
+                    >
+                        <input
+                            type="radio"
+                            name="color"
+                            value="{{ color.slug }}"
+                            {% if selected.color == color.slug %}checked{% endif %}
+                        >
+
+                        <span
+                            class="color-dot"
+                            style="--swatch: {{ color.hex_code|default:'#ddd' }}"
+                        ></span>
+
+                        <small>
+                            {{ color.name }}
+                        </small>
+
+                    </label>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <!-- Sizes -->
+            <div class="filter-group">
+
+                <p class="filter-title">
+                    SIZE
+                </p>
+
+                <div class="size-filter">
+
+                    {% for size in sizes %}
+
+                    <label class="size-option">
+
+                        <input
+                            type="radio"
+                            name="size"
+                            value="{{ size.name }}"
+                            {% if selected.size == size.name %}checked{% endif %}
+                        >
+
+                        <span>
+                            {{ size.name }}
+                        </span>
+
+                    </label>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <!-- Price -->
+            <div class="filter-group">
+
+                <p class="filter-title">
+                    PRICE
+                </p>
+
+                <div class="price-filter">
+
+                    <input
+                        type="number"
+                        name="min_price"
+                        placeholder="MIN"
+                        value="{{ selected.min_price }}"
+                    >
+
+                    <span>—</span>
+
+                    <input
+                        type="number"
+                        name="max_price"
+                        placeholder="MAX"
+                        value="{{ selected.max_price }}"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <input
+                type="hidden"
+                name="sort"
+                value="{{ selected.sort }}"
+            >
+
+            <button class="filter-apply" type="submit">
+                APPLY FILTERS
+            </button>
+
+            <a href="/shop/" class="filter-clear">
+                CLEAR ALL
+            </a>
+
+        </form>
+
+    </aside>
+
+
+    <!-- PRODUCTS -->
+    <div class="shop-results">
+
+        <div class="shop-toolbar">
+
+            <div class="active-filter-line">
+
+                {% if selected.category or selected.color or selected.size or selected.type or selected.q %}
+                    FILTERED RESULTS
+                {% else %}
+                    ALL PRODUCTS
+                {% endif %}
+
+            </div>
+
+            <form method="get">
+
+                {% if selected.category %}
+                <input type="hidden" name="category" value="{{ selected.category }}">
+                {% endif %}
+
+                {% if selected.color %}
+                <input type="hidden" name="color" value="{{ selected.color }}">
+                {% endif %}
+
+                {% if selected.size %}
+                <input type="hidden" name="size" value="{{ selected.size }}">
+                {% endif %}
+
+                {% if selected.type %}
+                <input type="hidden" name="type" value="{{ selected.type }}">
+                {% endif %}
+
+                {% if selected.min_price %}
+                <input type="hidden" name="min_price" value="{{ selected.min_price }}">
+                {% endif %}
+
+                {% if selected.max_price %}
+                <input type="hidden" name="max_price" value="{{ selected.max_price }}">
+                {% endif %}
+
+                {% if selected.q %}
+                <input type="hidden" name="q" value="{{ selected.q }}">
+                {% endif %}
+
+                <select
+                    name="sort"
+                    class="shop-sort"
+                    onchange="this.form.submit()"
+                >
+                    <option value="newest" {% if selected.sort == "newest" %}selected{% endif %}>
+                        NEWEST
+                    </option>
+
+                    <option value="price-low" {% if selected.sort == "price-low" %}selected{% endif %}>
+                        PRICE: LOW TO HIGH
+                    </option>
+
+                    <option value="price-high" {% if selected.sort == "price-high" %}selected{% endif %}>
+                        PRICE: HIGH TO LOW
+                    </option>
+
+                    <option value="name" {% if selected.sort == "name" %}selected{% endif %}>
+                        NAME
+                    </option>
+                </select>
+
+            </form>
+
+        </div>
+
+
+        <div class="shop-grid">
+
+            {% for product in page_obj %}
+
+            <article class="shop-product">
+
+                <a href="/shop/{{ product.slug }}/">
+
+                    <div class="shop-product__media">
+
+                        {% with image=product.images.first %}
+
+                            {% if image %}
+
+                            <img
+                                src="{{ image.image.url }}"
+                                alt="{{ image.alt_text|default:product.name }}"
+                                loading="lazy"
+                            >
+
+                            {% else %}
+
+                            <div class="product-empty">
+                                AVAN
+                            </div>
+
+                            {% endif %}
+
+                        {% endwith %}
+
+
+                        {% if product.product_type == "customizable" %}
+                        <span class="product-badge">
+                            CUSTOM
+                        </span>
+                        {% endif %}
+
+
+                        <button
+                            class="wishlist-button"
+                            type="button"
+                            aria-label="Add to wishlist"
+                            onclick="event.preventDefault();"
+                        >
+                            ♡
+                        </button>
+
+                    </div>
+
+
+                    <div class="shop-product__info">
+
+                        <div>
+                            <p class="product-category">
+                                {{ product.category.name }}
+                            </p>
+
+                            <h2>
+                                {{ product.name }}
+                            </h2>
+                        </div>
+
+                        <strong class="product-price">
+                            {{ product.base_price|floatformat:"0" }}
+                            <small>TOMAN</small>
+                        </strong>
+
+                    </div>
+
+
+                    <div class="product-variants">
+
+                        {% regroup product.variants.all by color as color_list %}
+
+                        {% for group in color_list|slice:":5" %}
+
+                        <span
+                            class="mini-color"
+                            title="{{ group.grouper.name }}"
+                            style="--swatch: {{ group.grouper.hex_code|default:'#ddd' }}"
+                        ></span>
+
+                        {% endfor %}
+
+                    </div>
+
+                </a>
+
+            </article>
+
+            {% empty %}
+
+            <div class="empty-shop">
+                <span>NO RESULTS</span>
+
+                <h2>
+                    NOTHING FOUND.
+                </h2>
+
+                <p>
+                    Try removing some filters.
+                </p>
+
+                <a href="/shop/" class="btn btn-primary">
+                    VIEW ALL PRODUCTS
+                </a>
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        {% if page_obj.paginator.num_pages > 1 %}
+
+        <nav class="pagination">
+
+            {% if page_obj.has_previous %}
+            <a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                ←
+            </a>
+            {% endif %}
+
+            {% for number in page_obj.paginator.page_range %}
+
+                {% if page_obj.number == number %}
+
+                <span class="pagination-current">
+                    {{ number }}
+                </span>
+
+                {% elif number >= page_obj.number|add:"-2" and number <= page_obj.number|add:"2" %}
+
+                <a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ number }}">
+                    {{ number }}
+                </a>
+
+                {% endif %}
+
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">
+                →
+            </a>
+            {% endif %}
+
+        </nav>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
+
+<div class="filter-backdrop" data-filter-backdrop></div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{% static 'js/shop.js' %}" defer></script>
+{% endblock %}

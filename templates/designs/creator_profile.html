@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ creator.display_name|default:creator.username }} — AVAN Creator{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/community.css' %}">
+<link rel="stylesheet" href="{% static 'css/explore.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="creator-page" data-creator="{{ creator.username }}">
+    <header class="creator-hero">
+        <div class="creator-avatar">
+            {% if creator.avatar %}
+            <img src="{{ creator.avatar.url }}" alt="{{ creator.display_name|default:creator.username }}">
+            {% else %}
+            <span>{{ creator.display_name|default:creator.username|slice:":1"|upper }}</span>
+            {% endif %}
+        </div>
+
+        <div class="creator-main">
+            <p>AVAN / CREATOR</p>
+            <h1>{{ creator.display_name|default:creator.username }}</h1>
+            <div class="creator-handle">@{{ creator.username }}</div>
+            {% if creator.bio %}<p class="creator-bio">{{ creator.bio }}</p>{% endif %}
+
+            <div class="creator-stats">
+                <div><strong data-followers-count>{{ followers_count }}</strong><span>FOLLOWERS</span></div>
+                <div><strong>{{ following_count }}</strong><span>FOLLOWING</span></div>
+                <div><strong>{{ cards|length }}</strong><span>PUBLIC DESIGNS</span></div>
+            </div>
+        </div>
+
+        <div class="creator-action">
+            {% if request.user == creator %}
+            <a href="/account/profile/" class="creator-button creator-button--secondary">EDIT PROFILE</a>
+            {% elif request.user.is_authenticated %}
+            <button type="button" class="creator-button {% if is_following %}is-active{% endif %}" data-follow-creator="{{ creator.username }}">
+                {% if is_following %}FOLLOWING{% else %}FOLLOW{% endif %}
+            </button>
+            {% else %}
+            <a href="/account/login/?next=/creator/{{ creator.username }}/" class="creator-button">FOLLOW</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="creator-work-head">
+        <div>
+            <span>CREATOR WORK</span>
+            <h2>PUBLISHED DESIGNS.</h2>
+        </div>
+        {% if request.user == creator %}
+        <a href="/design/">CREATE NEW →</a>
+        {% endif %}
+    </div>
+
+    <div class="creator-grid">
+        {% for card in cards %}
+        <article class="creator-design-card">
+            <a href="/explore/{{ card.design.id }}/">
+                {% include "designs/_preview.html" with design=card.design preview=card.preview compact=True %}
+                <div class="creator-design-card__body">
+                    <h3>{{ card.design.title }}</h3>
+                    <p>{{ card.design.base_product.name }}</p>
+                    <div>
+                        <span>♥ {{ card.design.likes_total }}</span>
+                        <span>REMIX {{ card.design.remixes_total }}</span>
+                    </div>
+                </div>
+            </a>
+        </article>
+        {% empty %}
+        <div class="creator-empty">
+            <span>NO PUBLIC DESIGNS YET.</span>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<div hidden id="community-csrf">{% csrf_token %}</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/community.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,32 @@
+<div class="design-preview {% if compact %}design-preview--compact{% endif %}">
+    <div class="design-preview__stage">
+        {% if preview.image_url %}
+        <img src="{{ preview.image_url }}" alt="{{ design.title }}" class="design-preview__garment">
+        {% else %}
+        <div class="design-preview__fallback">AVAN</div>
+        {% endif %}
+
+        <div
+            class="design-preview__print"
+            style="left:{{ preview.print.x }}%;top:{{ preview.print.y }}%;width:{{ preview.print.width }}%;height:{{ preview.print.height }}%;"
+        >
+            {% for layer in preview.layers %}
+                {% if layer.type == "text" %}
+                <div
+                    class="preview-layer preview-layer--text"
+                    style="left:{{ layer.x }}%;top:{{ layer.y }}%;width:{{ layer.width }}%;z-index:{{ layer.z|default:0 }};transform:translate(-50%,-50%) rotate({{ layer.rotation|default:0 }}deg);color:{{ layer.color|default:'#111111' }};font-size:clamp(9px, {{ layer.fontSize|default:38 }}px, 46px);font-weight:{{ layer.fontWeight|default:'800' }};text-align:{{ layer.align|default:'center' }};"
+                >{{ layer.text }}</div>
+                {% elif layer.type == "image" and layer.url %}
+                <div
+                    class="preview-layer preview-layer--image"
+                    style="left:{{ layer.x }}%;top:{{ layer.y }}%;width:{{ layer.width }}%;z-index:{{ layer.z|default:0 }};transform:translate(-50%,-50%) rotate({{ layer.rotation|default:0 }}deg);"
+                >
+                    <img src="{{ layer.url }}" alt="Design layer">
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <span class="design-preview__side">{{ preview.side|upper }}</span>
+    </div>
+</div>

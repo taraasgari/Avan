@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Saved Designs — AVAN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/community.css' %}">
+<link rel="stylesheet" href="{% static 'css/explore.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="saved-designs-page">
+    <header class="saved-designs-head">
+        <div>
+            <p>MY AVAN / SAVED DESIGNS</p>
+            <h1>KEEP<br>THE IDEAS.</h1>
+        </div>
+        <div class="saved-designs-intro">
+            <strong>{{ cards|length }} SAVED</strong>
+            <p>Designs you saved from Explore live here.</p>
+            <a href="/explore/">EXPLORE MORE →</a>
+        </div>
+    </header>
+
+    <div class="saved-design-grid">
+        {% for card in cards %}
+        <article class="saved-design-card" data-saved-card="{{ card.design.id }}">
+            <a href="/explore/{{ card.design.id }}/" class="saved-design-card__visual">
+                {% include "designs/_preview.html" with design=card.design preview=card.preview compact=True %}
+            </a>
+            <div class="saved-design-card__body">
+                <a href="/creator/{{ card.design.owner.username }}/" class="saved-creator">
+                    @{{ card.design.owner.username }}
+                </a>
+                <h2><a href="/explore/{{ card.design.id }}/">{{ card.design.title }}</a></h2>
+                <p>{{ card.design.base_product.name }}</p>
+                <div class="saved-design-actions">
+                    {% if card.design.allow_remix %}
+                    <a href="/explore/{{ card.design.id }}/">REMIX</a>
+                    {% endif %}
+                    <button type="button" data-unsave-design="{{ card.design.id }}">REMOVE</button>
+                </div>
+            </div>
+        </article>
+        {% empty %}
+        <div class="saved-design-empty">
+            <span>NOTHING SAVED YET.</span>
+            <h2>FIND SOMETHING WORTH KEEPING.</h2>
+            <a href="/explore/">OPEN EXPLORE →</a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<div hidden id="community-csrf">{% csrf_token %}</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/community.js' %}" defer></script>
+{% endblock %}

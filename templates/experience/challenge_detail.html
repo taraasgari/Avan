@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ challenge.title }} — AVAN Challenge{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/experience.css' %}">{% endblock %}
+
+{% block content %}
+<section class="challenge-detail-page">
+    <header class="challenge-detail-head">
+        <div>
+            <a href="/challenges/">← CHALLENGES</a>
+            <p>{{ challenge.phase|upper }} / AVAN CHALLENGE</p>
+            <h1>{{ challenge.title }}</h1>
+            <h2>{{ challenge.prompt }}</h2>
+        </div>
+        <div class="challenge-meta">
+            {% if challenge.reward_points %}<div><span>REWARD</span><strong>{{ challenge.reward_points }} POINTS</strong></div>{% endif %}
+            {% if challenge.ends_at %}<div><span>ENDS</span><strong>{{ challenge.ends_at|date:"Y/m/d H:i" }}</strong></div>{% endif %}
+            <div><span>STATUS</span><strong>{{ challenge.phase|upper }}</strong></div>
+        </div>
+    </header>
+
+    <div class="challenge-detail-layout">
+        <section class="challenge-about">
+            <span>THE BRIEF</span>
+            <p>{{ challenge.description|default:challenge.prompt }}</p>
+
+            {% if success %}<div class="challenge-success">{{ success }}</div>{% endif %}
+            {% if error %}<div class="challenge-error">{{ error }}</div>{% endif %}
+
+            {% if challenge.is_open %}
+                {% if request.user.is_authenticated %}
+                <form method="post" class="challenge-entry-form">
+                    {% csrf_token %}
+                    <h3>SUBMIT ONE OF YOUR PUBLISHED DESIGNS</h3>
+                    {% if my_designs %}
+                    <select name="design_id" required>
+                        <option value="">SELECT DESIGN</option>
+                        {% for design in my_designs %}<option value="{{ design.id }}">{{ design.title }}</option>{% endfor %}
+                    </select>
+                    <input type="text" name="note" maxlength="240" placeholder="Optional note">
+                    <button type="submit">ENTER CHALLENGE →</button>
+                    {% else %}
+                    <p>You need a public published design first.</p>
+                    <a href="/design/">OPEN AVAN STUDIO →</a>
+                    {% endif %}
+                </form>
+                {% else %}
+                <a href="/account/login/?next=/challenges/{{ challenge.slug }}/" class="challenge-login">SIGN IN TO ENTER →</a>
+                {% endif %}
+            {% endif %}
+        </section>
+
+        <aside class="challenge-results">
+            <span>FINALISTS / WINNERS</span>
+            {% for entry in entries %}
+            <a href="/explore/{{ entry.design.id }}/" class="challenge-result">
+                <div>
+                    <small>{{ entry.status|upper }}</small>
+                    <strong>{{ entry.design.title }}</strong>
+                    <span>@{{ entry.user.username }}</span>
+                </div>
+                <b>→</b>
+            </a>
+            {% empty %}
+            <p>No finalists announced yet.</p>
+            {% endfor %}
+        </aside>
+    </div>
+</section>
+{% endblock %}

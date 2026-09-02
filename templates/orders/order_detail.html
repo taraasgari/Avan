@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}
+Order — AVAN
+{% endblock %}
+
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/order-detail.css' %}"
+>
+{% endblock %}
+
+
+{% block content %}
+
+<section
+    class="order-page"
+    data-order-page
+    data-order-number="{{ order_number }}"
+>
+
+    <div class="order-loading">
+        LOADING YOUR ORDER...
+    </div>
+
+</section>
+
+
+<div hidden id="order-csrf">
+    {% csrf_token %}
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script
+    src="{% static 'js/order-detail.js' %}"
+    defer
+></script>
+
+{% endblock %}

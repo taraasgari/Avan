@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Profile Settings — AVAN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/account.css' %}">
+<link rel="stylesheet" href="{% static 'css/community.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="profile-settings-page">
+    <header class="profile-settings-head">
+        <div>
+            <p>MY AVAN / PROFILE</p>
+            <h1>YOUR<br>IDENTITY.</h1>
+        </div>
+        {% if request.user.public_profile_enabled %}
+        <a href="/creator/{{ request.user.username }}/">VIEW PUBLIC PROFILE →</a>
+        {% endif %}
+    </header>
+
+    <form method="post" enctype="multipart/form-data" class="profile-settings-form">
+        {% csrf_token %}
+
+        {% if saved %}
+        <div class="profile-success">PROFILE UPDATED ✓</div>
+        {% endif %}
+
+        <div class="profile-avatar-preview">
+            {% if request.user.avatar %}
+            <img src="{{ request.user.avatar.url }}" alt="Profile avatar">
+            {% else %}
+            <span>{{ request.user.display_name|default:request.user.username|slice:":1"|upper }}</span>
+            {% endif %}
+        </div>
+
+        <label class="account-field">
+            <span>DISPLAY NAME</span>
+            {{ form.display_name }}
+            {{ form.display_name.errors }}
+        </label>
+
+        <label class="account-field">
+            <span>BIO / MAX 280</span>
+            {{ form.bio }}
+            {{ form.bio.errors }}
+        </label>
+
+        <label class="account-field">
+            <span>AVATAR</span>
+            {{ form.avatar }}
+            {{ form.avatar.errors }}
+        </label>
+
+        <label class="profile-public-toggle">
+            {{ form.public_profile_enabled }}
+            <span>
+                <strong>PUBLIC CREATOR PROFILE</strong>
+                <small>Allow people to open your creator page and follow you.</small>
+            </span>
+        </label>
+
+        <button type="submit" class="auth-submit">SAVE PROFILE →</button>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}
+Saved — AVAN
+{% endblock %}
+
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/account.css' %}"
+>
+{% endblock %}
+
+
+{% block content %}
+
+<section class="wishlist-page">
+
+    <header>
+
+        <span>
+            MY AVAN / SAVED
+        </span>
+
+        <h1>
+            SAVED<br>
+            PIECES.
+        </h1>
+
+        <p>
+            {{ wishlist|length }} SAVED
+        </p>
+
+    </header>
+
+
+    <div class="wishlist-grid">
+
+        {% for item in wishlist %}
+
+        <article
+            class="wishlist-card"
+            data-wishlist-card="{{ item.product.id }}"
+        >
+
+            <a href="/shop/{{ item.product.slug }}/">
+
+                <div class="wishlist-card__image">
+
+                    {% with image=item.product.images.first %}
+
+                        {% if image %}
+
+                        <img
+                            src="{{ image.image.url }}"
+                            alt="{{ item.product.name }}"
+                        >
+
+                        {% else %}
+
+                        <span>
+                            AVAN
+                        </span>
+
+                        {% endif %}
+
+                    {% endwith %}
+
+                </div>
+
+
+                <small>
+                    {{ item.product.category.name }}
+                </small>
+
+                <h2>
+                    {{ item.product.name }}
+                </h2>
+
+                <strong>
+                    {{ item.product.base_price|floatformat:"0" }}
+                    TOMAN
+                </strong>
+
+            </a>
+
+
+            <button
+                type="button"
+                data-remove-wishlist="{{ item.product.id }}"
+            >
+                REMOVE
+            </button>
+
+        </article>
+
+
+        {% empty %}
+
+        <div class="account-empty">
+
+            <h2>
+                YOUR SAVED LIST IS EMPTY.
+            </h2>
+
+            <a
+                href="/shop/"
+                class="btn btn-primary"
+            >
+                EXPLORE SHOP
+            </a>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+
+<div hidden id="account-csrf">
+    {% csrf_token %}
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script
+    src="{% static 'js/account.js' %}"
+    defer
+></script>
+
+{% endblock %}

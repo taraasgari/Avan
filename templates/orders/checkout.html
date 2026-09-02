@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}
+Checkout — AVAN
+{% endblock %}
+
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/checkout.css' %}"
+>
+{% endblock %}
+
+
+{% block content %}
+
+<section
+    class="checkout-page"
+    data-checkout-page
+>
+
+    <header class="checkout-header">
+
+        <a href="/bag/" class="checkout-back">
+            ← BACK TO BAG
+        </a>
+
+        <p>
+            AVAN / SECURE CHECKOUT
+        </p>
+
+        <h1>
+            COMPLETE<br>
+            YOUR ORDER.
+        </h1>
+
+    </header>
+
+
+    <div class="checkout-layout">
+
+
+        <!-- CUSTOMER INFORMATION -->
+
+        <section class="checkout-form-area">
+
+            <form
+                class="checkout-form"
+                data-checkout-form
+            >
+
+                <div class="checkout-section">
+
+                    <div class="checkout-section__head">
+
+                        <span>01</span>
+
+                        <div>
+                            <h2>CONTACT</h2>
+
+                            <p>
+                                We'll use this information
+                                for your order.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <label class="field field--wide">
+
+                            <span>
+                                FULL NAME *
+                            </span>
+
+                            <input
+                                type="text"
+                                name="customer_name"
+                                autocomplete="name"
+                                required
+                            >
+
+                        </label>
+
+
+                        <label class="field">
+
+                            <span>
+                                PHONE *
+                            </span>
+
+                            <input
+                                type="tel"
+                                name="phone"
+                                autocomplete="tel"
+                                placeholder="09..."
+                                required
+                            >
+
+                        </label>
+
+
+                        <label class="field">
+
+                            <span>
+                                EMAIL
+                            </span>
+
+                            <input
+                                type="email"
+                                name="email"
+                                autocomplete="email"
+                            >
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <div class="checkout-section">
+
+                    <div class="checkout-section__head">
+
+                        <span>02</span>
+
+                        <div>
+                            <h2>DELIVERY ADDRESS</h2>
+
+                            <p>
+                                Where should we send your order?
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <label class="field">
+
+                            <span>
+                                PROVINCE *
+                            </span>
+
+                            <input
+                                type="text"
+                                name="province"
+                                required
+                            >
+
+                        </label>
+
+
+                        <label class="field">
+
+                            <span>
+                                CITY *
+                            </span>
+
+                            <input
+                                type="text"
+                                name="city"
+                                required
+                            >
+
+                        </label>
+
+
+                        <label class="field field--wide">
+
+                            <span>
+                                FULL ADDRESS *
+                            </span>
+
+                            <textarea
+                                name="address"
+                                rows="4"
+                                required
+                            ></textarea>
+
+                        </label>
+
+
+                        <label class="field">
+
+                            <span>
+                                POSTAL CODE
+                            </span>
+
+                            <input
+                                type="text"
+                                name="postal_code"
+                            >
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <div class="checkout-section">
+
+                    <div class="checkout-section__head">
+
+                        <span>03</span>
+
+                        <div>
+                            <h2>ORDER NOTE</h2>
+
+                            <p>
+                                Optional.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <label class="field">
+
+                        <span>
+                            NOTE
+                        </span>
+
+                        <textarea
+                            name="customer_note"
+                            rows="4"
+                            placeholder="Anything we should know?"
+                        ></textarea>
+
+                    </label>
+
+                </div>
+
+
+                <div
+                    class="checkout-error"
+                    data-checkout-error
+                    aria-live="polite"
+                ></div>
+
+
+                <button
+                    type="submit"
+                    class="place-order-button"
+                    data-place-order
+                >
+                    PLACE ORDER →
+                </button>
+
+
+                <p class="checkout-note">
+                    Stock will be reserved when the order
+                    is created.
+                </p>
+
+            </form>
+
+        </section>
+
+
+        <!-- ORDER SUMMARY -->
+
+        <aside class="checkout-summary">
+
+            <div class="checkout-summary__inner">
+
+                <div class="checkout-summary__head">
+
+                    <div>
+                        <span>AVAN BAG</span>
+                        <h2>YOUR ORDER</h2>
+                    </div>
+
+                    <a href="/bag/">
+                        EDIT
+                    </a>
+
+                </div>
+
+
+                <div
+                    class="checkout-items"
+                    data-checkout-items
+                >
+
+                    <div class="checkout-loading">
+                        LOADING...
+                    </div>
+
+                </div>
+
+
+                <div class="checkout-totals">
+
+                    <div>
+                        <span>SUBTOTAL</span>
+
+                        <strong>
+                            <span data-checkout-subtotal>
+                                0
+                            </span>
+                            TOMAN
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>DISCOUNT</span>
+
+                        <strong>
+                            −
+                            <span data-checkout-discount>
+                                0
+                            </span>
+                            TOMAN
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>SHIPPING</span>
+
+                        <strong>
+                            <span data-checkout-shipping>
+                                0
+                            </span>
+                            TOMAN
+                        </strong>
+                    </div>
+
+
+                    <div class="checkout-total">
+
+                        <span>TOTAL</span>
+
+                        <strong>
+                            <span data-checkout-total>
+                                0
+                            </span>
+                            TOMAN
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="checkout-security">
+
+                    <strong>
+                        STOCK-SAFE CHECKOUT
+                    </strong>
+
+                    <p>
+                        AVAN verifies inventory before
+                        creating your order.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</section>
+
+
+<div hidden id="checkout-csrf">
+    {% csrf_token %}
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script
+    src="{% static 'js/checkout.js' %}"
+    defer
+></script>
+
+{% endblock %}

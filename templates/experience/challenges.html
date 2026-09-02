@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Challenges — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/experience.css' %}">{% endblock %}
+
+{% block content %}
+<section class="experience-page">
+    <header class="experience-hero experience-hero--red">
+        <div>
+            <p>AVAN / DESIGN CHALLENGES</p>
+            <h1>CREATE.<br>COMPETE.</h1>
+        </div>
+        <div>
+            <p>Use published AVAN designs to enter themed challenges. Rewards are configured per challenge.</p>
+            {% if request.user.is_authenticated %}<a href="/rewards/">MY AVAN POINTS →</a>{% endif %}
+        </div>
+    </header>
+
+    <div class="challenge-grid">
+        {% for challenge in challenges %}
+        <a href="/challenges/{{ challenge.slug }}/" class="challenge-card">
+            <div class="challenge-card__visual">
+                {% if challenge.cover_image %}<img src="{{ challenge.cover_image.url }}" alt="{{ challenge.title }}">{% else %}<span>{{ forloop.counter|stringformat:"02d" }}</span>{% endif %}
+                <em>{{ challenge.phase|upper }}</em>
+            </div>
+            <div class="challenge-card__body">
+                <small>{{ challenge.entry_count }} ENTRIES</small>
+                <h2>{{ challenge.title }}</h2>
+                <p>{{ challenge.prompt }}</p>
+                {% if challenge.reward_points %}<strong>{{ challenge.reward_points }} AVAN POINTS</strong>{% endif %}
+            </div>
+        </a>
+        {% empty %}
+        <div class="experience-empty"><span>NO CHALLENGES AVAILABLE YET.</span></div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

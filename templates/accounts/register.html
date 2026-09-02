@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}
+Create Account — AVAN
+{% endblock %}
+
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/account.css' %}"
+>
+{% endblock %}
+
+
+{% block content %}
+
+<section class="auth-page">
+
+    <div class="auth-art auth-art--register">
+
+        <span>
+            JOIN AVAN
+        </span>
+
+        <h1>
+            YOUR<br>
+            WORLD.
+        </h1>
+
+        <p>
+            Save pieces, track orders and
+            build your own designs.
+        </p>
+
+    </div>
+
+
+    <div class="auth-panel">
+
+        <div class="auth-panel__inner">
+
+            <span class="auth-kicker">
+                CREATE ACCOUNT
+            </span>
+
+            <h2>
+                JOIN AVAN
+            </h2>
+
+
+            {% if form.non_field_errors %}
+
+            <div class="auth-error">
+
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+
+            <form method="post">
+
+                {% csrf_token %}
+
+
+                <label class="account-field">
+
+                    <span>
+                        DISPLAY NAME
+                    </span>
+
+                    {{ form.display_name }}
+
+                    {% for error in form.display_name.errors %}
+                    <small class="field-error">
+                        {{ error }}
+                    </small>
+                    {% endfor %}
+
+                </label>
+
+
+                <label class="account-field">
+
+                    <span>
+                        USERNAME *
+                    </span>
+
+                    {{ form.username }}
+
+                    {% for error in form.username.errors %}
+                    <small class="field-error">
+                        {{ error }}
+                    </small>
+                    {% endfor %}
+
+                </label>
+
+
+                <label class="account-field">
+
+                    <span>
+                        EMAIL *
+                    </span>
+
+                    {{ form.email }}
+
+                    {% for error in form.email.errors %}
+                    <small class="field-error">
+                        {{ error }}
+                    </small>
+                    {% endfor %}
+
+                </label>
+
+
+                <label class="account-field">
+
+                    <span>
+                        PASSWORD *
+                    </span>
+
+                    {{ form.password1 }}
+
+                    {% for error in form.password1.errors %}
+                    <small class="field-error">
+                        {{ error }}
+                    </small>
+                    {% endfor %}
+
+                </label>
+
+
+                <label class="account-field">
+
+                    <span>
+                        CONFIRM PASSWORD *
+                    </span>
+
+                    {{ form.password2 }}
+
+                    {% for error in form.password2.errors %}
+                    <small class="field-error">
+                        {{ error }}
+                    </small>
+                    {% endfor %}
+
+                </label>
+
+
+                <button
+                    class="auth-submit"
+                    type="submit"
+                >
+                    CREATE ACCOUNT →
+                </button>
+
+            </form>
+
+
+            <div class="auth-switch">
+
+                <span>
+                    ALREADY HAVE AN ACCOUNT?
+                </span>
+
+                <a href="/account/login/">
+                    SIGN IN
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

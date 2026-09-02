@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My AVAN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/account.css' %}">
+<link rel="stylesheet" href="{% static 'css/community.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="account-page">
+    <header class="account-header">
+        <div>
+            <span>MY AVAN</span>
+            <h1>HI, {{ request.user.display_name|default:request.user.username|upper }}.</h1>
+        </div>
+        <form method="post" action="/account/logout/">
+            {% csrf_token %}
+            <button type="submit" class="account-logout">SIGN OUT</button>
+        </form>
+    </header>
+
+    <nav class="account-nav">
+        <a href="/account/" class="is-active">OVERVIEW</a>
+        <a href="#orders">ORDERS</a>
+        <a href="/account/wishlist/">SAVED PRODUCTS</a>
+        <a href="/account/saved-designs/">SAVED DESIGNS</a>
+        <a href="/account/designs/">MY DESIGNS</a>
+        <a href="/account/notifications/">NOTIFICATIONS</a>
+        <a href="/rewards/">AVAN POINTS</a>
+        <a href="/account/profile/">PROFILE</a>
+    </nav>
+
+    <div class="account-content">
+        <section class="account-stats">
+            <article>
+                <span>ORDERS</span>
+                <strong>{{ request.user.orders.count }}</strong>
+            </article>
+            <article>
+                <span>FOLLOWERS</span>
+                <strong>{{ request.user.creator_followers.count }}</strong>
+            </article>
+            <article>
+                <span>NOTIFICATIONS</span>
+                <strong>{{ AVAN_UNREAD_NOTIFICATIONS }}</strong>
+                <small>UNREAD</small>
+            </article>
+        </section>
+
+        <section class="account-quick-grid">
+            <a href="/design/" class="account-quick-card">
+                <span>CREATE</span><strong>OPEN AVAN STUDIO</strong><small>Start a new garment design →</small>
+            </a>
+            <a href="/explore/" class="account-quick-card">
+                <span>DISCOVER</span><strong>EXPLORE DESIGNS</strong><small>Save, remix or wear ideas →</small>
+            </a>
+            <a href="/challenges/" class="account-quick-card">
+                <span>COMPETE</span><strong>ACTIVE CHALLENGES</strong><small>Submit designs and win points →</small>
+            </a>
+            <a href="/account/profile/" class="account-quick-card">
+                <span>CREATOR</span><strong>PUBLIC PROFILE</strong><small>Manage your creator identity →</small>
+            </a>
+        </section>
+
+        <section class="account-section" id="orders">
+            <div class="account-section__head">
+                <div><span>PURCHASES</span><h2>YOUR ORDERS</h2></div>
+            </div>
+            {% if orders %}
+            <div class="account-orders">
+                {% for order in orders %}
+                <a href="/orders/{{ order.number }}/" class="account-order">
+                    <div><small>ORDER</small><strong>{{ order.number }}</strong></div>
+                    <div><small>DATE</small><strong>{{ order.created_at|date:"Y/m/d" }}</strong></div>
+                    <div><small>STATUS</small><strong>{{ order.get_status_display|upper }}</strong></div>
+                    <div><small>TOTAL</small><strong>{{ order.total_amount|floatformat:"0" }} TOMAN</strong></div>
+                    <span class="order-arrow">→</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="account-empty">
+                <h3>NO ORDERS YET.</h3>
+                <p>Your AVAN orders will appear here.</p>
+                <a href="/shop/" class="btn btn-primary">START SHOPPING</a>
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="account-section">
+            <div class="account-section__head">
+                <div><span>RECENT</span><h2>NOTIFICATIONS</h2></div>
+                <a href="/account/notifications/">VIEW ALL</a>
+            </div>
+            <div class="dashboard-notifications">
+                {% for notification in recent_notifications %}
+                <a href="{{ notification.url|default:'/account/notifications/' }}" class="dashboard-notification {% if not notification.is_read %}is-unread{% endif %}">
+                    <span>{{ notification.kind|upper }}</span>
+                    <strong>{{ notification.title }}</strong>
+                    <small>{{ notification.created_at|date:"Y/m/d H:i" }}</small>
+                </a>
+                {% empty %}
+                <div class="account-empty"><p>No notifications yet.</p></div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</section>
+{% endblock %}

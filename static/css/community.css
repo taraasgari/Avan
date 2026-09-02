@@ -1,0 +1,342 @@
+/* AVAN Stage 4 — creator profiles + saved designs */
+.creator-page,
+.saved-designs-page {
+    min-height: 100vh;
+    direction: ltr;
+}
+
+.creator-hero {
+    display: grid;
+    grid-template-columns: 170px minmax(0, 1fr) auto;
+    gap: clamp(25px, 5vw, 70px);
+    align-items: end;
+    padding: 80px 5vw 55px;
+    border-bottom: 1px solid var(--line);
+}
+
+.creator-avatar {
+    width: 170px;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 50%;
+    background: #111;
+    color: white;
+}
+
+.creator-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.creator-avatar span {
+    font-size: 4rem;
+    font-weight: 950;
+}
+
+.creator-main > p,
+.saved-designs-head > div:first-child > p {
+    margin: 0 0 10px;
+    color: var(--red);
+    font-size: .63rem;
+    font-weight: 900;
+    letter-spacing: .15em;
+}
+
+.creator-main h1 {
+    margin: 0;
+    font-size: clamp(3.2rem, 7vw, 7rem);
+    line-height: .85;
+    letter-spacing: -.06em;
+}
+
+.creator-handle {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: .75rem;
+}
+
+.creator-bio {
+    max-width: 620px;
+    margin: 22px 0 0;
+    color: var(--muted);
+    line-height: 1.8;
+}
+
+.creator-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    margin-top: 30px;
+}
+
+.creator-stats div {
+    display: grid;
+    gap: 3px;
+}
+
+.creator-stats strong {
+    font-size: 1.2rem;
+}
+
+.creator-stats span {
+    color: var(--muted);
+    font-size: .56rem;
+    font-weight: 900;
+    letter-spacing: .08em;
+}
+
+.creator-button {
+    min-width: 150px;
+    min-height: 52px;
+    padding: 0 22px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    background: var(--red);
+    color: white;
+    cursor: pointer;
+    font-size: .68rem;
+    font-weight: 950;
+}
+
+.creator-button.is-active,
+.creator-button--secondary {
+    border: 1px solid var(--ink);
+    background: white;
+    color: var(--ink);
+}
+
+.creator-work-head {
+    padding: 70px 5vw 30px;
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 25px;
+}
+
+.creator-work-head span {
+    color: var(--red);
+    font-size: .6rem;
+    font-weight: 900;
+    letter-spacing: .12em;
+}
+
+.creator-work-head h2 {
+    margin: 7px 0 0;
+    font-size: clamp(2rem, 4vw, 4rem);
+}
+
+.creator-work-head a {
+    border-bottom: 1px solid;
+    font-size: .65rem;
+    font-weight: 900;
+}
+
+.creator-grid,
+.saved-design-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    padding: 0 5vw 100px;
+}
+
+.creator-design-card__body,
+.saved-design-card__body {
+    padding-top: 13px;
+}
+
+.creator-design-card__body h3,
+.saved-design-card h2 {
+    margin: 0 0 6px;
+    font-size: .9rem;
+}
+
+.creator-design-card__body p,
+.saved-design-card__body p {
+    margin: 0;
+    color: var(--muted);
+    font-size: .65rem;
+}
+
+.creator-design-card__body > div {
+    display: flex;
+    gap: 13px;
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: .58rem;
+}
+
+.creator-empty,
+.saved-design-empty {
+    grid-column: 1 / -1;
+    min-height: 380px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    color: var(--muted);
+}
+
+.saved-designs-head {
+    padding: 80px 5vw 55px;
+    display: grid;
+    grid-template-columns: 1fr minmax(280px, 420px);
+    gap: 50px;
+    align-items: end;
+    border-bottom: 1px solid var(--line);
+}
+
+.saved-designs-head h1 {
+    margin: 0;
+    font-size: clamp(4rem, 8vw, 8rem);
+    line-height: .8;
+    letter-spacing: -.07em;
+}
+
+.saved-designs-intro p {
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.saved-designs-intro a {
+    display: inline-block;
+    margin-top: 10px;
+    border-bottom: 1px solid;
+    font-size: .65rem;
+    font-weight: 900;
+}
+
+.saved-design-grid {
+    padding-top: 45px;
+}
+
+.saved-creator {
+    display: inline-block;
+    margin-bottom: 7px;
+    color: var(--red);
+    font-size: .6rem;
+    font-weight: 900;
+}
+
+.saved-design-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 13px;
+}
+
+.saved-design-actions a,
+.saved-design-actions button {
+    border: 0;
+    border-bottom: 1px solid;
+    padding: 0 0 3px;
+    background: transparent;
+    cursor: pointer;
+    font-size: .6rem;
+    font-weight: 900;
+}
+
+.saved-design-actions button {
+    color: var(--red);
+}
+
+@media (max-width: 1000px) {
+    .creator-grid,
+    .saved-design-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .creator-hero {
+        grid-template-columns: 90px 1fr;
+        align-items: start;
+        padding: 55px 20px 40px;
+    }
+
+    .creator-avatar { width: 90px; }
+    .creator-avatar span { font-size: 2rem; }
+    .creator-action { grid-column: 1 / -1; }
+    .creator-button { width: 100%; }
+
+    .creator-work-head,
+    .saved-designs-head {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .saved-designs-head {
+        grid-template-columns: 1fr;
+    }
+
+    .creator-grid,
+    .saved-design-grid {
+        padding-left: 15px;
+        padding-right: 15px;
+        gap: 10px;
+    }
+}
+
+/* My AVAN stage 4 additions */
+.account-quick-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 75px;
+}
+.account-quick-card {
+    min-height: 190px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid var(--line);
+}
+.account-quick-card > span { color: var(--red); font-size: .58rem; font-weight: 900; letter-spacing: .1em; }
+.account-quick-card strong { font-size: 1rem; }
+.account-quick-card small { color: var(--muted); line-height: 1.5; }
+.dashboard-notification {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    gap: 18px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+    opacity: .6;
+}
+.dashboard-notification.is-unread { opacity: 1; }
+.dashboard-notification > span { color: var(--red); font-size: .55rem; font-weight: 900; }
+.dashboard-notification strong { font-size: .76rem; }
+.dashboard-notification small { color: var(--muted); font-size: .58rem; }
+
+.profile-settings-page { min-height: 100vh; direction: ltr; }
+.profile-settings-head {
+    padding: 70px 5vw 45px;
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 25px;
+    border-bottom: 1px solid var(--line);
+}
+.profile-settings-head p { color: var(--red); font-size: .62rem; font-weight: 900; letter-spacing: .14em; }
+.profile-settings-head h1 { margin: 0; font-size: clamp(4rem,8vw,8rem); line-height: .8; letter-spacing: -.07em; }
+.profile-settings-head a { border-bottom: 1px solid; font-size: .63rem; font-weight: 900; }
+.profile-settings-form { width: min(680px, 90vw); margin: 55px auto 100px; }
+.profile-avatar-preview { width: 120px; height: 120px; margin-bottom: 35px; display: grid; place-items: center; border-radius: 50%; overflow: hidden; background: #111; color: white; font-size: 2.5rem; font-weight: 950; }
+.profile-avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.profile-settings-form textarea { width: 100%; box-sizing: border-box; border: 1px solid #ccc; padding: 14px; font: inherit; resize: vertical; }
+.profile-public-toggle { display: flex; gap: 14px; align-items: flex-start; padding: 20px; margin: 25px 0; border: 1px solid var(--line); }
+.profile-public-toggle input { margin-top: 3px; accent-color: var(--red); }
+.profile-public-toggle span { display: grid; gap: 5px; }
+.profile-public-toggle strong { font-size: .72rem; }
+.profile-public-toggle small { color: var(--muted); line-height: 1.5; }
+.profile-success { margin-bottom: 25px; padding: 14px; background: #111; color: white; font-size: .7rem; font-weight: 900; }
+
+@media (max-width: 900px) {
+    .account-quick-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+    .account-quick-grid { grid-template-columns: 1fr; }
+    .dashboard-notification { grid-template-columns: 1fr; gap: 7px; }
+    .profile-settings-head { padding: 50px 20px 35px; align-items: start; flex-direction: column; }
+}

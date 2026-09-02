@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Designs — AVAN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/studio.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="my-designs-page">
+    <header class="my-designs-head">
+        <div>
+            <span>MY AVAN / DESIGNS</span>
+            <h1>MY<br>DESIGNS.</h1>
+        </div>
+        <a href="/design/" class="new-design-button">+ NEW DESIGN</a>
+    </header>
+
+    <div class="design-card-grid">
+        {% for design in designs %}
+        <article class="design-card">
+            <a href="/design/{{ design.id }}/" class="design-card__preview">
+                <div class="design-card__garment">AVAN</div>
+                <span>{{ design.get_status_display|upper }}</span>
+            </a>
+            <div class="design-card__body">
+                <small>{{ design.base_product.name }}</small>
+                <h2>{{ design.title }}</h2>
+                <p>
+                    {% if design.base_color %}{{ design.base_color.name }} / {% endif %}
+                    UPDATED {{ design.updated_at|date:"Y/m/d H:i" }}
+                </p>
+                <div class="design-card__actions">
+                    <a href="/design/{{ design.id }}/">EDIT</a>
+                    {% if design.status == "published" %}
+                    <a href="/explore/{{ design.id }}/">VIEW PUBLIC</a>
+                    <span>♥ {{ design.likes_total }} / REMIX {{ design.remixes_total }}{% if design.is_for_sale %} / FOR SALE{% endif %}</span>
+                    {% else %}
+                    <span>PRIVATE DRAFT</span>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+        {% empty %}
+        <div class="designs-empty">
+            <span>AVAN STUDIO</span>
+            <h2>NO DESIGNS YET.</h2>
+            <p>Create your first garment design.</p>
+            <a href="/design/">OPEN AVAN STUDIO</a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ design.title }} — AVAN Explore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/explore.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="public-design-page" data-public-design="{{ design.id }}">
+    <div class="public-design-visual">
+        {% include "designs/_preview.html" with design=design preview=preview compact=False %}
+    </div>
+
+    <aside class="public-design-info">
+        <div class="public-design-info__inner">
+            <a href="/explore/" class="back-explore">← EXPLORE</a>
+
+            <div class="public-design-kicker">PUBLIC DESIGN</div>
+            <h1>{{ design.title }}</h1>
+
+            <div class="creator-line">
+                <span>CREATED BY</span>
+                {% if design.owner.public_profile_enabled %}<a href="/creator/{{ design.owner.username }}/"><strong>{{ design.owner.display_name|default:design.owner.username }}</strong></a>{% else %}<strong>{{ design.owner.display_name|default:design.owner.username }}</strong>{% endif %}
+            </div>
+
+            {% if design.parent_design %}
+            <a href="/explore/{{ design.parent_design.id }}/" class="lineage-box">
+                <span>REMIXED FROM</span>
+                <strong>{{ design.parent_design.title }}</strong>
+                <small>BY {{ design.parent_design.owner.display_name|default:design.parent_design.owner.username }}</small>
+            </a>
+            {% endif %}
+
+            <div class="public-design-stats">
+                <button type="button" data-design-like="{{ design.id }}" class="{% if liked %}is-active{% endif %}">
+                    ♥ <span data-like-count>{{ design.likes.count }}</span> LIKE
+                </button>
+                <button type="button" data-design-save="{{ design.id }}" class="{% if saved %}is-active{% endif %}">
+                    SAVE
+                </button>
+                <span>{{ design.remixes.count }} REMIXES</span>
+            </div>
+
+            {% if design.allow_remix %}
+            <button type="button" class="remix-primary" data-design-remix="{{ design.id }}">
+                REMIX THIS DESIGN →
+            </button>
+            {% endif %}
+
+            {% if design.is_for_sale %}
+            <section class="wear-design">
+                <span>WEAR THIS DESIGN</span>
+                <h2>{{ design.base_product.name }}</h2>
+                <p>{{ design.base_color.name|default:"AVAN garment" }} / choose your size</p>
+
+                <div class="public-size-grid" data-public-sizes></div>
+                <div class="public-stock" data-public-stock>SELECT A SIZE</div>
+
+                <button type="button" class="wear-button" data-wear-design disabled>
+                    ADD DESIGN TO BAG
+                </button>
+                <div class="wear-message" data-wear-message></div>
+            </section>
+            {% else %}
+            <div class="not-for-sale">
+                <span>SHOWCASE ONLY</span>
+                <p>The creator published this design for inspiration/remixing, not direct purchase.</p>
+            </div>
+            {% endif %}
+
+            <div class="design-meta-list">
+                <div><span>GARMENT</span><strong>{{ design.base_product.name }}</strong></div>
+                <div><span>COLOR</span><strong>{{ design.base_color.name|default:"—" }}</strong></div>
+                <div><span>PUBLISHED</span><strong>{{ design.published_at|date:"Y/m/d" }}</strong></div>
+                <div><span>REMIX</span><strong>{% if design.allow_remix %}ALLOWED{% else %}OFF{% endif %}</strong></div>
+            </div>
+        </div>
+    </aside>
+</section>
+
+{% if related %}
+<section class="related-designs">
+    <div class="related-head">
+        <span>MORE ON THIS GARMENT</span>
+        <h2>KEEP EXPLORING.</h2>
+    </div>
+    <div class="related-grid">
+        {% for card in related %}
+        <a href="/explore/{{ card.design.id }}/" class="related-card">
+            {% include "designs/_preview.html" with design=card.design preview=card.preview compact=True %}
+            <strong>{{ card.design.title }}</strong>
+            <span>BY {% if card.design.owner.public_profile_enabled %}<a href="/creator/{{ card.design.owner.username }}/">{{ card.design.owner.display_name|default:card.design.owner.username }}</a>{% else %}{{ card.design.owner.display_name|default:card.design.owner.username }}{% endif %}</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<div hidden id="explore-csrf">{% csrf_token %}</div>
+{{ purchase_product|json_script:"public-design-product-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/explore.js' %}" defer></script>
+{% endblock %}

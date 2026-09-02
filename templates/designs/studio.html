@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AVAN Studio{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/studio.css' %}">
+{% endblock %}
+
+{% block content %}
+<section
+    class="studio-page"
+    data-studio
+    data-authenticated="{% if is_authenticated_for_studio %}1{% else %}0{% endif %}"
+>
+    <header class="studio-topbar">
+        <div>
+            <span>AVAN STUDIO / V1</span>
+            <input type="text" value="{{ initial_design.title|default:'Untitled Design' }}" maxlength="120" data-design-title>
+        </div>
+
+        <div class="studio-topbar__actions">
+            <span class="save-state" data-save-state>UNSAVED</span>
+            <a href="/account/designs/" class="studio-link">MY DESIGNS</a>
+            <button type="button" class="studio-save" data-save-design>SAVE DESIGN</button>
+            <button type="button" class="studio-publish" data-publish-design>PUBLISH</button>
+        </div>
+    </header>
+
+    {% if studio_products %}
+    <div class="studio-layout">
+        <aside class="studio-tools">
+            <div class="studio-tool-group">
+                <span class="studio-label">GARMENT</span>
+                <select data-product-select>
+                    {% for product in studio_products %}
+                    <option value="{{ product.id }}">{{ product.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="studio-tool-group">
+                <span class="studio-label">COLOR</span>
+                <div class="studio-colors" data-color-options></div>
+            </div>
+
+            <div class="studio-tool-group">
+                <span class="studio-label">VIEW</span>
+                <div class="side-switch">
+                    <button type="button" class="is-active" data-side="front">FRONT</button>
+                    <button type="button" data-side="back">BACK</button>
+                </div>
+            </div>
+
+            <div class="studio-tool-group">
+                <span class="studio-label">ADD</span>
+                <button type="button" class="studio-add" data-add-text>+ TEXT</button>
+                <label class="studio-add studio-upload">
+                    + IMAGE
+                    <input type="file" accept="image/png,image/jpeg,image/webp" data-image-upload hidden>
+                </label>
+            </div>
+
+            <div class="studio-tool-group">
+                <span class="studio-label">LAYERS</span>
+                <div class="layers-list" data-layers-list></div>
+            </div>
+        </aside>
+
+        <main class="studio-workspace">
+            <div class="studio-canvas-shell">
+                <div class="garment-stage" data-garment-stage>
+                    <img class="garment-image" data-garment-image alt="Garment preview">
+                    <div class="garment-fallback" data-garment-fallback>
+                        <div class="fake-garment">AVAN</div>
+                    </div>
+                    <div class="print-area" data-print-area></div>
+                </div>
+            </div>
+
+            <div class="workspace-meta">
+                <span data-current-garment></span>
+                <span data-current-side>FRONT</span>
+            </div>
+        </main>
+
+        <aside class="studio-properties">
+            <div class="properties-empty" data-properties-empty>
+                <span>SELECT A LAYER</span>
+                <p>Drag a layer on the garment, then edit its properties here.</p>
+            </div>
+
+            <div class="properties-panel" data-properties-panel hidden>
+                <div class="property-head">
+                    <span>SELECTED LAYER</span>
+                    <button type="button" data-delete-layer>DELETE</button>
+                </div>
+
+                <label class="property-field property-text-only">
+                    <span>TEXT</span>
+                    <input type="text" maxlength="160" data-prop-text>
+                </label>
+
+                <label class="property-field property-text-only">
+                    <span>TEXT COLOR</span>
+                    <input type="color" data-prop-color>
+                </label>
+
+                <label class="property-field property-text-only">
+                    <span>FONT SIZE <b data-font-size-value></b></span>
+                    <input type="range" min="12" max="120" step="1" data-prop-font-size>
+                </label>
+
+                <label class="property-field">
+                    <span>WIDTH <b data-width-value></b></span>
+                    <input type="range" min="5" max="100" step="1" data-prop-width>
+                </label>
+
+                <label class="property-field">
+                    <span>ROTATION <b data-rotation-value></b></span>
+                    <input type="range" min="-180" max="180" step="1" data-prop-rotation>
+                </label>
+
+                <div class="layer-order-actions">
+                    <button type="button" data-layer-down>MOVE DOWN</button>
+                    <button type="button" data-layer-up>MOVE UP</button>
+                </div>
+            </div>
+
+            <div class="studio-buy-preview">
+                <span>WEAR YOUR DESIGN</span>
+                <strong><span data-studio-price>0</span> TOMAN</strong>
+                <p>Choose a size. The design itself is stored with the cart and copied into the final order snapshot.</p>
+
+                <div class="studio-size-title">SIZE</div>
+                <div class="studio-size-options" data-studio-sizes></div>
+                <div class="studio-stock-state" data-studio-stock>SELECT A SIZE</div>
+
+                <button type="button" class="studio-add-bag" data-studio-add-bag disabled>
+                    ADD CUSTOM DESIGN TO BAG
+                </button>
+                <div class="studio-buy-message" data-studio-buy-message></div>
+
+                <div class="studio-publish-options">
+                    <label>
+                        <input type="checkbox" data-publish-remix {% if initial_design.allow_remix %}checked{% endif %}>
+                        <span>ALLOW REMIX</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" data-publish-sale {% if initial_design.is_for_sale %}checked{% endif %}>
+                        <span>LET OTHERS WEAR IT</span>
+                    </label>
+                </div>
+            </div>
+        </aside>
+    </div>
+    {% else %}
+    <div class="studio-no-products">
+        <span>AVAN STUDIO</span>
+        <h1>NO CUSTOMIZABLE GARMENTS.</h1>
+        <p>Mark at least one product as Customizable in the catalog.</p>
+        <a href="/shop/">BACK TO SHOP</a>
+    </div>
+    {% endif %}
+</section>
+
+<div hidden id="studio-csrf">{% csrf_token %}</div>
+{{ studio_products|json_script:"studio-products-data" }}
+{{ initial_design|json_script:"studio-initial-design" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/studio.js' %}" defer></script>
+{% endblock %}

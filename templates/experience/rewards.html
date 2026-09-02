@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AVAN Points{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/experience.css' %}">{% endblock %}
+
+{% block content %}
+<section class="rewards-page">
+    <header class="rewards-hero">
+        <div>
+            <p>MY AVAN / REWARDS</p>
+            <h1>{{ wallet.balance }}</h1>
+            <span>AVAN POINTS</span>
+        </div>
+        <div>
+            <h2>CREATE. PARTICIPATE. EARN.</h2>
+            <p>Points are recorded in a server-side ledger. Coupon conversion rules can be configured later without changing the wallet history.</p>
+            <a href="/challenges/">VIEW CHALLENGES →</a>
+        </div>
+    </header>
+
+    <div class="reward-ledger">
+        <div class="reward-ledger-head"><span>POINT HISTORY</span><strong>{{ transactions|length }} TRANSACTIONS</strong></div>
+        {% for transaction in transactions %}
+        <div class="reward-row">
+            <span>{{ transaction.created_at|date:"Y/m/d H:i" }}</span>
+            <strong>{{ transaction.reason }}</strong>
+            <b class="{% if transaction.amount > 0 %}is-positive{% endif %}">{{ transaction.amount|stringformat:"+d" }}</b>
+        </div>
+        {% empty %}
+        <div class="experience-empty"><span>NO POINT ACTIVITY YET.</span></div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
