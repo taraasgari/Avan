@@ -1,187 +1,140 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block title %}AVAN Studio{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/studio.css' %}">
-{% endblock %}
-
+{% block title %}AVAN 3D Studio{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/studio.css' %}"><link rel="stylesheet" href="{% static 'css/stage16-products.css' %}">{% endblock %}
 {% block content %}
-<section
-    class="studio-page"
-    data-studio
-    data-authenticated="{% if is_authenticated_for_studio %}1{% else %}0{% endif %}"
->
-    <header class="studio-topbar">
-        <div>
-            <span>AVAN STUDIO / V1</span>
-            <input type="text" value="{{ initial_design.title|default:'Untitled Design' }}" maxlength="120" data-design-title>
-        </div>
-
-        <div class="studio-topbar__actions">
-            <span class="save-state" data-save-state>UNSAVED</span>
-            <a href="/account/designs/" class="studio-link">MY DESIGNS</a>
-            <button type="button" class="studio-save" data-save-design>SAVE DESIGN</button>
-            <button type="button" class="studio-publish" data-publish-design>PUBLISH</button>
-        </div>
-    </header>
-
-    {% if studio_products %}
-    <div class="studio-layout">
-        <aside class="studio-tools">
-            <div class="studio-tool-group">
-                <span class="studio-label">GARMENT</span>
-                <select data-product-select>
-                    {% for product in studio_products %}
-                    <option value="{{ product.id }}">{{ product.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="studio-tool-group">
-                <span class="studio-label">COLOR</span>
-                <div class="studio-colors" data-color-options></div>
-            </div>
-
-            <div class="studio-tool-group">
-                <span class="studio-label">VIEW</span>
-                <div class="side-switch">
-                    <button type="button" class="is-active" data-side="front">FRONT</button>
-                    <button type="button" data-side="back">BACK</button>
-                </div>
-            </div>
-
-            <div class="studio-tool-group">
-                <span class="studio-label">ADD</span>
-                <button type="button" class="studio-add" data-add-text>+ TEXT</button>
-                <label class="studio-add studio-upload">
-                    + IMAGE
-                    <input type="file" accept="image/png,image/jpeg,image/webp" data-image-upload hidden>
-                </label>
-            </div>
-
-            <div class="studio-tool-group">
-                <span class="studio-label">LAYERS</span>
-                <div class="layers-list" data-layers-list></div>
-            </div>
-        </aside>
-
-        <main class="studio-workspace">
-            <div class="studio-canvas-shell">
-                <div class="garment-stage" data-garment-stage>
-                    <img class="garment-image" data-garment-image alt="Garment preview">
-                    <div class="garment-fallback" data-garment-fallback>
-                        <div class="fake-garment">AVAN</div>
-                    </div>
-                    <div class="print-area" data-print-area></div>
-                </div>
-            </div>
-
-            <div class="workspace-meta">
-                <span data-current-garment></span>
-                <span data-current-side>FRONT</span>
-            </div>
-        </main>
-
-        <aside class="studio-properties">
-            <div class="properties-empty" data-properties-empty>
-                <span>SELECT A LAYER</span>
-                <p>Drag a layer on the garment, then edit its properties here.</p>
-            </div>
-
-            <div class="properties-panel" data-properties-panel hidden>
-                <div class="property-head">
-                    <span>SELECTED LAYER</span>
-                    <button type="button" data-delete-layer>DELETE</button>
-                </div>
-
-                <label class="property-field property-text-only">
-                    <span>TEXT</span>
-                    <input type="text" maxlength="160" data-prop-text>
-                </label>
-
-                <label class="property-field property-text-only">
-                    <span>TEXT COLOR</span>
-                    <input type="color" data-prop-color>
-                </label>
-
-                <label class="property-field property-text-only">
-                    <span>FONT SIZE <b data-font-size-value></b></span>
-                    <input type="range" min="12" max="120" step="1" data-prop-font-size>
-                </label>
-
-                <label class="property-field">
-                    <span>WIDTH <b data-width-value></b></span>
-                    <input type="range" min="5" max="100" step="1" data-prop-width>
-                </label>
-
-                <label class="property-field">
-                    <span>ROTATION <b data-rotation-value></b></span>
-                    <input type="range" min="-180" max="180" step="1" data-prop-rotation>
-                </label>
-
-                <div class="layer-order-actions">
-                    <button type="button" data-layer-down>MOVE DOWN</button>
-                    <button type="button" data-layer-up>MOVE UP</button>
-                </div>
-            </div>
-
-            <div class="studio-buy-preview">
-                <span>WEAR YOUR DESIGN</span>
-                <strong><span data-studio-price>0</span> TOMAN</strong>
-                <p>Choose a size. The design itself is stored with the cart and copied into the final order snapshot.</p>
-
-                <div class="studio-size-title">SIZE</div>
-                <div class="studio-size-options" data-studio-sizes></div>
-                <div class="studio-stock-state" data-studio-stock>SELECT A SIZE</div>
-
-                <button type="button" class="studio-add-bag" data-studio-add-bag disabled>
-                    ADD CUSTOM DESIGN TO BAG
-                </button>
-                <div class="studio-buy-message" data-studio-buy-message></div>
-
-                <div class="studio-publish-options">
-                    <label>
-                        <input type="checkbox" data-publish-remix {% if initial_design.allow_remix %}checked{% endif %}>
-                        <span>ALLOW REMIX</span>
-                    </label>
-                    <label>
-                        <input type="checkbox" data-publish-sale {% if initial_design.is_for_sale %}checked{% endif %}>
-                        <span>LET OTHERS WEAR IT</span>
-                    </label>
-                    {% if creator_pricing_enabled %}
-                    <label class="studio-sale-fee">
-                        <span>CREATOR DESIGN FEE / TOMAN</span>
-                        <input type="number" min="0" step="1000" value="{{ initial_design.sale_price|default:0 }}" data-publish-price>
-                        <small>This optional fee is added only when another customer buys your published design.</small>
-                    </label>
-                    {% else %}
-                    <input type="hidden" value="0" data-publish-price>
-                    <div class="studio-pricing-off">
-                        <strong>NO SEPARATE DESIGN PRICE</strong>
-                        <small>Published designs can still be worn by other customers. AVAN currently charges only the garment price.</small>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </aside>
+<section class="studio-pro" data-studio data-authenticated="{% if is_authenticated_for_studio %}1{% else %}0{% endif %}" data-owner="{% if studio_owner_mode %}1{% else %}0{% endif %}">
+  <header class="studio-pro__topbar">
+    <div class="studio-brandline"><span>AVAN STUDIO / 3D PRO</span><input type="text" maxlength="120" value="{{ initial_design.title|default:'Untitled Design' }}" data-design-title></div>
+    <div class="studio-pro__actions">
+      <span class="save-state" data-save-state>UNSAVED</span>
+      {% if studio_owner_mode %}<button class="ghost-btn owner-studio-btn" type="button" data-open-owner>OWNER STUDIO</button>{% endif %}
+      <a class="ghost-btn" href="/account/designs/">MY DESIGNS</a>
+      <button class="dark-btn" type="button" data-save-design>SAVE</button>
+      <button class="red-btn" type="button" data-publish-design>PUBLISH</button>
     </div>
-    {% else %}
-    <div class="studio-no-products">
-        <span>AVAN STUDIO</span>
-        <h1>NO CUSTOMIZABLE GARMENTS.</h1>
-        <p>Mark at least one product as Customizable in the catalog.</p>
-        <a href="/shop/">BACK TO SHOP</a>
-    </div>
-    {% endif %}
+  </header>
+
+  {% if studio_products %}
+  <div class="studio-pro__layout">
+    <aside class="studio-pro__left">
+      <div class="tool-card">
+        <label class="studio-label">GARMENT</label>
+        <select data-product-select>{% for product in studio_products %}<option value="{{ product.id }}">{{ product.name }}</option>{% endfor %}</select><a class="studio-garment-chooser-link" href="/design/garments/">CHOOSE GARMENT</a>
+      </div>
+      <div class="tool-card"><span class="studio-label">COLOR</span><div class="color-grid" data-color-options></div></div>
+      <div class="tool-card"><span class="studio-label">FABRIC</span><div class="fabric-list" data-fabric-options></div></div>
+      <div class="tool-card">
+        <span class="studio-label">DESIGN AREA</span>
+        <div class="zone-grid">
+          <button class="is-active" type="button" data-zone="front">FRONT</button><button type="button" data-zone="back">BACK</button>
+          <button type="button" data-zone="left_sleeve">L SLEEVE</button><button type="button" data-zone="right_sleeve">R SLEEVE</button>
+        </div>
+      </div>
+      <div class="tool-card">
+        <span class="studio-label">ADD</span>
+        <div class="add-grid">
+          <button type="button" data-add-text>TEXT</button>
+          <label>IMAGE<input type="file" accept="image/png,image/jpeg,image/webp" data-image-upload hidden></label>
+          <button type="button" data-open-stickers>STICKERS</button>
+          <button type="button" data-open-ai>AI DESIGN</button>
+        </div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-card__head"><span class="studio-label">LAYERS</span><small data-layer-count>0</small></div>
+        <div class="layers-list" data-layers-list></div>
+      </div>
+      <div class="tool-card inspiration-card">
+        <span class="studio-label">INSPIRATION</span>
+        <div class="inspiration-row"><input type="search" placeholder="streetwear typography..." data-inspiration-query><button type="button" data-pinterest-search>PINTEREST ↗</button></div>
+        <small>Use Pinterest for inspiration, then upload artwork you own or have permission to use.</small>
+      </div>
+    </aside>
+
+    <main class="studio-pro__main">
+      <div class="viewer-shell">
+        <div class="viewer-toolbar">
+          <div class="viewer-pills">
+            <button type="button" data-camera="full" class="is-active">FULL</button>
+            <button type="button" data-camera="collar">COLLAR</button>
+            <button type="button" data-camera="front">FRONT</button>
+            <button type="button" data-camera="back">BACK</button>
+            <button type="button" data-camera="left_sleeve">L SLEEVE</button>
+            <button type="button" data-camera="right_sleeve">R SLEEVE</button>
+          </div>
+          <div class="viewer-help">DRAG TO ROTATE · WHEEL / PINCH TO ZOOM</div>
+        </div>
+        <div class="garment-viewport" data-viewport>
+          <div class="viewport-grid"></div><div class="garment-shadow"></div>
+          <div class="garment-rig" data-garment-rig>
+            <div class="shirt-panel shirt-front" data-panel="front"><div class="fabric-surface"></div><div class="design-texture" data-texture="front"></div><div class="collar-mark"></div></div>
+            <div class="shirt-panel shirt-back" data-panel="back"><div class="fabric-surface"></div><div class="design-texture" data-texture="back"></div></div>
+            <div class="shirt-edge shirt-edge-left"></div><div class="shirt-edge shirt-edge-right"></div>
+            <div class="sleeve sleeve-left sleeve-front" data-panel="left_sleeve"><div class="fabric-surface"></div><div class="design-texture" data-texture="left_sleeve"></div></div>
+            <div class="sleeve sleeve-right sleeve-front" data-panel="right_sleeve"><div class="fabric-surface"></div><div class="design-texture" data-texture="right_sleeve"></div></div>
+            <div class="sleeve sleeve-left sleeve-back"></div><div class="sleeve sleeve-right sleeve-back"></div>
+          </div>
+          <div class="viewer-badge"><span data-current-garment></span><b data-current-fabric></b></div>
+          <button class="reset-view" type="button" data-reset-camera>RESET VIEW</button>
+        </div>
+      </div>
+
+      <div class="surface-dock">
+        <div class="surface-dock__head">
+          <div><span>PRECISION EDITOR</span><strong data-editor-zone-label>FRONT</strong></div>
+          <small>Move and resize layers here. The 3D preview updates live.</small>
+        </div>
+        <div class="surface-editor-wrap">
+          <div class="surface-editor" data-surface-editor><div class="safe-zone"></div><div class="surface-layers" data-surface-layers></div></div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="studio-pro__right">
+      <div class="properties-empty" data-properties-empty><span>SELECT A LAYER</span><p>Add text, an image or a sticker, then fine tune it here.</p></div>
+      <div class="properties-panel" data-properties-panel hidden>
+        <div class="property-head"><span>SELECTED LAYER</span><button type="button" data-delete-layer>DELETE</button></div>
+        <label class="property-field text-only"><span>TEXT</span><input type="text" maxlength="240" data-prop-text></label>
+        <label class="property-field text-only"><span>FONT</span><select data-prop-font></select></label>
+        <div class="property-grid text-only"><label><span>COLOR</span><input type="color" data-prop-color></label><label><span>WEIGHT</span><select data-prop-weight><option>400</option><option>600</option><option selected>800</option><option>900</option></select></label></div>
+        <label class="property-field text-only"><span>FONT SIZE <b data-font-size-value></b></span><input type="range" min="10" max="180" data-prop-font-size></label>
+        <label class="property-field text-only"><span>LETTER SPACING <b data-letter-value></b></span><input type="range" min="-8" max="30" step="1" data-prop-letter></label>
+        <label class="property-field"><span>WIDTH <b data-width-value></b></span><input type="range" min="3" max="120" data-prop-width></label>
+        <label class="property-field"><span>ROTATION <b data-rotation-value></b></span><input type="range" min="-180" max="180" data-prop-rotation></label>
+        <label class="property-field"><span>OPACITY <b data-opacity-value></b></span><input type="range" min="5" max="100" data-prop-opacity></label>
+        <div class="layer-order-actions"><button type="button" data-layer-down>MOVE DOWN</button><button type="button" data-layer-up>MOVE UP</button></div>
+        <button class="stickerize-btn" type="button" data-stickerize hidden>REMOVE BG + MAKE STICKER</button>
+      </div>
+
+      <div class="studio-buy-preview">
+        <span>WEAR YOUR DESIGN</span><strong><span data-studio-price>0</span> TOMAN</strong>
+        <p>Color, fabric, every surface and every layer are saved into the order snapshot.</p>
+        <div class="studio-size-title">SIZE</div><div class="studio-size-options" data-studio-sizes></div><div class="studio-stock-state" data-studio-stock>SELECT A SIZE</div>
+        <button type="button" class="studio-add-bag" data-studio-add-bag disabled>ADD CUSTOM DESIGN TO BAG</button><div class="studio-buy-message" data-studio-buy-message></div>
+        <div class="studio-publish-options">
+          <label><input type="checkbox" data-publish-remix {% if initial_design.allow_remix %}checked{% endif %}><span>ALLOW REMIX</span></label>
+          <label><input type="checkbox" data-publish-sale {% if initial_design.is_for_sale %}checked{% endif %}><span>LET OTHERS WEAR IT</span></label>
+          {% if creator_pricing_enabled %}<label class="studio-sale-fee"><span>CREATOR DESIGN FEE / TOMAN</span><input type="number" min="0" step="1000" value="{{ initial_design.sale_price|default:0 }}" data-publish-price></label>{% else %}<input type="hidden" value="0" data-publish-price>{% endif %}
+        </div>
+      </div>
+    </aside>
+  </div>
+  {% else %}<div class="studio-no-products"><span>AVAN STUDIO</span><h1>NO CUSTOMIZABLE GARMENTS.</h1><p>Mark at least one product as Customizable in the catalog.</p></div>{% endif %}
 </section>
 
-<div hidden id="studio-csrf">{% csrf_token %}</div>
-{{ studio_products|json_script:"studio-products-data" }}
-{{ initial_design|json_script:"studio-initial-design" }}
-{% endblock %}
+<div class="studio-modal" data-sticker-modal hidden><div class="studio-modal__dialog"><div class="modal-head"><div><span>STICKER LIBRARY</span><h2>Pick a ready element</h2></div><button type="button" data-close-stickers>×</button></div><div class="sticker-tabs" data-sticker-tabs></div><div class="sticker-grid" data-sticker-grid></div><div class="my-stickers"><div><strong>MY STICKERS</strong><small>Private to your account.</small></div><label>UPLOAD STICKER<input type="file" accept="image/png,image/jpeg,image/webp" data-sticker-upload hidden></label><div class="sticker-grid" data-my-stickers></div></div></div></div>
+<div class="studio-modal" data-ai-modal hidden><div class="studio-modal__dialog ai-dialog"><div class="modal-head"><div><span>AI DESIGN</span><h2>Describe a printable graphic</h2></div><button type="button" data-close-ai>×</button></div><textarea rows="5" placeholder="Example: bold Persian calligraphy with a futuristic red chrome flame, streetwear print" data-ai-prompt></textarea><div class="ai-status" data-ai-status>{% if studio_settings.ai_configured %}AI READY{% else %}OWNER MUST CONFIGURE OPENAI_API_KEY{% endif %}</div><button class="red-btn ai-generate" type="button" data-ai-generate>GENERATE DESIGN</button></div></div>
 
-{% block extra_js %}
-<script src="{% static 'js/studio.js' %}" defer></script>
+{% if studio_owner_mode %}
+<div class="studio-owner-drawer" data-owner-drawer hidden><div class="owner-drawer__head"><div><span>OWNER STUDIO</span><h2>Manage the Studio from here</h2></div><button type="button" data-close-owner>×</button></div>
+  <div class="owner-section"><h3>GARMENT PROFILE</h3><form data-owner-form="garment"><select name="product">{% for product in studio_products %}<option value="{{ product.id }}">{{ product.name }}</option>{% endfor %}</select><select name="garment_type"><option value="tee">T-shirt</option><option value="hoodie">Hoodie</option><option value="crop">Crop top</option></select><select name="default_fabric"><option value="">Default fabric</option>{% for fabric in studio_fabrics %}<option value="{{ fabric.id }}">{{ fabric.name }}</option>{% endfor %}</select><button>SAVE PROFILE</button></form></div>
+  <div class="owner-section"><h3>ADD FABRIC</h3><form data-owner-form="fabric"><input name="name" placeholder="Name" required><input name="name_fa" placeholder="نام فارسی"><div class="owner-mini-grid"><input name="roughness" type="number" step=".01" min="0" max="1" value=".75"><input name="weave" type="number" step=".01" min="0" max="1" value=".08"><input name="sheen" type="number" step=".01" min="0" max="1" value=".08"></div><button>ADD FABRIC</button></form></div>
+  <div class="owner-section"><h3>ADD FONT</h3><form data-owner-form="font" enctype="multipart/form-data"><input name="name" placeholder="Font name" required><input name="family_name" placeholder="CSS family, optional"><select name="language"><option value="both">Persian + English</option><option value="fa">Persian</option><option value="en">English</option></select><input name="font_file" type="file" accept=".woff,.woff2"><button>ADD FONT</button></form></div>
+  <div class="owner-section"><h3>STICKERS</h3><form data-owner-form="sticker-category"><input name="name" placeholder="Category name" required><input name="name_fa" placeholder="نام فارسی"><button>ADD CATEGORY</button></form><form data-owner-form="sticker" enctype="multipart/form-data"><select name="category">{% for category in sticker_library %}<option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}</select><input name="title" placeholder="Sticker title"><input name="title_fa" placeholder="عنوان فارسی"><input name="image" type="file" accept="image/png,image/jpeg,image/webp" required><button>UPLOAD STICKER</button></form></div>
+  <div class="owner-section"><h3>FEATURES</h3><form data-owner-form="settings"><label><input type="checkbox" name="ai_enabled" value="1" {% if studio_settings.ai_enabled %}checked{% endif %}> AI generation</label><label><input type="checkbox" name="allow_user_stickers" value="1" {% if studio_settings.allow_user_stickers %}checked{% endif %}> Personal stickers</label><label><input type="checkbox" name="inspiration_enabled" value="1" {% if studio_settings.inspiration_enabled %}checked{% endif %}> Inspiration tools</label><button>SAVE FEATURES</button></form></div>
+</div>{% endif %}
+
+<div hidden id="studio-csrf">{% csrf_token %}</div>
+{{ studio_products|json_script:"studio-products-data" }}{{ initial_design|json_script:"studio-initial-design" }}{{ studio_fabrics|json_script:"studio-fabrics-data" }}{{ studio_fonts|json_script:"studio-fonts-data" }}{{ sticker_library|json_script:"studio-stickers-data" }}{{ studio_settings|json_script:"studio-settings-data" }}
 {% endblock %}
+{% block extra_js %}<script src="{% static 'js/studio.js' %}" defer></script>{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static avan_ui %}
+{% avan_lang as AVAN_PAGE_LANG %}
+{% block title %}{{ game.title }} — AVAN PLAY{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/play.css' %}">{% endblock %}
+
+{% block content %}
+<section class="game-v3-page" data-avan-game data-game-type="{{ game.game_type }}" data-start-url="/play/api/{{ game.slug }}/start/" data-submit-url="/play/api/{{ game.slug }}/submit/">
+  <header class="game-v3-head">
+    <div><a href="/play/">← AVAN PLAY</a><span>{{ game.get_game_type_display|upper }}</span><h1>{% if AVAN_PAGE_LANG == 'fa' and game.title_fa %}{{ game.title_fa }}{% else %}{{ game.title }}{% endif %}</h1></div>
+    <div class="game-v3-head__right"><div><span>PERSONAL BEST</span><strong data-best-score>{{ best_score|default:"—" }}</strong></div><button type="button" class="game-sound-toggle" data-game-sound aria-pressed="true">SOUND ON</button></div>
+  </header>
+
+  <div class="game-v3-shell">
+    <section class="game-v3-stage">
+      <div class="game-v3-hud"><span>SCORE <b data-game-score>0</b></span><span>TIME <b data-game-time>0</b></span><span>PRESSURE <b data-game-pressure>01</b></span><button type="button" data-game-restart>RESTART</button></div>
+      <div class="game-v3-canvas-wrap">
+        <canvas id="avanGameCanvas" width="1200" height="675"></canvas>
+        <div class="game-v3-start" data-game-start-overlay>
+          <small>AVAN / SOLO / {{ game.get_game_type_display|upper }}</small>
+          <h2>{% if AVAN_PAGE_LANG == 'fa' %}آماده باش؛ بازی سریع سخت می‌شود.{% else %}READY. IT GETS HARD FAST.{% endif %}</h2>
+          <p>{% if AVAN_PAGE_LANG == 'fa' and game.description_fa %}{{ game.description_fa }}{% else %}{{ game.description }}{% endif %}</p>
+          <button type="button" data-game-start>{% if AVAN_PAGE_LANG == 'fa' %}شروع ران{% else %}START RUN{% endif %}</button>
+          <em>{% if AVAN_PAGE_LANG == 'fa' %}حد مدال و مقدار جایزه قبل از بازی نمایش داده نمی‌شود.{% else %}Medal thresholds and reward values are intentionally hidden.{% endif %}</em>
+        </div>
+        <div class="game-v3-result" data-game-result hidden>
+          <span>RUN COMPLETE</span><strong data-result-score>0</strong><h3 data-result-medal></h3><p data-result-copy></p>
+          <div><a href="/rewards/">MY REWARDS ↗</a><button type="button" data-game-play-again>{% if AVAN_PAGE_LANG == 'fa' %}دوباره{% else %}PLAY AGAIN{% endif %}</button></div>
+        </div>
+      </div>
+      <div class="game-v3-touch" data-touch-controls><button type="button" data-control="left">←</button><button type="button" data-control="action">●</button><button type="button" data-control="right">→</button></div>
+    </section>
+
+    <aside class="game-v3-sidebar">
+      <span>HOW TO SURVIVE</span>
+      {% if game.game_type == 'runner' %}<h2>{% if AVAN_PAGE_LANG == 'fa' %}از درز عبور کن{% else %}THREAD THE GAP{% endif %}</h2><p>{% if AVAN_PAGE_LANG == 'fa' %}با بالا/پایین یا Pointer سوزن را هدایت کن. دروازه‌ها باریک‌تر و سریع‌تر می‌شوند. تماس با لبه کمبو و جان را می‌گیرد.{% else %}Guide the needle with up/down or pointer. Gates get narrower and faster. Touching an edge breaks combo and costs integrity.{% endif %}</p>{% endif %}
+      {% if game.game_type == 'catch' %}<h2>{% if AVAN_PAGE_LANG == 'fa' %}الگوها را قفل نکن{% else %}DON'T LOCK THE BOARD{% endif %}</h2><p>{% if AVAN_PAGE_LANG == 'fa' %}الگوهای سقوطی را جابه‌جا و بچرخان. ردیف کامل پاک می‌شود؛ سرعت به‌صورت مداوم بالا می‌رود.{% else %}Move and rotate falling pattern blocks. Complete rows to clear them while the drop speed continuously increases.{% endif %}</p>{% endif %}
+      {% if game.game_type == 'memory' %}<h2>{% if AVAN_PAGE_LANG == 'fa' %}دنباله را بشکن نده{% else %}HOLD THE SEQUENCE{% endif %}</h2><p>{% if AVAN_PAGE_LANG == 'fa' %}سیگنال‌های روشن‌شده را دقیقاً با همان ترتیب تکرار کن. هر Level طولانی‌تر و سریع‌تر است.{% else %}Replay the illuminated signal sequence exactly. Every level gets longer and the playback window gets faster.{% endif %}</p>{% endif %}
+      {% if game.game_type == 'color' %}<h2>{% if AVAN_PAGE_LANG == 'fa' %}تگ واقعی را بزن{% else %}STRIKE THE LIVE TAG{% endif %}</h2><p>{% if AVAN_PAGE_LANG == 'fa' %}فقط تگ دارای علامت زنده را بزن. Decoyها زیاد می‌شوند و زمان هر هدف کوتاه‌تر می‌شود.{% else %}Hit only the live marked tag. Decoys multiply and each target survives for less time.{% endif %}</p>{% endif %}
+      <div class="game-v3-private"><b>BRONZE / SILVER / GOLD</b><p>{% if AVAN_PAGE_LANG == 'fa' %}حدها مخفی‌اند. فقط بعد از پایان ران می‌فهمی مدال گرفته‌ای یا نه.{% else %}Thresholds are hidden. You only learn whether you earned a medal after the run.{% endif %}</p></div>
+      <div class="game-v3-controls"><span>KEYBOARD</span><b>ARROWS / WASD / SPACE</b><span>TOUCH</span><b>ON-SCREEN CONTROLS</b></div>
+    </aside>
+  </div>
+</section>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/play.js' %}" defer></script>{% endblock %}

@@ -13,9 +13,10 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from apps.catalog.models import Category, Color, Product, ProductVariant, Size
+from apps.accounts.models import SupportMessage, SupportTicket
 from apps.coupons.models import Coupon
-from apps.designs.models import Design
-from apps.experience.models import Challenge, Drop, RewardWallet
+from apps.designs.models import Design, GarmentStudioProfile
+from apps.experience.models import Challenge, Drop, RewardWallet, SoloGame
 from apps.marketplace.models import CreatorEarning, CreatorWallet, MarketplaceSettings, PayoutRequest
 from apps.marketplace.services import approve_payout, mark_payout_paid, reject_payout
 from apps.notifications.models import Notification
@@ -24,8 +25,8 @@ from apps.orders.services import release_order
 from apps.payments.models import PaymentAttempt
 
 from .decorators import owner_required, superuser_required
-from .forms import MarketplaceSettingsForm, OwnerSettingsForm, ProductForm
-from .models import OwnerSettings
+from .forms import MarketplaceSettingsForm, OwnerSettingsForm, ProductForm, SiteAppearanceForm, StudioProductSetupForm
+from .models import OwnerSettings, SiteAppearance
 
 
 User = get_user_model()
@@ -37,6 +38,29 @@ PAID_STATUSES = [
 ]
 
 
+
+
+def _parse_non_negative_int(value, label, *, maximum=None):
+    try:
+        parsed = int(str(value).strip() or "0")
+    except (TypeError, ValueError):
+        raise ValueError(f"{label} must be a whole number.")
+    if parsed < 0:
+        raise ValueError(f"{label} cannot be negative.")
+    if maximum is not None and parsed > maximum:
+        raise ValueError(f"{label} cannot exceed {maximum}.")
+    return parsed
+
+
+def _parse_non_negative_money(value, label):
+    try:
+        parsed = Decimal(str(value).strip() or "0")
+    except Exception:
+        raise ValueError(f"{label} must be a number.")
+    if parsed < 0 or parsed != parsed.quantize(Decimal("1")):
+        raise ValueError(f"{label} must be a non-negative whole Toman amount.")
+    return parsed
+
 def _owner_context(request, **extra):
     settings_obj = OwnerSettings.load()
     try:
@@ -44,12 +68,19 @@ def _owner_context(request, **extra):
         owner_access = get_staff_access(request.user)
     except Exception:
         owner_access = None
+    try:
+        from apps.launchops.permissions import get_staff_sections
+        owner_sections = get_staff_sections(request.user)
+    except Exception:
+        owner_sections = set()
     context = {
         "owner_settings": settings_obj,
         "owner_access": owner_access,
+        "owner_sections": owner_sections,
         "owner_pending_orders": Order.objects.filter(status=Order.Status.PENDING_PAYMENT).count(),
         "owner_review_orders": Order.objects.filter(status=Order.Status.NEEDS_REVIEW).count(),
         "owner_pending_payouts": PayoutRequest.objects.filter(status=PayoutRequest.Status.PENDING).count(),
+        "owner_support_waiting": SupportTicket.objects.filter(status=SupportTicket.Status.WAITING_SUPPORT).count(),
     }
     context.update(extra)
     return context
@@ -123,6 +154,10 @@ def products(request):
         qs = qs.filter(is_active=False)
     elif state == "featured":
         qs = qs.filter(is_featured=True)
+    elif state == "ready":
+        qs = qs.filter(product_type=Product.ProductType.READY)
+    elif state == "customizable":
+        qs = qs.filter(product_type=Product.ProductType.CUSTOMIZABLE)
 
     return render(
         request,
@@ -143,8 +178,13 @@ def product_edit(request, product_id=None):
     product = get_object_or_404(Product, pk=product_id) if product_id else None
     form = ProductForm(request.POST or None, instance=product)
     if request.method == "POST" and form.is_valid():
+        creating = product is None
         product = form.save()
+        if product.product_type == Product.ProductType.CUSTOMIZABLE:
+            GarmentStudioProfile.objects.get_or_create(product=product)
         messages.success(request, "Product saved.")
+        if creating and product.product_type == Product.ProductType.CUSTOMIZABLE:
+            return redirect("owner:product-studio", product_id=product.id)
         return redirect("owner:product-edit", product_id=product.id)
 
     variants = product.variants.select_related("color", "size").order_by("color__name", "size__sort_order") if product else []
@@ -153,6 +193,43 @@ def product_edit(request, product_id=None):
         request,
         "owner/product_form.html",
         _owner_context(request, form=form, product=product, variants=variants, images=images),
+    )
+
+
+@owner_required
+def product_studio(request, product_id):
+    product = get_object_or_404(Product.objects.prefetch_related("images", "variants__color", "variants__size"), pk=product_id)
+    if product.product_type != Product.ProductType.CUSTOMIZABLE:
+        messages.error(request, "This product is not marked as customizable. Change its product type first.")
+        return redirect("owner:product-edit", product_id=product.id)
+
+    profile, _ = GarmentStudioProfile.objects.get_or_create(product=product)
+    form = StudioProductSetupForm(request.POST or None, request.FILES or None, instance=profile)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Studio garment setup saved.")
+        return redirect("owner:product-studio", product_id=product.id)
+
+    primary_image = product.images.first()
+    active_variants = product.variants.filter(is_active=True).select_related("color", "size")
+    return render(
+        request,
+        "owner/product_studio.html",
+        _owner_context(
+            request,
+            product=product,
+            profile=profile,
+            form=form,
+            primary_image=primary_image,
+            active_variants=active_variants,
+            studio_ready=profile.studio_setup_complete and active_variants.exists(),
+            studio_reference_fields=[
+                (form["front_reference"], "FRONT"),
+                (form["back_reference"], "BACK"),
+                (form["left_sleeve_reference"], "LEFT SLEEVE"),
+                (form["right_sleeve_reference"], "RIGHT SLEEVE"),
+            ],
+        ),
     )
 
 
@@ -419,6 +496,115 @@ def marketing(request):
 
 
 @owner_required
+def play_manager(request):
+    games = SoloGame.objects.order_by("sort_order", "id")
+    challenges = Challenge.objects.select_related("garment_product").order_by("-created_at")
+    garments = Product.objects.filter(
+        is_active=True,
+        studio_profile__is_enabled=True,
+    ).select_related("studio_profile").order_by("name")
+    return render(
+        request,
+        "owner/play_manager.html",
+        _owner_context(
+            request,
+            games=games,
+            challenges=challenges,
+            garments=garments,
+            enabled_games=games.filter(is_enabled=True).count(),
+            enabled_challenges=challenges.filter(is_enabled=True).count(),
+        ),
+    )
+
+
+@require_POST
+@owner_required
+def game_visibility_toggle(request, game_id):
+    game = get_object_or_404(SoloGame, pk=game_id)
+    game.is_enabled = request.POST.get("enabled") == "1"
+    game.save(update_fields=["is_enabled", "updated_at"])
+    messages.success(request, f"{game.title} is {'visible' if game.is_enabled else 'hidden'} on AVAN PLAY.")
+    return redirect("owner:play-manager")
+
+
+@require_POST
+@owner_required
+def game_quick_update(request, game_id):
+    game = get_object_or_404(SoloGame, pk=game_id)
+    try:
+        bronze_score = _parse_non_negative_int(request.POST.get("bronze_score"), "Bronze score")
+        silver_score = _parse_non_negative_int(request.POST.get("silver_score"), "Silver score")
+        gold_score = _parse_non_negative_int(request.POST.get("gold_score"), "Gold score")
+        if not (bronze_score < silver_score < gold_score):
+            raise ValueError("Medal thresholds must increase: bronze < silver < gold.")
+        game.bronze_score = bronze_score
+        game.silver_score = silver_score
+        game.gold_score = gold_score
+        game.score_cap = max(game.score_cap, gold_score * 2)
+        game.bronze_points = _parse_non_negative_int(request.POST.get("bronze_points"), "Bronze points")
+        game.silver_points = _parse_non_negative_int(request.POST.get("silver_points"), "Silver points")
+        game.gold_points = _parse_non_negative_int(request.POST.get("gold_points"), "Gold points")
+        game.bronze_discount_percent = _parse_non_negative_int(request.POST.get("bronze_discount_percent"), "Bronze discount", maximum=100)
+        game.silver_discount_percent = _parse_non_negative_int(request.POST.get("silver_discount_percent"), "Silver discount", maximum=100)
+        game.gold_discount_percent = _parse_non_negative_int(request.POST.get("gold_discount_percent"), "Gold discount", maximum=100)
+        game.bronze_subsidy_amount = _parse_non_negative_money(request.POST.get("bronze_subsidy_amount"), "Bronze purchase credit")
+        game.silver_subsidy_amount = _parse_non_negative_money(request.POST.get("silver_subsidy_amount"), "Silver purchase credit")
+        game.gold_subsidy_amount = _parse_non_negative_money(request.POST.get("gold_subsidy_amount"), "Gold purchase credit")
+        game.reward_expiry_days = max(1, _parse_non_negative_int(request.POST.get("reward_expiry_days"), "Reward expiry days"))
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return redirect("owner:play-manager")
+    game.save()
+    messages.success(request, f"{game.title} scoring and rewards updated.")
+    return redirect("owner:play-manager")
+
+
+@require_POST
+@owner_required
+def challenge_visibility_toggle(request, challenge_id):
+    challenge = get_object_or_404(Challenge, pk=challenge_id)
+    enabled = request.POST.get("enabled") == "1"
+    challenge.is_enabled = enabled
+    update_fields = ["is_enabled", "updated_at"]
+    if enabled and challenge.status == Challenge.Status.DRAFT:
+        challenge.status = Challenge.Status.PUBLISHED
+        update_fields.append("status")
+    challenge.save(update_fields=update_fields)
+    messages.success(request, f"{challenge.title} is {'visible' if enabled else 'hidden'} on the site.")
+    return redirect("owner:play-manager")
+
+
+@require_POST
+@owner_required
+def challenge_quick_update(request, challenge_id):
+    challenge = get_object_or_404(Challenge, pk=challenge_id)
+    garment_id = request.POST.get("garment_product_id", "").strip()
+    if garment_id:
+        challenge.garment_product = get_object_or_404(
+            Product,
+            pk=garment_id,
+            is_active=True,
+            studio_profile__is_enabled=True,
+        )
+    else:
+        challenge.garment_product = None
+    try:
+        challenge.reward_points = _parse_non_negative_int(request.POST.get("reward_points"), "Challenge points")
+        challenge.reward_discount_percent = _parse_non_negative_int(request.POST.get("reward_discount_percent"), "Challenge discount", maximum=100)
+        challenge.reward_subsidy_amount = _parse_non_negative_money(request.POST.get("reward_subsidy_amount"), "Challenge purchase credit")
+        challenge.reward_expiry_days = max(1, _parse_non_negative_int(request.POST.get("reward_expiry_days"), "Challenge reward expiry days"))
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return redirect("owner:play-manager")
+    challenge.save(update_fields=[
+        "garment_product", "reward_points", "reward_discount_percent",
+        "reward_subsidy_amount", "reward_expiry_days", "updated_at",
+    ])
+    messages.success(request, "Challenge garment and private reward settings updated.")
+    return redirect("owner:play-manager")
+
+
+@owner_required
 def finance(request):
     earnings_total = CreatorEarning.objects.aggregate(total=Coalesce(Sum("creator_amount"), Decimal("0")))["total"]
     commission_total = CreatorEarning.objects.aggregate(total=Coalesce(Sum("platform_commission"), Decimal("0")))["total"]
@@ -473,7 +659,28 @@ def staff(request):
     return render(
         request,
         "owner/staff.html",
-        _owner_context(request, staff_rows=staff_rows, other_users=other_users, role_choices=StaffAccess.Role.choices),
+        _owner_context(
+            request,
+            staff_rows=staff_rows,
+            other_users=other_users,
+            role_choices=[
+                (value, ({
+                    "manager": "مدیر",
+                    "catalog": "محصولات و محتوا",
+                    "fulfillment": "انبار و سفارش",
+                    "support": "پشتیبانی مشتریان",
+                    "marketing": "بازاریابی و جامعه",
+                    "finance": "مالی",
+                    "security": "امنیت",
+                    "custom": "دسترسی سفارشی",
+                }.get(value, label) if getattr(request, "avan_language", "fa") == "fa" else label))
+                for value, label in StaffAccess.Role.choices
+            ],
+            section_choices=[
+                (key, (label.split(" / ", 1)[1] if getattr(request, "avan_language", "fa") == "fa" and " / " in label else label.split(" / ", 1)[0]))
+                for key, label in StaffAccess.SECTION_CHOICES
+            ],
+        ),
     )
 
 
@@ -524,8 +731,13 @@ def staff_access_update(request, user_id):
         access.apply_role_preset(role)
     else:
         access.role = role
+        selected_sections = request.POST.getlist("sections")
+        valid_sections = {key for key, _ in StaffAccess.SECTION_CHOICES}
+        access.section_permissions = [key for key in selected_sections if key in valid_sections]
+        # Keep legacy booleans synchronized for older templates/integrations.
+        legacy_map = StaffAccess.legacy_flags_for_sections(access.section_permissions)
         for field in permission_fields:
-            setattr(access, field, request.POST.get(field) == "1")
+            setattr(access, field, bool(legacy_map.get(field, False)))
     access.updated_by = request.user
     access.save()
     messages.success(request, f"Owner Console permissions updated for {user.username}.")
@@ -594,3 +806,101 @@ def settings_view(request):
             marketplace_settings=marketplace_settings,
         ),
     )
+
+
+@owner_required
+def appearance_editor(request):
+    appearance = SiteAppearance.load()
+
+    if request.method == "POST" and request.POST.get("action") == "reset":
+        SiteAppearance.objects.filter(pk=1).delete()
+        appearance = SiteAppearance.load()
+        messages.success(request, "Site appearance reset to the AVAN defaults.")
+        return redirect("owner:appearance")
+
+    form = SiteAppearanceForm(request.POST or None, instance=appearance)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Site appearance saved and is now active across the storefront.")
+        return redirect("owner:appearance")
+
+    preview_products = list(
+        Product.objects.filter(is_active=True)
+        .prefetch_related("images")
+        .order_by("-is_featured", "-updated_at")[:3]
+    )
+    return render(
+        request,
+        "owner/appearance.html",
+        _owner_context(
+            request,
+            appearance=appearance,
+            appearance_form=form,
+            preview_products=preview_products,
+        ),
+    )
+
+@owner_required
+def support_tickets(request):
+    status = (request.GET.get("status") or "").strip()
+    q = (request.GET.get("q") or "").strip()[:100]
+    tickets = SupportTicket.objects.select_related("user").prefetch_related("messages").order_by("-last_message_at")
+    if status in {value for value, _ in SupportTicket.Status.choices}:
+        tickets = tickets.filter(status=status)
+    if q:
+        tickets = tickets.filter(
+            Q(subject__icontains=q)
+            | Q(user__username__icontains=q)
+            | Q(user__email__icontains=q)
+            | Q(order_number__icontains=q)
+        )
+    return render(
+        request,
+        "owner/support.html",
+        _owner_context(request, tickets=tickets[:200], status_choices=SupportTicket.Status.choices, active_status=status, q=q),
+    )
+
+
+@owner_required
+def support_ticket_detail(request, reference):
+    ticket = get_object_or_404(
+        SupportTicket.objects.select_related("user").prefetch_related("messages__sender"),
+        reference=reference,
+    )
+    if request.method == "POST":
+        action = request.POST.get("action") or "reply"
+        if action == "reply":
+            body = (request.POST.get("body") or "").strip()[:5000]
+            if body:
+                SupportMessage.objects.create(ticket=ticket, sender=request.user, body=body, is_staff_reply=True)
+                ticket.status = SupportTicket.Status.WAITING_USER
+                ticket.last_message_at = timezone.now()
+                ticket.save(update_fields=["status", "last_message_at", "updated_at"])
+                Notification.objects.create(
+                    user=ticket.user,
+                    kind=Notification.Kind.SYSTEM,
+                    title="پاسخ جدید پشتیبانی AVAN",
+                    body=ticket.subject,
+                    url=f"/account/support/{ticket.reference}/",
+                )
+                messages.success(request, "پاسخ ارسال شد.")
+        elif action == "close":
+            ticket.status = SupportTicket.Status.CLOSED
+            ticket.save(update_fields=["status", "updated_at"])
+            messages.success(request, "گفتگو بسته شد.")
+        elif action == "reopen":
+            ticket.status = SupportTicket.Status.WAITING_SUPPORT
+            ticket.save(update_fields=["status", "updated_at"])
+            messages.success(request, "گفتگو دوباره باز شد.")
+        elif action == "priority":
+            priority = request.POST.get("priority")
+            if priority in {value for value, _ in SupportTicket.Priority.choices}:
+                ticket.priority = priority
+                ticket.save(update_fields=["priority", "updated_at"])
+        return redirect("owner:support-detail", reference=ticket.reference)
+    return render(
+        request,
+        "owner/support_detail.html",
+        _owner_context(request, ticket=ticket, priority_choices=SupportTicket.Priority.choices),
+    )
+

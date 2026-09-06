@@ -16,6 +16,11 @@
   </section>
   {% if request.GET.coupon %}<div class="reward-result success"><span>YOUR COUPON</span><strong>{{ request.GET.coupon }}</strong><small>It is locked to this AVAN account.</small></div>{% endif %}
   {% if request.GET.redeem_error %}<div class="reward-result error">{{ request.GET.redeem_error }}</div>{% endif %}
+
+  <section class="reward-history"><div class="experience-section-head"><span>PLAY REWARDS</span><h2>MY GAME COUPONS.</h2></div>
+    {% for coupon in play_coupons %}<div class="reward-row"><div><strong>{{ coupon.code }}</strong><small>{% if coupon.discount_type == 'percent' %}{{ coupon.value|floatformat:"0" }}% discount{% else %}{{ coupon.value|floatformat:"0" }} Toman purchase credit{% endif %}{% if coupon.ends_at %} · expires {{ coupon.ends_at|date:"Y/m/d" }}{% endif %}</small></div><b>ACTIVE</b></div>{% empty %}<div class="experience-empty">NO ACTIVE GAME REWARD COUPONS.</div>{% endfor %}
+  </section>
+
   <section class="reward-history"><div class="experience-section-head"><span>LEDGER</span><h2>POINT HISTORY.</h2></div>
     {% for entry in transactions %}<div class="reward-row"><div><strong>{{ entry.reason }}</strong><small>{{ entry.created_at|date:"Y/m/d H:i" }}</small></div><b class="{% if entry.amount > 0 %}is-positive{% endif %}">{{ entry.amount|stringformat:"+d" }}</b></div>{% empty %}<div class="experience-empty">NO POINT ACTIVITY YET.</div>{% endfor %}
   </section>

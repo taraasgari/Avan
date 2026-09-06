@@ -18,7 +18,7 @@ class AvanLocaleMiddleware:
 
     def __call__(self, request):
         requested = request.GET.get("lang")
-        language = normalize_language(requested or request.COOKIES.get(self.COOKIE_NAME) or "en")
+        language = normalize_language(requested or request.COOKIES.get(self.COOKIE_NAME) or "fa")
         request.avan_language = language
         request.avan_dir = "rtl" if language == "fa" else "ltr"
         translation.activate("fa" if language == "fa" else "en")

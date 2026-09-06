@@ -25,47 +25,80 @@
     {% if AVAN_SEO.json_ld_json %}<script type="application/ld+json">{{ AVAN_SEO.json_ld_json|safe }}</script>{% endif %}
     {% for schema in AVAN_SEO.schemas_json %}<script type="application/ld+json">{{ schema|safe }}</script>{% endfor %}
     <script>(function(){try{var t=localStorage.getItem('avan_theme');if(t!=='dark'&&t!=='light')t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}})();</script>
+    <style id="avan-site-appearance">
+      :root{
+        --red:{{ AVAN_APPEARANCE.primary_color }};
+        --avan-accent:{{ AVAN_APPEARANCE.primary_color }};
+        --avan-light-bg:{{ AVAN_APPEARANCE.light_background }};
+        --avan-light-surface:{{ AVAN_APPEARANCE.light_surface }};
+        --avan-dark-bg:{{ AVAN_APPEARANCE.dark_background }};
+        --avan-dark-surface:{{ AVAN_APPEARANCE.dark_surface }};
+        --avan-base-font-size:{{ AVAN_APPEARANCE.base_font_size }}px;
+        --avan-fa-font-size:{{ AVAN_APPEARANCE.persian_font_size }}px;
+        --avan-content-width:{{ AVAN_APPEARANCE.content_width }}px;
+        --avan-page-gutter:{{ AVAN_APPEARANCE.page_gutter }}px;
+        --avan-header-height:{{ AVAN_APPEARANCE.header_height }}px;
+        --avan-section-spacing:{{ AVAN_APPEARANCE.section_spacing }}px;
+        --avan-card-radius:{{ AVAN_APPEARANCE.card_radius }}px;
+        --avan-button-radius:{{ AVAN_APPEARANCE.button_radius }}px;
+        --avan-card-shadow:{% if AVAN_APPEARANCE.card_shadow %}0 14px 34px rgba(17,17,17,.075){% else %}none{% endif %};
+      }
+    </style>
     <link rel="manifest" href="{% static 'pwa/manifest.webmanifest' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/cart.css' %}">
     <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
     <link rel="stylesheet" href="{% static 'css/shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme.css' %}">
-    <link rel="stylesheet" href="{% static 'css/stage12-growth.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stage14-site-refresh.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stage18-header.css' %}">
     {% block extra_css %}{% endblock %}
     <title>{% block title %}{{ AVAN_SEO.title|default:AVAN_BRAND_NAME }}{% endblock %}</title>
 </head>
 <body>
-<header class="site-header">
-    <button type="button" class="mobile-menu-trigger" data-menu-open aria-label="{% avan_t 'menu' %}">{% avan_t "menu" %}</button>
-    <a class="brand" href="/">{{ AVAN_BRAND_NAME }}</a>
+<header class="site-header site-header-v4">
+    <div class="site-header-v4__main">
+        <button type="button" class="mobile-menu-trigger" data-menu-open aria-label="{% avan_t 'menu' %}"><span></span><span></span></button>
+        <a class="brand brand-v4" href="/">{{ AVAN_BRAND_NAME }}</a>
 
-    <nav aria-label="Main navigation">
-        <a href="/shop/">{% avan_t "shop" %}</a>
-        <a href="/design/">{% avan_t "design" %}</a>
-        <a href="/explore/">{% avan_t "explore" %}</a>
-        {% if request.user.is_authenticated %}<a href="/for-you/">{% avan_t "for_you" %}</a>{% endif %}
-        <a href="/drops/">{% avan_t "drops" %}</a>
-        <a href="/challenges/">{% avan_t "challenges" %}</a>
-    </nav>
+        <form class="header-searchbar header-searchbar-v4" action="/search/" method="get" role="search" data-live-search-form>
+            <button type="submit" class="header-searchbar__submit" aria-label="{% avan_t 'search' %}">⌕</button>
+            <input type="search" name="q" placeholder="{% if AVAN_PAGE_LANG == 'fa' %}محصول، طرح، کالکشن یا طراح را جستجو کن...{% else %}Search products, designs, collections or creators...{% endif %}" autocomplete="off" data-live-search-input>
+            <kbd>ENTER</kbd>
+            <div class="header-search-suggestions" data-search-suggestions hidden></div>
+        </form>
 
-    <div class="header-actions">
-        <button type="button" class="header-action" data-search-open aria-label="{% avan_t 'search' %}">{% avan_t "search" %}</button>
-        <button type="button" class="avan-pref" data-theme-toggle aria-label="Theme"><span data-theme-label>{% avan_t "night" %}</span></button>
-        <button type="button" class="avan-pref" data-language-toggle aria-label="Language">{% avan_t "language" %}</button>
+        <div class="header-actions header-actions-v4">
+            <button type="button" class="theme-icon-button" data-theme-toggle aria-label="Theme" title="{% if AVAN_PAGE_LANG == 'fa' %}حالت شب و روز{% else %}Theme{% endif %}"><span class="theme-icon theme-icon--moon">☾</span><span class="theme-icon theme-icon--sun">☀</span></button>
+            <button type="button" class="header-language-v4" data-language-toggle aria-label="Language">{% avan_t "language" %}</button>
+            {% if request.user.is_authenticated %}
+                <a href="/account/support/" class="header-utility-link">{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی{% else %}SUPPORT{% endif %}</a>
+                {% if request.user.is_superuser %}<a href="/owner/" class="header-utility-link">{% if AVAN_PAGE_LANG == 'fa' %}مدیریت{% else %}OWNER{% endif %}</a>{% endif %}
+                <a href="/account/" class="header-account-v4"><span>{% avan_t "my_avan" %}</span><strong>{{ request.user.display_name|default:request.user.username }}</strong></a>
+            {% else %}
+                <a href="/account/login/" class="header-account-v4"><span>{% if AVAN_PAGE_LANG == 'fa' %}حساب کاربری{% else %}ACCOUNT{% endif %}</span><strong>{% avan_t "sign_in" %}</strong></a>
+            {% endif %}
+            <button type="button" class="header-bag header-bag-v4" data-cart-open aria-label="{% avan_t 'bag' %}"><span>{% avan_t "bag" %}</span><b data-cart-count>0</b></button>
+        </div>
+    </div>
 
+    <div class="site-header-v4__nav">
+        <nav class="header-nav-cluster header-nav-cluster--store" aria-label="{% if AVAN_PAGE_LANG == 'fa' %}فروشگاه{% else %}Store{% endif %}">
+            <a href="/shop/">{% avan_t "shop" %}</a>
+            <a href="/design/garments/">{% avan_t "design" %}</a>
+            <a href="/collections/">{% avan_t "collections" %}</a>
+        </nav>
+        <span class="header-nav-divider"></span>
+        <nav class="header-nav-cluster header-nav-cluster--discover" aria-label="{% if AVAN_PAGE_LANG == 'fa' %}کشف و سرگرمی{% else %}Discover{% endif %}">
+            <a href="/explore/">{% avan_t "explore" %}</a>
+            <a href="/play/">{% avan_t "play" %}</a>
+            <a href="/challenges/">{% avan_t "challenges" %}</a>
+            <a href="/drops/">{% avan_t "drops" %}</a>
+        </nav>
         {% if request.user.is_authenticated %}
-        {% if request.user.is_superuser %}<a href="/owner/" class="header-action">{% avan_t "owner" %}</a>{% endif %}
-        <a href="/account/notifications/" class="header-notifications" aria-label="Notifications">
-            {% avan_t "alerts" %}
-            <span class="header-notifications__badge" data-notification-badge {% if not AVAN_UNREAD_NOTIFICATIONS %}hidden{% endif %}>{{ AVAN_UNREAD_NOTIFICATIONS }}</span>
-        </a>
-        <a href="/account/" class="header-action">{{ request.user.display_name|default:request.user.username|upper }}</a>
-        {% else %}
-        <a href="/account/login/" class="header-action">{% avan_t "sign_in" %}</a>
+        <span class="header-nav-divider"></span>
+        <nav class="header-nav-cluster header-nav-cluster--personal"><a href="/for-you/">{% avan_t "for_you" %}</a></nav>
         {% endif %}
-
-        <button type="button" class="header-bag" data-cart-open>{% avan_t "bag" %} <span data-cart-count>0</span></button>
     </div>
 </header>
 
@@ -89,24 +122,25 @@
     <button type="button" class="mobile-menu__backdrop" data-menu-close aria-label="{% avan_t 'close' %}"></button>
     <aside class="mobile-menu__panel">
         <div class="mobile-menu__head"><strong>AVAN</strong><button type="button" data-menu-close>×</button></div>
-        <div class="mobile-preferences"><button type="button" data-theme-toggle><span data-theme-label>{% avan_t "night" %}</span></button><button type="button" data-language-toggle>{% avan_t "language" %}</button></div>
+        <div class="mobile-preferences"><button type="button" data-theme-toggle class="theme-icon-button" aria-label="Theme"><span class="theme-icon theme-icon--moon">☾</span><span class="theme-icon theme-icon--sun">☀</span></button><button type="button" data-language-toggle>{% avan_t "language" %}</button></div>
         <nav>
             <a href="/shop/"><span>01</span>{% avan_t "shop" %}</a>
-            <a href="/design/"><span>02</span>{% avan_t "design" %}</a>
+            <a href="/design/garments/"><span>02</span>{% avan_t "design" %}</a>
             <a href="/explore/"><span>03</span>{% avan_t "explore" %}</a>
             <a href="/drops/"><span>04</span>{% avan_t "drops" %}</a>
             <a href="/challenges/"><span>05</span>{% avan_t "challenges" %}</a>
+            <a href="/play/"><span>06</span>{% avan_t "play" %}</a>
         </nav>
         <div class="mobile-menu__account">
             {% if request.user.is_authenticated %}
-            {% if request.user.is_superuser %}<a href="/owner/">{% avan_t "owner_console" %}</a>{% endif %}<a href="/for-you/">{% avan_t "for_you" %}</a><a href="/following/">{% avan_t "following_feed" %}</a><a href="/outfits/">{% avan_t "my_outfits" %}</a><a href="/size-passport/">{% avan_t "size_passport" %}</a><a href="/account/addresses/">{% avan_t "addresses" %}</a><a href="/account/returns/">{% avan_t "returns" %}</a><a href="/account/notification-preferences/">{% avan_t "notification_preferences" %}</a><a href="/account/creator/wallet/">{% avan_t "creator_wallet" %}</a><a href="/account/">{% avan_t "my_avan" %}</a>
+            {% if request.user.is_superuser %}<a href="/owner/">{% avan_t "owner_console" %}</a>{% endif %}<a href="/for-you/">{% avan_t "for_you" %}</a><a href="/following/">{% avan_t "following_feed" %}</a><a href="/outfits/">{% avan_t "my_outfits" %}</a><a href="/size-passport/">{% avan_t "size_passport" %}</a><a href="/account/addresses/">{% avan_t "addresses" %}</a><a href="/account/returns/">{% avan_t "returns" %}</a><a href="/account/notification-preferences/">{% avan_t "notification_preferences" %}</a><a href="/account/support/">{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی{% else %}SUPPORT{% endif %}</a><a href="/account/creator/wallet/">{% avan_t "creator_wallet" %}</a><a href="/account/">{% avan_t "my_avan" %}</a>
             {% else %}<a href="/account/login/">{% avan_t "sign_in" %}</a>{% endif %}
         </div>
     </aside>
 </div>
 
 <nav class="mobile-bottom-nav" aria-label="Mobile quick navigation">
-    <a href="/">{% avan_t "home" %}</a><a href="/shop/">{% avan_t "shop" %}</a><a href="/design/" class="mobile-bottom-nav__design">+</a><a href="/explore/">{% avan_t "explore" %}</a><button type="button" data-cart-open>{% avan_t "bag" %} <span data-cart-count>0</span></button>
+    <a href="/">{% avan_t "home" %}</a><a href="/shop/">{% avan_t "shop" %}</a><a href="/design/garments/" class="mobile-bottom-nav__design">{% avan_t "design" %}</a><a href="/explore/">{% avan_t "explore" %}</a><button type="button" data-cart-open>{% avan_t "bag" %} <span data-cart-count>0</span></button>
 </nav>
 
 <div hidden id="avan-csrf">{% csrf_token %}</div>
@@ -114,6 +148,7 @@
 <script src="{% static 'js/app.js' %}" defer></script>
 <script src="{% static 'js/cart-ui.js' %}" defer></script>
 <script src="{% static 'js/stage12-pwa.js' %}" defer></script>
+<script src="{% static 'js/stage19-search.js' %}" defer></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,443 +1,68 @@
-(() => {
-    "use strict";
-
-    const root = document.querySelector("[data-studio]");
-    const productsScript = document.getElementById("studio-products-data");
-    if (!root || !productsScript) return;
-
-    const products = JSON.parse(productsScript.textContent || "[]");
-    if (!products.length) return;
-
-    const initialScript = document.getElementById("studio-initial-design");
-    const initial = initialScript ? JSON.parse(initialScript.textContent || "null") : null;
-    const authenticated = root.dataset.authenticated === "1";
-    const csrf = document.querySelector('#studio-csrf input[name="csrfmiddlewaretoken"]')?.value || "";
-
-    const els = {
-        product: document.querySelector("[data-product-select]"),
-        colors: document.querySelector("[data-color-options]"),
-        stage: document.querySelector("[data-garment-stage]"),
-        garmentImage: document.querySelector("[data-garment-image]"),
-        garmentFallback: document.querySelector("[data-garment-fallback]"),
-        printArea: document.querySelector("[data-print-area]"),
-        garmentName: document.querySelector("[data-current-garment]"),
-        sideName: document.querySelector("[data-current-side]"),
-        price: document.querySelector("[data-studio-price]"),
-        layers: document.querySelector("[data-layers-list]"),
-        title: document.querySelector("[data-design-title]"),
-        save: document.querySelector("[data-save-design]"),
-        publish: document.querySelector("[data-publish-design]"),
-        saveState: document.querySelector("[data-save-state]"),
-        propEmpty: document.querySelector("[data-properties-empty]"),
-        propPanel: document.querySelector("[data-properties-panel]"),
-        propText: document.querySelector("[data-prop-text]"),
-        propColor: document.querySelector("[data-prop-color]"),
-        propFontSize: document.querySelector("[data-prop-font-size]"),
-        propWidth: document.querySelector("[data-prop-width]"),
-        propRotation: document.querySelector("[data-prop-rotation]"),
-        fontSizeValue: document.querySelector("[data-font-size-value]"),
-        widthValue: document.querySelector("[data-width-value]"),
-        rotationValue: document.querySelector("[data-rotation-value]"),
-        upload: document.querySelector("[data-image-upload]"),
-        sizes: document.querySelector("[data-studio-sizes]"),
-        stock: document.querySelector("[data-studio-stock]"),
-        addBag: document.querySelector("[data-studio-add-bag]"),
-        buyMessage: document.querySelector("[data-studio-buy-message]"),
-        publishRemix: document.querySelector("[data-publish-remix]"),
-        publishSale: document.querySelector("[data-publish-sale]"),
-        publishPrice: document.querySelector("[data-publish-price]"),
-    };
-
-    const freshDesignData = () => ({ version: 1, sides: { front: [], back: [] } });
-    let state = {
-        designId: initial?.id || null,
-        productId: Number(initial?.product_id || products[0].id),
-        colorId: initial?.color_id ? Number(initial.color_id) : null,
-        sizeId: null,
-        side: "front",
-        selectedLayerId: null,
-        designData: initial?.design_data?.sides ? initial.design_data : freshDesignData(),
-        dirty: false,
-    };
-
-    const uid = () => window.crypto?.randomUUID?.() || `layer-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const productById = () => products.find(p => Number(p.id) === Number(state.productId)) || products[0];
-    const currentLayers = () => state.designData.sides[state.side] || (state.designData.sides[state.side] = []);
-    const selectedLayer = () => currentLayers().find(layer => layer.id === state.selectedLayerId) || null;
-    const markDirty = () => { state.dirty = true; els.saveState.textContent = "UNSAVED"; };
-
-    function ensureColor(product) {
-        if (!product.colors.some(c => Number(c.id) === Number(state.colorId))) {
-            state.colorId = product.colors[0]?.id || null;
-        }
-    }
-
-    function pickMockup(product) {
-        return product.mockups.find(m => m.side === state.side && Number(m.color_id) === Number(state.colorId))
-            || product.mockups.find(m => m.side === state.side && m.color_id == null)
-            || null;
-    }
-
-    function renderGarment() {
-        const product = productById();
-        ensureColor(product);
-        els.product.value = String(product.id);
-        els.garmentName.textContent = product.name;
-        els.sideName.textContent = state.side.toUpperCase();
-        els.price.textContent = Number(product.price || 0).toLocaleString("en-US");
-
-        const mockup = pickMockup(product);
-        const imageUrl = mockup?.url || product.image;
-        if (imageUrl) {
-            els.garmentImage.src = imageUrl;
-            els.garmentImage.classList.add("is-visible");
-            els.garmentFallback.classList.add("is-hidden");
-        } else {
-            els.garmentImage.classList.remove("is-visible");
-            els.garmentImage.removeAttribute("src");
-            els.garmentFallback.classList.remove("is-hidden");
-        }
-
-        const print = mockup?.print || { x:25, y:22, width:50, height:55 };
-        Object.assign(els.printArea.style, {
-            left: `${print.x}%`, top: `${print.y}%`, width: `${print.width}%`, height: `${print.height}%`,
-        });
-
-        els.colors.innerHTML = product.colors.map(color => `
-            <button type="button" class="studio-color ${Number(color.id) === Number(state.colorId) ? "is-active" : ""}"
-                style="--swatch:${color.hex}" data-studio-color="${color.id}" title="${escapeHtml(color.name)}"></button>
-        `).join("");
-        els.colors.querySelectorAll("[data-studio-color]").forEach(button => {
-            button.addEventListener("click", () => {
-                state.colorId = Number(button.dataset.studioColor);
-                state.sizeId = null;
-                markDirty();
-                renderAll();
-            });
-        });
-        renderSizes(product);
-    }
-
-    function matchingVariants(product) {
-        return product.variants.filter(v => Number(v.color_id) === Number(state.colorId));
-    }
-
-    function selectedVariant() {
-        const product = productById();
-        return matchingVariants(product).find(v => Number(v.size_id) === Number(state.sizeId)) || null;
-    }
-
-    function renderSizes(product) {
-        if (!els.sizes) return;
-        const variants = matchingVariants(product);
-        const seen = new Set();
-        const sizes = [];
-        variants.forEach(v => {
-            if (!seen.has(v.size_id)) { seen.add(v.size_id); sizes.push({id:v.size_id, name:v.size}); }
-        });
-        els.sizes.innerHTML = sizes.map(size => {
-            const variant = variants.find(v => Number(v.size_id) === Number(size.id));
-            const available = variant && Number(variant.stock) > 0;
-            return `<button type="button" data-studio-size="${size.id}" class="${Number(size.id) === Number(state.sizeId) ? "is-active" : ""}" ${available ? "" : "disabled"}>${escapeHtml(size.name)}</button>`;
-        }).join("");
-        els.sizes.querySelectorAll("[data-studio-size]").forEach(button => button.addEventListener("click", () => {
-            state.sizeId = Number(button.dataset.studioSize);
-            renderSizes(product);
-            renderBuyState();
-        }));
-        renderBuyState();
-    }
-
-    function renderBuyState() {
-        const variant = selectedVariant();
-        if (!els.stock || !els.addBag) return;
-        if (!state.sizeId) { els.stock.textContent = "SELECT A SIZE"; els.addBag.disabled = true; return; }
-        if (!variant || Number(variant.stock) <= 0) { els.stock.textContent = "OUT OF STOCK"; els.addBag.disabled = true; return; }
-        els.stock.textContent = `${variant.stock} AVAILABLE`;
-        els.addBag.disabled = false;
-    }
-
-    function escapeHtml(value) {
-        return String(value ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
-    }
-
-    function layerElement(layer) {
-        const el = document.createElement("div");
-        el.className = `design-layer design-layer--${layer.type}${layer.id === state.selectedLayerId ? " is-selected" : ""}`;
-        el.dataset.layerId = layer.id;
-        el.style.left = `${layer.x}%`;
-        el.style.top = `${layer.y}%`;
-        el.style.width = `${layer.width}%`;
-        el.style.zIndex = String(layer.z || 0);
-        el.style.transform = `translate(-50%, -50%) rotate(${layer.rotation || 0}deg)`;
-
-        if (layer.type === "text") {
-            el.textContent = layer.text || "YOUR TEXT";
-            el.style.fontSize = `${layer.fontSize || 38}px`;
-            el.style.color = layer.color || "#111111";
-            el.style.fontWeight = layer.fontWeight || "800";
-            el.style.textAlign = layer.align || "center";
-        } else {
-            const img = document.createElement("img");
-            img.src = layer.url;
-            img.alt = "Uploaded design asset";
-            el.appendChild(img);
-        }
-
-        const handle = document.createElement("span");
-        handle.className = "layer-resize-handle";
-        handle.dataset.resizeHandle = "1";
-        el.appendChild(handle);
-
-        el.addEventListener("pointerdown", event => startLayerPointer(event, layer));
-        return el;
-    }
-
-    function renderLayers() {
-        els.printArea.innerHTML = "";
-        currentLayers().sort((a,b) => (a.z||0) - (b.z||0)).forEach(layer => els.printArea.appendChild(layerElement(layer)));
-        els.layers.innerHTML = currentLayers().slice().sort((a,b)=>(b.z||0)-(a.z||0)).map(layer => `
-            <button type="button" class="layer-row ${layer.id === state.selectedLayerId ? "is-active" : ""}" data-layer-row="${layer.id}">
-                <span>${escapeHtml(layer.type === "text" ? layer.text : "IMAGE")}</span><small>${layer.type.toUpperCase()}</small>
-            </button>
-        `).join("") || '<div style="color:#999;font-size:.65rem">NO LAYERS</div>';
-        els.layers.querySelectorAll("[data-layer-row]").forEach(button => button.addEventListener("click", () => {
-            state.selectedLayerId = button.dataset.layerRow;
-            renderLayers();
-            renderProperties();
-        }));
-    }
-
-    function startLayerPointer(event, layer) {
-        event.preventDefault();
-        state.selectedLayerId = layer.id;
-        renderLayers();
-        renderProperties();
-        const isResize = event.target.matches("[data-resize-handle]");
-        const rect = els.printArea.getBoundingClientRect();
-        const startX = event.clientX;
-        const startY = event.clientY;
-        const original = { x: layer.x, y: layer.y, width: layer.width };
-
-        function move(ev) {
-            if (isResize) {
-                const deltaPct = ((ev.clientX - startX) / rect.width) * 100;
-                layer.width = Math.max(5, Math.min(100, original.width + deltaPct * 2));
-            } else {
-                layer.x = Math.max(0, Math.min(100, original.x + ((ev.clientX - startX) / rect.width) * 100));
-                layer.y = Math.max(0, Math.min(100, original.y + ((ev.clientY - startY) / rect.height) * 100));
-            }
-            markDirty();
-            renderLayers();
-            renderProperties();
-        }
-        function up() {
-            window.removeEventListener("pointermove", move);
-            window.removeEventListener("pointerup", up);
-        }
-        window.addEventListener("pointermove", move);
-        window.addEventListener("pointerup", up, { once:true });
-    }
-
-    function renderProperties() {
-        const layer = selectedLayer();
-        els.propEmpty.hidden = Boolean(layer);
-        els.propPanel.hidden = !layer;
-        if (!layer) return;
-        document.querySelectorAll(".property-text-only").forEach(el => el.hidden = layer.type !== "text");
-        if (layer.type === "text") {
-            els.propText.value = layer.text || "";
-            els.propColor.value = /^#[0-9a-f]{6}$/i.test(layer.color || "") ? layer.color : "#111111";
-            els.propFontSize.value = layer.fontSize || 38;
-            els.fontSizeValue.textContent = `${Math.round(layer.fontSize || 38)}PX`;
-        }
-        els.propWidth.value = layer.width || 35;
-        els.propRotation.value = layer.rotation || 0;
-        els.widthValue.textContent = `${Math.round(layer.width || 35)}%`;
-        els.rotationValue.textContent = `${Math.round(layer.rotation || 0)}°`;
-    }
-
-    function renderAll() {
-        renderGarment();
-        renderLayers();
-        renderProperties();
-    }
-
-    function addText() {
-        const layers = currentLayers();
-        const layer = { id:uid(), type:"text", text:"YOUR TEXT", x:50, y:45, width:55, rotation:0, fontSize:38, color:"#111111", fontWeight:"800", align:"center", z: layers.length + 1 };
-        layers.push(layer);
-        state.selectedLayerId = layer.id;
-        markDirty();
-        renderLayers();
-        renderProperties();
-    }
-
-    async function uploadImage(file) {
-        if (!authenticated) {
-            window.location.href = `/account/login/?next=${encodeURIComponent(location.pathname + location.search)}`;
-            return;
-        }
-        const form = new FormData();
-        form.append("image", file);
-        els.saveState.textContent = "UPLOADING...";
-        const response = await fetch("/api/designs/assets/", { method:"POST", headers:{"X-CSRFToken":csrf}, body:form });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.detail || "Image upload failed.");
-        const layers = currentLayers();
-        const layer = { id:uid(), type:"image", assetId:data.id, url:data.url, x:50, y:45, width:42, rotation:0, z:layers.length + 1 };
-        layers.push(layer);
-        state.selectedLayerId = layer.id;
-        markDirty();
-        renderLayers(); renderProperties();
-    }
-
-    function designPayload() {
-        return {
-            title: els.title.value.trim() || "Untitled Design",
-            base_product: state.productId,
-            base_color: state.colorId,
-            design_data: state.designData,
-        };
-    }
-
-    async function saveDesign() {
-        if (!authenticated) {
-            window.location.href = `/account/login/?next=${encodeURIComponent(location.pathname + location.search)}`;
-            return null;
-        }
-        els.save.disabled = true;
-        els.saveState.textContent = "SAVING...";
-        const response = await fetch(state.designId ? `/api/designs/${state.designId}/` : "/api/designs/", {
-            method: state.designId ? "PATCH" : "POST",
-            headers:{"Content-Type":"application/json","X-CSRFToken":csrf,"Accept":"application/json"},
-            body:JSON.stringify(designPayload()),
-        });
-        const data = await response.json();
-        els.save.disabled = false;
-        if (!response.ok) {
-            els.saveState.textContent = "SAVE FAILED";
-            throw new Error(data.detail || Object.values(data)[0] || "Could not save design.");
-        }
-        state.designId = data.id;
-        state.dirty = false;
-        els.saveState.textContent = "SAVED ✓";
-        if (!location.pathname.includes(data.id)) history.replaceState({}, "", `/design/${data.id}/`);
-        return data;
-    }
-
-    async function publishDesign() {
-        const saved = await saveDesign();
-        if (!saved) return;
-        const allowRemix = Boolean(els.publishRemix?.checked);
-        const isForSale = Boolean(els.publishSale?.checked);
-        const salePrice = Math.max(0, Math.trunc(Number(els.publishPrice?.value || 0)));
-        els.publish.disabled = true;
-        els.saveState.textContent = "PUBLISHING...";
-        const response = await fetch(`/api/designs/${state.designId}/publish/`, {
-            method:"POST", headers:{"Content-Type":"application/json","X-CSRFToken":csrf}, body:JSON.stringify({allow_remix:allowRemix,is_for_sale:isForSale,sale_price:salePrice}),
-        });
-        const data = await response.json();
-        els.publish.disabled = false;
-        if (!response.ok) throw new Error(data.detail || "Could not publish design.");
-        els.saveState.textContent = "PUBLISHED ✓";
-    }
-
-    async function getCartToken() {
-        let token = localStorage.getItem("avan_cart_token");
-        if (token) {
-            const check = await fetch(`/api/cart/${token}/`);
-            if (check.ok) return token;
-            localStorage.removeItem("avan_cart_token");
-        }
-        const response = await fetch("/api/cart/", {method:"POST", headers:{"Content-Type":"application/json","X-CSRFToken":csrf}, body:"{}"});
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.detail || "Could not create bag.");
-        localStorage.setItem("avan_cart_token", data.token);
-        return data.token;
-    }
-
-    async function addCustomDesignToBag() {
-        const variant = selectedVariant();
-        if (!variant) throw new Error("Choose an available size.");
-        if (!authenticated) {
-            location.href = `/account/login/?next=${encodeURIComponent(location.pathname + location.search)}`;
-            return;
-        }
-        const saved = await saveDesign();
-        if (!saved) return;
-        els.addBag.disabled = true;
-        els.addBag.textContent = "ADDING...";
-        els.buyMessage.textContent = "";
-        try {
-            const token = await getCartToken();
-            const response = await fetch(`/api/cart/${token}/items/`, {
-                method:"POST",
-                headers:{"Content-Type":"application/json","X-CSRFToken":csrf,"Accept":"application/json"},
-                body:JSON.stringify({variant_id:variant.id,quantity:1,design_id:state.designId}),
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.detail || "Could not add design to bag.");
-            els.buyMessage.textContent = "ADDED TO YOUR BAG ✓";
-            window.dispatchEvent(new CustomEvent("avan:cart-updated", {detail:data}));
-        } finally {
-            els.addBag.textContent = "ADD CUSTOM DESIGN TO BAG";
-            renderBuyState();
-        }
-    }
-
-    els.addBag?.addEventListener("click", async () => {
-        try { await addCustomDesignToBag(); } catch (error) { els.buyMessage.textContent = error.message; renderBuyState(); }
-    });
-
-    els.product.addEventListener("change", () => {
-        state.productId = Number(els.product.value);
-        state.colorId = null;
-        state.sizeId = null;
-        state.selectedLayerId = null;
-        markDirty(); renderAll();
-    });
-    document.querySelectorAll("[data-side]").forEach(button => button.addEventListener("click", () => {
-        state.side = button.dataset.side;
-        state.selectedLayerId = null;
-        document.querySelectorAll("[data-side]").forEach(b => b.classList.toggle("is-active", b === button));
-        renderAll();
-    }));
-    document.querySelector("[data-add-text]")?.addEventListener("click", addText);
-    els.upload?.addEventListener("change", async () => {
-        const file = els.upload.files?.[0];
-        if (!file) return;
-        try { await uploadImage(file); } catch (error) { alert(error.message); }
-        els.upload.value = "";
-    });
-    els.save?.addEventListener("click", async () => { try { await saveDesign(); } catch (error) { alert(error.message); } });
-    els.publish?.addEventListener("click", async () => { try { await publishDesign(); } catch (error) { alert(error.message); } });
-    els.title?.addEventListener("input", markDirty);
-
-    function updateSelected(key, value) {
-        const layer = selectedLayer(); if (!layer) return;
-        layer[key] = value; markDirty(); renderLayers(); renderProperties();
-    }
-    els.propText?.addEventListener("input", () => updateSelected("text", els.propText.value));
-    els.propColor?.addEventListener("input", () => updateSelected("color", els.propColor.value));
-    els.propFontSize?.addEventListener("input", () => updateSelected("fontSize", Number(els.propFontSize.value)));
-    els.propWidth?.addEventListener("input", () => updateSelected("width", Number(els.propWidth.value)));
-    els.propRotation?.addEventListener("input", () => updateSelected("rotation", Number(els.propRotation.value)));
-    document.querySelector("[data-delete-layer]")?.addEventListener("click", () => {
-        const layers = currentLayers();
-        const index = layers.findIndex(l => l.id === state.selectedLayerId);
-        if (index >= 0) layers.splice(index, 1);
-        state.selectedLayerId = null; markDirty(); renderLayers(); renderProperties();
-    });
-    document.querySelector("[data-layer-up]")?.addEventListener("click", () => {
-        const layer = selectedLayer(); if (!layer) return;
-        layer.z = Math.max(...currentLayers().map(l => l.z || 0), 0) + 1; markDirty(); renderLayers();
-    });
-    document.querySelector("[data-layer-down]")?.addEventListener("click", () => {
-        const layer = selectedLayer(); if (!layer) return;
-        layer.z = Math.min(...currentLayers().map(l => l.z || 0), 0) - 1; markDirty(); renderLayers();
-    });
-    window.addEventListener("beforeunload", event => { if (state.dirty) { event.preventDefault(); event.returnValue = ""; } });
-
-    renderAll();
+(()=>{
+const root=document.querySelector('[data-studio]'); if(!root)return;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const read=id=>{try{return JSON.parse(document.getElementById(id)?.textContent||'null')}catch{return null}};
+const products=read('studio-products-data')||[], initial=read('studio-initial-design'), fabrics=read('studio-fabrics-data')||[], fonts=read('studio-fonts-data')||[], stickerLibrary=read('studio-stickers-data')||[], settings=read('studio-settings-data')||{};
+const csrf=$('#studio-csrf input')?.value||''; const authenticated=root.dataset.authenticated==='1';
+fonts.forEach(f=>{if(f.file_url){const st=document.createElement('style');st.textContent=`@font-face{font-family:"${f.family}";src:url("${f.file_url}") format("woff2");font-display:swap}`;document.head.append(st)}});
+const emptySides=()=>({front:[],back:[],left_sleeve:[],right_sleeve:[]});
+const baseData=initial?.design_data||{}; const state={designId:initial?.id||null,productId:initial?.product_id||products[0]?.id||null,colorId:initial?.color_id||null,sizeId:null,zone:'front',selected:null,dirty:false,yaw:-18,pitch:-5,zoom:1,designData:{version:2,garment:{fabric:baseData.garment?.fabric||'cotton',garmentType:baseData.garment?.garmentType||products[0]?.studio?.garment_type||'tee',colorHex:baseData.garment?.colorHex||''},sides:{...emptySides(),...(baseData.sides||{})}}};
+const el={product:$('[data-product-select]'),colors:$('[data-color-options]'),fabric:$('[data-fabric-options]'),rig:$('[data-garment-rig]'),viewport:$('[data-viewport]'),surface:$('[data-surface-layers]'),layers:$('[data-layers-list]'),title:$('[data-design-title]'),save:$('[data-save-design]'),publish:$('[data-publish-design]'),saveState:$('[data-save-state]'),sizes:$('[data-studio-sizes]'),stock:$('[data-studio-stock]'),price:$('[data-studio-price]'),addBag:$('[data-studio-add-bag]'),buyMessage:$('[data-studio-buy-message]'),font:$('[data-prop-font]')};
+const zoneLabels={front:'FRONT',back:'BACK',left_sleeve:'LEFT SLEEVE',right_sleeve:'RIGHT SLEEVE'};
+const uid=()=>crypto.randomUUID?.()||`${Date.now()}-${Math.random()}`; const product=()=>products.find(p=>Number(p.id)===Number(state.productId))||products[0]; const layers=()=>state.designData.sides[state.zone]||[]; const selected=()=>layers().find(l=>l.id===state.selected);
+function mark(){state.dirty=true;el.saveState.textContent='UNSAVED'}
+function setZone(z){state.zone=z;state.selected=null;$$('[data-zone]').forEach(b=>b.classList.toggle('is-active',b.dataset.zone===z));$('[data-editor-zone-label]').textContent=zoneLabels[z];focus(z);renderAll()}
+function activeColor(){const p=product();return p?.colors.find(c=>Number(c.id)===Number(state.colorId))||p?.colors[0]}
+function activeFabric(){return fabrics.find(f=>f.slug===state.designData.garment.fabric)||fabrics[0]}
+function renderGarment(){const p=product(); if(!p)return; if(!state.colorId&&p.colors.length)state.colorId=p.colors[0].id; const c=activeColor(); if(c){state.designData.garment.colorHex=c.hex;document.documentElement.style.setProperty('--garment-color',c.hex)} const f=activeFabric(); if(f){document.documentElement.style.setProperty('--fabric-weave',String(Math.max(.02,Math.min(.22,f.weave))));document.documentElement.style.setProperty('--fabric-sheen',String(f.sheen||0));$('[data-current-fabric]').textContent=f.name;state.designData.garment.fabric=f.slug} state.designData.garment.garmentType=p.studio?.garment_type||state.designData.garment.garmentType||'tee'; root.dataset.garmentType=state.designData.garment.garmentType; $('[data-current-garment]').textContent=p.name; renderColors();renderFabrics();renderSizes();updateRig();renderTextures()}
+function renderColors(){const p=product();el.colors.innerHTML=(p?.colors||[]).map(c=>`<button class="color-swatch ${Number(c.id)===Number(state.colorId)?'is-active':''}" style="background:${c.hex}" title="${esc(c.name)}" data-color="${c.id}"></button>`).join('');el.colors.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{state.colorId=Number(b.dataset.color);mark();renderGarment()})}
+function renderFabrics(){el.fabric.innerHTML=fabrics.map(f=>`<button class="fabric-option ${f.slug===state.designData.garment.fabric?'is-active':''}" data-fabric="${f.slug}"><span>${esc(f.name)}</span><small>${esc(f.name_fa||'')}</small></button>`).join('');el.fabric.querySelectorAll('[data-fabric]').forEach(b=>b.onclick=()=>{state.designData.garment.fabric=b.dataset.fabric;mark();renderGarment()})}
+function variants(){return (product()?.variants||[]).filter(v=>Number(v.color_id)===Number(state.colorId)&&v.stock>0)} function selectedVariant(){return variants().find(v=>Number(v.size_id)===Number(state.sizeId))}
+function renderSizes(){const vs=variants();const map=new Map(vs.map(v=>[v.size_id,v]));el.sizes.innerHTML=[...map.values()].map(v=>`<button data-size="${v.size_id}" class="${Number(v.size_id)===Number(state.sizeId)?'is-active':''}">${esc(v.size)}</button>`).join('');el.sizes.querySelectorAll('button').forEach(b=>b.onclick=()=>{state.sizeId=Number(b.dataset.size);renderSizes()});const v=selectedVariant();el.price.textContent=(v?.price||product()?.price||0).toLocaleString('en-US');el.stock.textContent=v?`${v.stock} AVAILABLE`:'SELECT A SIZE';el.addBag.disabled=!v}
+function updateRig(){el.rig.style.transform=`translate(-50%,-50%) rotateX(${state.pitch}deg) rotateY(${state.yaw}deg) scale(${state.zoom})`}
+function focus(k){const presets={full:[-18,-5,1],collar:[0,-12,1.55],front:[0,-3,1.12],back:[180,-3,1.12],left_sleeve:[58,-4,1.35],right_sleeve:[-58,-4,1.35]};const p=presets[k]||presets.full;[state.yaw,state.pitch,state.zoom]=p;updateRig();$$('[data-camera]').forEach(b=>b.classList.toggle('is-active',b.dataset.camera===k))}
+let drag=null;el.viewport?.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,yaw:state.yaw,pitch:state.pitch};el.viewport.setPointerCapture?.(e.pointerId)});el.viewport?.addEventListener('pointermove',e=>{if(!drag)return;state.yaw=drag.yaw+(e.clientX-drag.x)*.45;state.pitch=Math.max(-55,Math.min(45,drag.pitch-(e.clientY-drag.y)*.28));updateRig()});window.addEventListener('pointerup',()=>drag=null);el.viewport?.addEventListener('wheel',e=>{e.preventDefault();state.zoom=Math.max(.62,Math.min(2.15,state.zoom+(e.deltaY<0?.08:-.08)));updateRig()},{passive:false});$$('[data-camera]').forEach(b=>b.onclick=()=>focus(b.dataset.camera));$('[data-reset-camera]')?.addEventListener('click',()=>focus('full'));
+const imgCache=new Map();function loadImg(url){if(imgCache.has(url))return imgCache.get(url);const p=new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=url});imgCache.set(url,p);return p}
+async function textureFor(zone){const canvas=document.createElement('canvas');canvas.width=700;canvas.height=700;const ctx=canvas.getContext('2d');for(const l of [...(state.designData.sides[zone]||[])].sort((a,b)=>(a.z||0)-(b.z||0))){ctx.save();ctx.globalAlpha=l.opacity??1;ctx.translate(l.x/100*700,l.y/100*700);ctx.rotate((l.rotation||0)*Math.PI/180);const w=(l.width||35)/100*700;if(l.type==='text'){ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=l.color||'#111';ctx.font=`${l.fontWeight||800} ${l.fontSize||42}px ${l.fontFamily||'Tahoma,Arial,sans-serif'}`;if(l.letterSpacing){drawSpaced(ctx,l.text||'',0,0,l.letterSpacing)}else ctx.fillText(l.text||'',0,0,w*1.8)}else{const im=await loadImg(l.url);if(im){const h=w*(im.naturalHeight/im.naturalWidth);ctx.drawImage(im,-w/2,-h/2,w,h)}}ctx.restore()}return canvas.toDataURL('image/png')}
+function drawSpaced(ctx,text,x,y,sp){const chars=[...text];const widths=chars.map(c=>ctx.measureText(c).width);const total=widths.reduce((a,b)=>a+b,0)+sp*(chars.length-1);let cur=x-total/2;chars.forEach((c,i)=>{ctx.fillText(c,cur+widths[i]/2,y);cur+=widths[i]+sp})}
+let texTick=0;async function renderTextures(){const tick=++texTick;for(const z of Object.keys(zoneLabels)){const data=await textureFor(z);if(tick!==texTick)return;const t=$(`[data-texture="${z}"]`);if(t)t.style.backgroundImage=`url(${data})`}}
+function layerHtml(l){const style=`left:${l.x}%;top:${l.y}%;width:${l.width}%;--rot:${l.rotation||0}deg;opacity:${l.opacity??1};z-index:${l.z||0}`;if(l.type==='text')return `<div class="surface-layer ${l.id===state.selected?'is-active':''}" data-layer="${l.id}" style="${style};font-family:${escAttr(l.fontFamily||'Tahoma,Arial,sans-serif')};font-size:${Math.max(12,(l.fontSize||42)*.55)}px;font-weight:${l.fontWeight||800};color:${l.color||'#111'}">${esc(l.text||'TEXT')}<i class="resize-handle" data-resize></i></div>`;return `<div class="surface-layer ${l.id===state.selected?'is-active':''}" data-layer="${l.id}" style="${style}"><img src="${escAttr(l.url)}"><i class="resize-handle" data-resize></i></div>`}
+function renderSurface(){el.surface.innerHTML=[...layers()].sort((a,b)=>(a.z||0)-(b.z||0)).map(layerHtml).join('');el.surface.querySelectorAll('[data-layer]').forEach(n=>n.onpointerdown=e=>startLayer(e,n.dataset.layer,e.target.hasAttribute('data-resize')))}
+function startLayer(e,id,resizing){e.preventDefault();state.selected=id;const l=selected(),box=$('[data-surface-editor]').getBoundingClientRect(),sx=e.clientX,sy=e.clientY,orig={x:l.x,y:l.y,width:l.width};renderAll();function mv(ev){if(resizing)l.width=Math.max(3,Math.min(120,orig.width+(ev.clientX-sx)/box.width*180));else{l.x=Math.max(0,Math.min(100,orig.x+(ev.clientX-sx)/box.width*100));l.y=Math.max(0,Math.min(100,orig.y+(ev.clientY-sy)/box.height*100))}mark();renderSurface();renderTextures()}function up(){window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up)}window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up)}
+function renderLayerList(){el.layers.innerHTML=layers().map(l=>`<button class="layer-row ${l.id===state.selected?'is-active':''}" data-row="${l.id}"><span>${esc(l.type==='text'?l.text:(l.name||l.type.toUpperCase()))}</span><small>${l.type.toUpperCase()}</small></button>`).join('')||'<small>NO LAYERS ON THIS SURFACE</small>'; $('[data-layer-count]').textContent=layers().length;el.layers.querySelectorAll('[data-row]').forEach(b=>b.onclick=()=>{state.selected=b.dataset.row;renderAll()})}
+function renderProps(){const l=selected(),panel=$('[data-properties-panel]'),empty=$('[data-properties-empty]');panel.hidden=!l;empty.hidden=!!l;if(!l)return;$$('.text-only').forEach(x=>x.hidden=l.type!=='text');$('[data-stickerize]').hidden=!(l.assetId&&['image','ai'].includes(l.type));if(l.type==='text'){$('[data-prop-text]').value=l.text||'';$('[data-prop-color]').value=l.color||'#111111';$('[data-prop-font-size]').value=l.fontSize||42;$('[data-prop-weight]').value=l.fontWeight||'800';$('[data-prop-letter]').value=l.letterSpacing||0;el.font.value=String(l.fontId||'')} $('[data-prop-width]').value=l.width||35;$('[data-prop-rotation]').value=l.rotation||0;$('[data-prop-opacity]').value=Math.round((l.opacity??1)*100);$('[data-font-size-value]').textContent=`${Math.round(l.fontSize||42)}PX`;$('[data-letter-value]').textContent=`${l.letterSpacing||0}`;$('[data-width-value]').textContent=`${Math.round(l.width||35)}%`;$('[data-rotation-value]').textContent=`${Math.round(l.rotation||0)}°`;$('[data-opacity-value]').textContent=`${Math.round((l.opacity??1)*100)}%`}
+function renderAll(){renderGarment();renderSurface();renderLayerList();renderProps()}
+function addText(){const f=fonts[0];const l={id:uid(),type:'text',text:'YOUR TEXT',x:50,y:50,width:48,rotation:0,opacity:1,z:layers().length+1,fontSize:44,color:'#111111',fontWeight:'800',fontFamily:f?.family||'Tahoma,Arial,sans-serif',fontId:String(f?.id||''),letterSpacing:0};layers().push(l);state.selected=l.id;mark();renderAll()}
+async function upload(file,kind='image'){if(!authenticated){location.href=`/account/login/?next=${encodeURIComponent(location.pathname)}`;return}const fd=new FormData();fd.append('image',file);fd.append('kind',kind);const r=await fetch('/api/designs/assets/',{method:'POST',headers:{'X-CSRFToken':csrf},body:fd});const d=await r.json();if(!r.ok)throw Error(d.detail||'Upload failed');addAsset(d,kind)}
+function addAsset(a,type){const l={id:uid(),type:type==='sticker'?'sticker':(type==='ai'?'ai':'image'),assetId:a.id,url:a.url,name:a.original_name||type,x:50,y:50,width:42,rotation:0,opacity:1,z:layers().length+1};layers().push(l);state.selected=l.id;mark();renderAll();closeModals()}
+function update(k,v){const l=selected();if(!l)return;l[k]=v;mark();renderSurface();renderLayerList();renderProps();renderTextures()}
+function initFonts(){el.font.innerHTML=fonts.map(f=>`<option value="${f.id}" data-family="${escAttr(f.family)}">${esc(f.name)} · ${f.language}</option>`).join('')}
+$('[data-add-text]')?.addEventListener('click',addText);$('[data-image-upload]')?.addEventListener('change',e=>{if(e.target.files[0])upload(e.target.files[0]).catch(x=>alert(x.message));e.target.value=''});$$('[data-zone]').forEach(b=>b.onclick=()=>setZone(b.dataset.zone));el.product.onchange=()=>{state.productId=Number(el.product.value);state.colorId=null;state.sizeId=null;state.designData.garment.garmentType=product()?.studio?.garment_type||'tee';mark();renderAll()};
+$('[data-prop-text]')?.addEventListener('input',e=>update('text',e.target.value));$('[data-prop-color]')?.addEventListener('input',e=>update('color',e.target.value));$('[data-prop-font-size]')?.addEventListener('input',e=>update('fontSize',Number(e.target.value)));$('[data-prop-weight]')?.addEventListener('change',e=>update('fontWeight',e.target.value));$('[data-prop-letter]')?.addEventListener('input',e=>update('letterSpacing',Number(e.target.value)));$('[data-prop-width]')?.addEventListener('input',e=>update('width',Number(e.target.value)));$('[data-prop-rotation]')?.addEventListener('input',e=>update('rotation',Number(e.target.value)));$('[data-prop-opacity]')?.addEventListener('input',e=>update('opacity',Number(e.target.value)/100));el.font?.addEventListener('change',()=>{const o=el.font.selectedOptions[0];const l=selected();if(l){l.fontId=el.font.value;l.fontFamily=o.dataset.family;mark();renderAll()}});
+$('[data-delete-layer]')?.addEventListener('click',()=>{const i=layers().findIndex(l=>l.id===state.selected);if(i>=0)layers().splice(i,1);state.selected=null;mark();renderAll()});$('[data-layer-up]')?.addEventListener('click',()=>{const l=selected();if(l){l.z=Math.max(0,...layers().map(x=>x.z||0))+1;mark();renderAll()}});$('[data-layer-down]')?.addEventListener('click',()=>{const l=selected();if(l){l.z=Math.min(0,...layers().map(x=>x.z||0))-1;mark();renderAll()}});
+async function save(){if(!authenticated){location.href=`/account/login/?next=${encodeURIComponent(location.pathname)}`;return null}el.save.disabled=true;el.saveState.textContent='SAVING...';const body={title:el.title.value.trim()||'Untitled Design',base_product:state.productId,base_color:state.colorId,design_data:state.designData};const r=await fetch(state.designId?`/api/designs/${state.designId}/`:'/api/designs/',{method:state.designId?'PATCH':'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(body)});const d=await r.json();el.save.disabled=false;if(!r.ok){el.saveState.textContent='SAVE FAILED';throw Error(d.detail||'Could not save')}state.designId=d.id;state.dirty=false;el.saveState.textContent='SAVED ✓';if(!location.pathname.includes(d.id))history.replaceState({},'',`/design/${d.id}/`);return d}
+el.save.onclick=()=>save().catch(e=>alert(e.message));el.publish.onclick=async()=>{try{const d=await save();if(!d)return;const r=await fetch(`/api/designs/${state.designId}/publish/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({allow_remix:$('[data-publish-remix]')?.checked||false,is_for_sale:$('[data-publish-sale]')?.checked||false,sale_price:Number($('[data-publish-price]')?.value||0)})});if(!r.ok)throw Error((await r.json()).detail||'Publish failed');el.saveState.textContent='PUBLISHED ✓'}catch(e){alert(e.message)}};el.title.oninput=mark;
+async function cartToken(){let t=localStorage.getItem('avan_cart_token');if(t&&(await fetch(`/api/cart/${t}/`)).ok)return t;const r=await fetch('/api/cart/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:'{}'});const d=await r.json();localStorage.setItem('avan_cart_token',d.token);return d.token}el.addBag.onclick=async()=>{try{const v=selectedVariant();if(!v)throw Error('Choose a size.');await save();const t=await cartToken();const r=await fetch(`/api/cart/${t}/items/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({variant_id:v.id,quantity:1,design_id:state.designId})});if(!r.ok)throw Error((await r.json()).detail||'Could not add to bag');el.buyMessage.textContent='ADDED TO YOUR BAG ✓'}catch(e){el.buyMessage.textContent=e.message}};
+function syncModalBody(){document.body.classList.toggle('studio-modal-open',!!document.querySelector('.studio-modal:not([hidden]), .studio-owner-drawer:not([hidden])'))}
+function modal(sel,on){const m=$(sel);if(!m)return;m.hidden=!on;syncModalBody()}
+function closeModals(){modal('[data-sticker-modal]',false);modal('[data-ai-modal]',false)}
+$('[data-open-stickers]')?.addEventListener('click',()=>{modal('[data-sticker-modal]',true);renderStickerTabs();loadMyStickers()});
+$('[data-close-stickers]')?.addEventListener('click',closeModals);
+$('[data-open-ai]')?.addEventListener('click',()=>{modal('[data-ai-modal]',true);const status=$('[data-ai-status]');if(status)status.textContent=settings.ai_configured?'AI READY':'AI is not configured. Owner must set OPENAI_API_KEY in the server .env.'});
+$('[data-close-ai]')?.addEventListener('click',closeModals);
+$$('.studio-modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModals()}));
+window.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModals();const d=$('[data-owner-drawer]');if(d){d.hidden=true;syncModalBody()}}});
+function renderStickerTabs(){const tabs=$('[data-sticker-tabs]'),grid=$('[data-sticker-grid]');tabs.innerHTML=stickerLibrary.map((c,i)=>`<button class="${i===0?'is-active':''}" data-stcat="${c.id}">${esc(c.name)}</button>`).join('');function show(id){const c=stickerLibrary.find(x=>String(x.id)===String(id))||stickerLibrary[0];grid.innerHTML=(c?.stickers||[]).map(s=>`<button class="sticker-item" data-global-sticker="${s.id}"><img src="${escAttr(s.preview)}" alt=""><small>${esc(s.title)}</small></button>`).join('')||'<small>No stickers in this category yet.</small>';grid.querySelectorAll('[data-global-sticker]').forEach(b=>b.onclick=()=>{const s=c.stickers.find(x=>String(x.id)===b.dataset.globalSticker);addAsset({id:`global-${s.id}`,url:s.url,original_name:s.title},'sticker')})}tabs.querySelectorAll('button').forEach(b=>b.onclick=()=>{tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('is-active',x===b));show(b.dataset.stcat)});if(stickerLibrary[0])show(stickerLibrary[0].id)}
+async function loadMyStickers(){const box=$('[data-my-stickers]');if(!authenticated){box.innerHTML='<small>Login to use private stickers.</small>';return}const r=await fetch('/api/designs/assets/?kind=sticker');const data=await r.json();box.innerHTML=data.map(a=>`<button class="sticker-item" data-my="${a.id}"><img src="${escAttr(a.url)}"><small>${esc(a.original_name)}</small></button>`).join('')||'<small>No personal stickers yet.</small>';box.querySelectorAll('[data-my]').forEach(b=>b.onclick=()=>addAsset(data.find(a=>a.id===b.dataset.my),'sticker'))}
+$('[data-sticker-upload]')?.addEventListener('change',async e=>{if(e.target.files[0]){try{await upload(e.target.files[0],'sticker');await loadMyStickers()}catch(x){alert(x.message)}}e.target.value=''});
+async function generateAiDesign(){const status=$('[data-ai-status]'),prompt=$('[data-ai-prompt]')?.value.trim()||'';if(!settings.ai_enabled){status.textContent='AI generation is disabled by the site owner.';return}if(!settings.ai_configured){status.textContent='AI is not configured. Add OPENAI_API_KEY to the server .env and restart the web container.';return}if(prompt.length<3){status.textContent='Describe the design you want first.';return}const button=$('[data-ai-generate]');button.disabled=true;status.textContent='GENERATING...';try{const r=await fetch('/api/designs/ai/generate/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({prompt})});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.detail||`AI request failed (${r.status})`);addAsset(d,'ai');status.textContent='READY ✓'}catch(e){status.textContent=e.message||'AI generation failed.'}finally{button.disabled=false}}
+$('[data-ai-generate]')?.addEventListener('click',generateAiDesign);
+$('[data-ai-prompt]')?.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();generateAiDesign()}});
+$('[data-stickerize]')?.addEventListener('click',async()=>{const l=selected();if(!l?.assetId)return;const r=await fetch(`/api/designs/assets/${l.assetId}/stickerize/`,{method:'POST',headers:{'X-CSRFToken':csrf}});const d=await r.json();if(!r.ok)return alert(d.detail||'Could not create sticker');l.type='sticker';l.assetId=d.id;l.url=d.url;l.name=d.original_name;mark();renderAll()});
+function searchPinterest(){const q=$('[data-inspiration-query]')?.value.trim()||'streetwear t shirt graphic';const url=`https://www.pinterest.com/search/pins/?q=${encodeURIComponent(q)}`;const win=window.open(url,'_blank');if(win)win.opener=null;else window.location.href=url}
+$('[data-pinterest-search]')?.addEventListener('click',searchPinterest);
+$('[data-inspiration-query]')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchPinterest()}});
+$('[data-open-owner]')?.addEventListener('click',()=>{const d=$('[data-owner-drawer]');if(d){d.hidden=false;syncModalBody()}});$('[data-close-owner]')?.addEventListener('click',()=>{const d=$('[data-owner-drawer]');if(d){d.hidden=true;syncModalBody()}});const ownerEndpoints={garment:'/design/studio-owner/garment/',fabric:'/design/studio-owner/fabric/',font:'/design/studio-owner/font/','sticker-category':'/design/studio-owner/sticker-category/',sticker:'/design/studio-owner/sticker/',settings:'/design/studio-owner/settings/'};$$('[data-owner-form]').forEach(f=>f.addEventListener('submit',async e=>{e.preventDefault();const fd=new FormData(f);if(f.dataset.ownerForm==='settings')[...f.querySelectorAll('input[type=checkbox]')].forEach(c=>{fd.delete(c.name);if(c.checked)fd.append(c.name,'1')});const r=await fetch(ownerEndpoints[f.dataset.ownerForm],{method:'POST',headers:{'X-CSRFToken':csrf},body:fd});const d=await r.json();if(!r.ok)return alert(d.detail||'Could not save');location.reload()}));
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function escAttr(s=''){return esc(s).replace(/`/g,'')}
+window.addEventListener('beforeunload',e=>{if(state.dirty){e.preventDefault();e.returnValue=''}});initFonts();if(initial?.product_id)el.product.value=String(initial.product_id);renderAll();setZone('front');
 })();

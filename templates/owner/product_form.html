@@ -1,10 +1,80 @@
 {% extends "owner/base.html" %}
-{% block title %}{% if product %}{{ product.name }}{% else %}New Product{% endif %} — AVAN OWNER{% endblock %}
+{% block title %}{% if product %}{% if AVAN_PAGE_LANG == 'fa' %}ویرایش {{ product.name }}{% else %}Edit {{ product.name }}{% endif %}{% else %}{% if AVAN_PAGE_LANG == 'fa' %}محصول جدید{% else %}New Product{% endif %}{% endif %} — AVAN OWNER{% endblock %}
 {% block content %}
-<header class="owner-page-head"><div><span>CATALOG / PRODUCT</span><h1>{% if product %}EDIT PRODUCT.{% else %}NEW PRODUCT.{% endif %}</h1></div>{% if product %}<div class="owner-head-actions"><a class="owner-btn" href="/shop/{{ product.slug }}/" target="_blank">VIEW STORE ↗</a><a class="owner-btn" href="/owner/products/{{ product.id }}/media/">IMAGES</a><a class="owner-btn" href="/owner/products/{{ product.id }}/variants/">VARIANTS</a></div>{% endif %}</header>
+<header class="owner-page-head">
+  <div>
+    <span>{% if AVAN_PAGE_LANG == 'fa' %}فروشگاه / محصول{% else %}STORE / PRODUCT{% endif %}</span>
+    <h1>{% if product %}{% if AVAN_PAGE_LANG == 'fa' %}ویرایش محصول.{% else %}EDIT PRODUCT.{% endif %}{% else %}{% if AVAN_PAGE_LANG == 'fa' %}لباس جدید اضافه کن.{% else %}ADD A NEW GARMENT.{% endif %}{% endif %}</h1>
+    <p>{% if AVAN_PAGE_LANG == 'fa' %}اول مشخص کن این لباس فقط برای فروش است یا کاربر باید بتواند روی همان لباس داخل Studio طراحی کند.{% else %}First decide whether this garment is sold as-is or can also be customized in Studio.{% endif %}</p>
+  </div>
+  {% if product %}<div class="owner-head-actions"><a class="owner-btn" href="/shop/{{ product.slug }}/" target="_blank">{% if AVAN_PAGE_LANG == 'fa' %}مشاهده در فروشگاه ↗{% else %}VIEW STORE ↗{% endif %}</a></div>{% endif %}
+</header>
+
+{% if product %}
+<nav class="s16-product-steps">
+  <a class="is-active" href="/owner/products/{{ product.id }}/"><b>1</b><span>{% if AVAN_PAGE_LANG == 'fa' %}اطلاعات{% else %}PRODUCT{% endif %}</span></a>
+  <a href="/owner/products/{{ product.id }}/media/"><b>2</b><span>{% if AVAN_PAGE_LANG == 'fa' %}تصاویر{% else %}IMAGES{% endif %}</span></a>
+  <a href="/owner/products/{{ product.id }}/variants/"><b>3</b><span>{% if AVAN_PAGE_LANG == 'fa' %}رنگ، سایز و موجودی{% else %}VARIANTS{% endif %}</span></a>
+  {% if product.product_type == 'customizable' %}<a href="/owner/products/{{ product.id }}/studio/"><b>4</b><span>{% if AVAN_PAGE_LANG == 'fa' %}تنظیم Studio{% else %}STUDIO SETUP{% endif %}</span></a>{% endif %}
+</nav>
+{% endif %}
+
 <div class="owner-grid owner-grid--form">
-<section class="owner-panel owner-form-panel"><form method="post">{% csrf_token %}{% for field in form %}<label class="owner-field"><span>{{ field.label|upper }}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<b>{{ error }}</b>{% endfor %}</label>{% endfor %}<button class="owner-btn owner-btn--primary" type="submit">SAVE PRODUCT</button></form></section>
+<section class="owner-panel owner-form-panel">
+  <form method="post">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="owner-warning">{{ form.non_field_errors }}</div>{% endif %}
+
+    <div class="s16-product-kind">
+      <div class="s16-product-kind__head"><strong>{% if AVAN_PAGE_LANG == 'fa' %}این لباس چه نوع محصولی است؟{% else %}HOW WILL THIS GARMENT BE USED?{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}این انتخاب تعیین می‌کند لباس داخل بخش طراحی کاربران هم نمایش داده شود یا نه.{% else %}This controls whether the garment also appears in the customer design Studio.{% endif %}</small></div>
+      <div class="s16-kind-grid">
+        <label class="s16-kind-card {% if form.product_type.value != 'customizable' %}is-selected{% endif %}">
+          <input type="radio" name="product_type" value="ready" {% if form.product_type.value != 'customizable' %}checked{% endif %}>
+          <i>SHOP</i><strong>{% if AVAN_PAGE_LANG == 'fa' %}لباس آماده فروش{% else %}READY TO SELL{% endif %}</strong>
+          <span>{% if AVAN_PAGE_LANG == 'fa' %}مثل محصول عادی فروشگاه؛ کاربر فقط رنگ/سایز را انتخاب می‌کند و می‌خرد.{% else %}A normal store product. Customers choose a variant and buy it as-is.{% endif %}</span>
+        </label>
+        <label class="s16-kind-card {% if form.product_type.value == 'customizable' %}is-selected{% endif %}">
+          <input type="radio" name="product_type" value="customizable" {% if form.product_type.value == 'customizable' %}checked{% endif %}>
+          <i>STUDIO</i><strong>{% if AVAN_PAGE_LANG == 'fa' %}لباس قابل طراحی{% else %}CUSTOMIZABLE GARMENT{% endif %}</strong>
+          <span>{% if AVAN_PAGE_LANG == 'fa' %}هم در فروشگاه فروخته می‌شود و هم همان محصول داخل Studio برای طراحی کاربر می‌آید.{% else %}Sold in the shop and also selectable as the exact base garment in Studio.{% endif %}</span>
+        </label>
+      </div>
+      {% for error in form.product_type.errors %}<b class="owner-field-error">{{ error }}</b>{% endfor %}
+    </div>
+
+    <div class="s14-form-section"><div class="s14-form-section__head"><strong>{% if AVAN_PAGE_LANG == 'fa' %}اطلاعات اصلی{% else %}BASIC INFORMATION{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}نام، آدرس و دسته‌بندی محصول{% else %}Name, URL and catalog placement{% endif %}</small></div>
+      <div class="s14-form-two">
+        <label class="owner-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}نام محصول{% else %}PRODUCT NAME{% endif %}</span>{{ form.name }}{% for error in form.name.errors %}<b>{{ error }}</b>{% endfor %}</label>
+        <label class="owner-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}اسلاگ / URL{% else %}SLUG / URL{% endif %}</span>{{ form.slug }}{% for error in form.slug.errors %}<b>{{ error }}</b>{% endfor %}</label>
+      </div>
+      <label class="owner-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}دسته‌بندی{% else %}CATEGORY{% endif %}</span>{{ form.category }}{% for error in form.category.errors %}<b>{{ error }}</b>{% endfor %}</label>
+      <label class="owner-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}توضیحات محصول{% else %}DESCRIPTION{% endif %}</span>{{ form.description }}{% for error in form.description.errors %}<b>{{ error }}</b>{% endfor %}</label>
+      <label class="owner-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}تگ‌های جستجو{% else %}SEARCH TAGS{% endif %}</span>{{ form.search_tags }}<small>{% if AVAN_PAGE_LANG == 'fa' %}کلمه‌هایی که کاربر ممکن است برای پیدا کردن این محصول جستجو کند؛ با ویرگول جدا کن. مثال: تیشرت، مشکی، اورسایز، خیابانی{% else %}Comma-separated keywords used by live search suggestions.{% endif %}</small>{% for error in form.search_tags.errors %}<b>{{ error }}</b>{% endfor %}</label>
+    </div>
+
+    <div class="s14-form-section"><div class="s14-form-section__head"><strong>{% if AVAN_PAGE_LANG == 'fa' %}قیمت و نمایش{% else %}PRICE & VISIBILITY{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}بعداً برای هر رنگ/سایز می‌توانی قیمت جدا هم تعیین کنی.{% else %}Individual variants can override this price later.{% endif %}</small></div>
+      <label class="owner-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}قیمت پایه (تومان){% else %}BASE PRICE (TOMAN){% endif %}</span>{{ form.base_price }}{% for error in form.base_price.errors %}<b>{{ error }}</b>{% endfor %}</label>
+      <div class="s14-toggle-grid">
+        <label class="s14-toggle">{{ form.is_active }}<div><strong>{% if AVAN_PAGE_LANG == 'fa' %}فعال و قابل خرید{% else %}ACTIVE PRODUCT{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}در فروشگاه نمایش داده شود.{% else %}Visible and purchasable in the store.{% endif %}</small></div></label>
+        <label class="s14-toggle">{{ form.is_featured }}<div><strong>{% if AVAN_PAGE_LANG == 'fa' %}محصول ویژه{% else %}FEATURED{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}برای بخش‌های منتخب و صفحه اصلی.{% else %}Eligible for featured storefront sections.{% endif %}</small></div></label>
+      </div>
+    </div>
+
+    <div class="s14-sticky-save"><a class="owner-btn" href="/owner/products/">{% if AVAN_PAGE_LANG == 'fa' %}برگشت{% else %}BACK{% endif %}</a><button class="owner-btn owner-btn--primary" type="submit">{% if product %}{% if AVAN_PAGE_LANG == 'fa' %}ذخیره تغییرات{% else %}SAVE CHANGES{% endif %}{% else %}{% if AVAN_PAGE_LANG == 'fa' %}ساخت محصول و ادامه{% else %}CREATE & CONTINUE{% endif %}{% endif %}</button></div>
+  </form>
+</section>
+
 <aside class="owner-panel owner-side-panel">
-{% if product %}<div class="owner-panel__head"><div><span>PRODUCT CONTROL</span><h2>MEDIA / VARIANTS</h2></div></div><div class="s9-product-control"><a href="/owner/products/{{ product.id }}/media/"><strong>{{ images|length }}</strong><span>PRODUCT IMAGES</span><small>Upload, delete, reorder and choose the primary image.</small></a><a href="/owner/products/{{ product.id }}/variants/"><strong>{{ variants|length }}</strong><span>VARIANTS / SKU</span><small>Create color × size combinations and update stock with inventory history.</small></a><a href="/owner/warehouse/?q={{ product.name|urlencode }}"><strong>→</strong><span>WAREHOUSE</span><small>See stock across this product.</small></a></div><div class="owner-note">Stage 9 removes the normal need to open Django Admin for product images, colors, sizes and variants.</div>{% else %}<div class="owner-empty">SAVE THE PRODUCT FIRST, THEN ADD IMAGES AND VARIANTS.</div>{% endif %}
-</aside></div>
+  {% if product %}
+  <div class="owner-panel__head"><div><span>{% if AVAN_PAGE_LANG == 'fa' %}وضعیت آماده‌سازی{% else %}SETUP STATUS{% endif %}</span><h2>{{ product.name }}</h2></div></div>
+  <div class="s16-setup-checklist">
+    <a href="/owner/products/{{ product.id }}/media/" class="{% if images %}is-done{% endif %}"><b>{% if images %}✓{% else %}2{% endif %}</b><div><strong>{% if AVAN_PAGE_LANG == 'fa' %}تصاویر محصول{% else %}PRODUCT IMAGES{% endif %}</strong><small>{{ images|length }} {% if AVAN_PAGE_LANG == 'fa' %}تصویر{% else %}image(s){% endif %}</small></div></a>
+    <a href="/owner/products/{{ product.id }}/variants/" class="{% if variants %}is-done{% endif %}"><b>{% if variants %}✓{% else %}3{% endif %}</b><div><strong>{% if AVAN_PAGE_LANG == 'fa' %}رنگ / سایز / موجودی{% else %}COLORS / SIZES / STOCK{% endif %}</strong><small>{{ variants|length }} SKU</small></div></a>
+    {% if product.product_type == 'customizable' %}<a href="/owner/products/{{ product.id }}/studio/"><b>4</b><div><strong>{% if AVAN_PAGE_LANG == 'fa' %}آماده‌سازی برای Studio{% else %}STUDIO GARMENT SETUP{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}نوع لباس، نمای جلو/پشت و مدل سه‌بعدی{% else %}Garment type, references and 3D asset{% endif %}</small></div></a>{% endif %}
+  </div>
+  {% else %}
+  <div class="owner-empty">{% if AVAN_PAGE_LANG == 'fa' %}بعد از ذخیره، مستقیم تصاویر و تنوع‌های این لباس را اضافه می‌کنی.{% else %}SAVE FIRST, THEN ADD IMAGES AND COLOR/SIZE VARIANTS.{% endif %}</div>
+  {% endif %}
+</aside>
+</div>
 {% endblock %}
+{% block extra_js %}<script>document.querySelectorAll('.s16-kind-card input').forEach(function(r){r.addEventListener('change',function(){document.querySelectorAll('.s16-kind-card').forEach(function(c){c.classList.toggle('is-selected',c.contains(r)&&r.checked)})})});</script>{% endblock %}

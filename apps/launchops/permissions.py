@@ -1,38 +1,39 @@
 from .models import StaffAccess
 
-
-# Most-specific prefixes must come first.
-_OWNER_PATH_PERMISSIONS = [
-    ("/owner/launch/", None),  # superuser only
-    ("/owner/staff/", None),  # superuser only
-    ("/owner/security/", "can_manage_security"),
-    ("/owner/moderation/", "can_manage_designs"),
-    ("/owner/growth/", "can_manage_marketing"),
-    ("/owner/commerce/refunds/", "can_manage_finance"),
-    ("/owner/commerce/campaigns/", "can_manage_marketing"),
-    ("/owner/commerce/abandoned-carts/", "can_manage_marketing"),
-    ("/owner/commerce/shipping-rules/", "can_manage_orders"),
-    ("/owner/commerce/", ("can_manage_orders", "can_manage_finance", "can_manage_marketing")),
-    ("/owner/content/", "can_manage_content"),
-    ("/owner/analytics/", "can_view_analytics"),
-    ("/owner/catalog/", "can_manage_catalog"),
-    ("/owner/products/", "can_manage_catalog"),
-    ("/owner/warehouse/", "can_manage_inventory"),
-    ("/owner/inventory-movements/", "can_manage_inventory"),
-    ("/owner/production/", "can_manage_inventory"),
-    ("/owner/shipping-methods/", "can_manage_orders"),
-    ("/owner/shipping/", "can_manage_orders"),
-    ("/owner/returns/", "can_manage_orders"),
-    ("/owner/operations/", ("can_manage_orders", "can_manage_inventory")),
-    ("/owner/orders/", "can_manage_orders"),
-    ("/owner/customers/", "can_manage_customers"),
-    ("/owner/designs/", "can_manage_designs"),
-    ("/owner/creators/", "can_manage_designs"),
-    ("/owner/marketing/", "can_manage_marketing"),
-    ("/owner/finance/", "can_manage_finance"),
-    ("/owner/reports/", "can_manage_reports"),
-    ("/owner/settings/", "can_manage_settings"),
-    ("/owner/", "can_view_dashboard"),
+# Most-specific paths first. None stays superuser-only.
+_OWNER_PATH_SECTIONS = [
+    ("/owner/launch/", None),
+    ("/owner/staff/", None),
+    ("/owner/security/", "security"),
+    ("/owner/moderation/", "moderation"),
+    ("/owner/growth/", "growth"),
+    ("/owner/commerce/refunds/", "finance"),
+    ("/owner/commerce/campaigns/", "marketing"),
+    ("/owner/commerce/abandoned-carts/", "marketing"),
+    ("/owner/commerce/shipping-rules/", "shipping"),
+    ("/owner/commerce/", "commerce"),
+    ("/owner/content/", "content"),
+    ("/owner/appearance/", "appearance"),
+    ("/owner/analytics/", "analytics"),
+    ("/owner/catalog/", "catalog"),
+    ("/owner/products/", "products"),
+    ("/owner/warehouse/", "inventory"),
+    ("/owner/inventory-movements/", "inventory"),
+    ("/owner/production/", "production"),
+    ("/owner/shipping-methods/", "shipping"),
+    ("/owner/shipping/", "shipping"),
+    ("/owner/returns/", "returns"),
+    ("/owner/operations/", "operations"),
+    ("/owner/orders/", "orders"),
+    ("/owner/customers/", "customers"),
+    ("/owner/support/", "support"),
+    ("/owner/designs/", "designs"),
+    ("/owner/creators/", "creators"),
+    ("/owner/play/", "play"),
+    ("/owner/marketing/", "marketing"),
+    ("/owner/finance/", "finance"),
+    ("/owner/reports/", "reports"),
+    ("/owner/settings/", "settings"),
 ]
 
 
@@ -45,10 +46,56 @@ def get_staff_access(user):
         return None
 
 
-def permission_for_owner_path(path):
-    for prefix, permission in _OWNER_PATH_PERMISSIONS:
+def get_staff_sections(user):
+    if not getattr(user, "is_authenticated", False) or not getattr(user, "is_active", False):
+        return set()
+    if getattr(user, "is_superuser", False):
+        return {key for key, _ in StaffAccess.SECTION_CHOICES} | {"staff", "launch"}
+    access = get_staff_access(user)
+    if not access:
+        return set()
+    if access.section_permissions:
+        return set(access.section_permissions)
+    # Legacy fallback for pre-Stage-19 records.
+    sections = set()
+    flags = {
+        "dashboard": access.can_view_dashboard,
+        "analytics": access.can_view_analytics,
+        "products": access.can_manage_catalog,
+        "catalog": access.can_manage_catalog,
+        "inventory": access.can_manage_inventory,
+        "production": access.can_manage_inventory,
+        "orders": access.can_manage_orders,
+        "operations": access.can_manage_orders,
+        "shipping": access.can_manage_orders,
+        "returns": access.can_manage_orders,
+        "customers": access.can_manage_customers,
+        "support": access.can_manage_customers,
+        "designs": access.can_manage_designs,
+        "creators": access.can_manage_designs,
+        "moderation": access.can_manage_designs,
+        "play": access.can_manage_marketing,
+        "marketing": access.can_manage_marketing,
+        "growth": access.can_manage_marketing,
+        "finance": access.can_manage_finance,
+        "commerce": access.can_manage_finance,
+        "content": access.can_manage_content,
+        "reports": access.can_manage_reports,
+        "security": access.can_manage_security,
+        "settings": access.can_manage_settings,
+    }
+    for key, enabled in flags.items():
+        if enabled:
+            sections.add(key)
+    return sections
+
+
+def section_for_owner_path(path):
+    if path.rstrip("/") == "/owner":
+        return "dashboard"
+    for prefix, section in _OWNER_PATH_SECTIONS:
         if path.startswith(prefix):
-            return permission
+            return section
     return None
 
 
@@ -59,15 +106,7 @@ def staff_can_access_path(user, path):
         return True
     if not getattr(user, "is_staff", False):
         return False
-
-    permission = permission_for_owner_path(path)
-    # Unknown Owner Console routes and explicitly protected routes fail closed.
-    if permission is None:
+    section = section_for_owner_path(path)
+    if section is None:  # unknown route or explicitly owner-only route
         return False
-
-    access = get_staff_access(user)
-    if not access:
-        return False
-    if isinstance(permission, (tuple, list, set)):
-        return any(bool(getattr(access, key, False)) for key in permission)
-    return bool(getattr(access, permission, False))
+    return section in get_staff_sections(user)

@@ -1,0 +1,109 @@
+{% extends "owner/base.html" %}
+{% load static avan_ui %}
+{% avan_lang as AVAN_PAGE_LANG %}
+{% block title %}AVAN PLAY — OWNER{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/play.css' %}">{% endblock %}
+
+{% block content %}
+<header class="owner-page-head play-owner-head">
+  <div>
+    <span>PLAY / CONTROL ROOM</span>
+    <h1>{% if AVAN_PAGE_LANG == 'fa' %}کنترل بازی‌ها و چالش‌ها{% else %}PLAY CONTROL ROOM{% endif %}</h1>
+    <p>{% if AVAN_PAGE_LANG == 'fa' %}نمایش، سختی، حد مدال و جایزه‌ها فقط از اینجا کنترل می‌شوند. اعداد جایزه و حد مدال در سایت عمومی نمایش داده نمی‌شوند.{% else %}Visibility, difficulty thresholds and rewards are controlled here. Reward values and medal thresholds stay private from the public game pages.{% endif %}</p>
+  </div>
+  <div class="owner-head-actions">
+    <a class="owner-btn" href="/play/" target="_blank">PLAY HUB ↗</a>
+    <a class="owner-btn" href="/challenges/" target="_blank">CHALLENGES ↗</a>
+    <a class="owner-btn owner-btn--primary" href="/admin/experience/challenge/add/" target="_blank">+ CHALLENGE</a>
+  </div>
+</header>
+
+<div class="play-owner-summary">
+  <div><span>{% if AVAN_PAGE_LANG == 'fa' %}بازی فعال{% else %}LIVE GAMES{% endif %}</span><strong>{{ enabled_games }}</strong></div>
+  <div><span>{% if AVAN_PAGE_LANG == 'fa' %}چالش فعال{% else %}LIVE CHALLENGES{% endif %}</span><strong>{{ enabled_challenges }}</strong></div>
+  <div><span>{% if AVAN_PAGE_LANG == 'fa' %}قانون دسترسی{% else %}ACCESS RULE{% endif %}</span><strong>LOGIN REQUIRED</strong></div>
+  <div><span>{% if AVAN_PAGE_LANG == 'fa' %}نمایش جایزه{% else %}PUBLIC REWARD VALUES{% endif %}</span><strong>HIDDEN</strong></div>
+</div>
+
+<section class="owner-panel play-owner-section">
+  <div class="owner-panel__head">
+    <div><span>AVAN PLAY</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}بازی‌های تک‌نفره{% else %}SOLO GAMES{% endif %}</h2></div>
+    <small>{% if AVAN_PAGE_LANG == 'fa' %}حد مدال و جایزه هر بازی را مستقل تنظیم کن.{% else %}Each game has independent medal thresholds and rewards.{% endif %}</small>
+  </div>
+
+  <div class="play-owner-game-list">
+    {% for game in games %}
+    <article class="play-owner-game {% if game.is_enabled %}is-live{% endif %}">
+      <header>
+        <div class="play-owner-game__identity">
+          <small>{{ game.get_game_type_display|upper }}</small>
+          <h3>{% if AVAN_PAGE_LANG == 'fa' and game.title_fa %}{{ game.title_fa }}{% else %}{{ game.title }}{% endif %}</h3>
+          <p>{% if AVAN_PAGE_LANG == 'fa' and game.description_fa %}{{ game.description_fa }}{% else %}{{ game.description }}{% endif %}</p>
+        </div>
+        <div class="play-owner-game__actions">
+          <form method="post" action="/owner/play/games/{{ game.id }}/toggle/">{% csrf_token %}
+            <input type="hidden" name="enabled" value="0">
+            <label class="owner-live-switch"><input type="checkbox" name="enabled" value="1" {% if game.is_enabled %}checked{% endif %} onchange="this.form.submit()"><span></span><b>{% if game.is_enabled %}LIVE{% else %}OFF{% endif %}</b></label>
+          </form>
+          <a href="/play/{{ game.slug }}/" target="_blank">PREVIEW ↗</a>
+        </div>
+      </header>
+
+      <form method="post" action="/owner/play/games/{{ game.id }}/quick-update/" class="play-reward-editor">
+        {% csrf_token %}
+        <div class="play-reward-editor__medals">
+          <div class="play-medal-config bronze">
+            <div class="play-medal-config__title"><span>BRONZE</span><small>{% if AVAN_PAGE_LANG == 'fa' %}حد لازم و جایزه{% else %}THRESHOLD + REWARD{% endif %}</small></div>
+            <label><span>{% if AVAN_PAGE_LANG == 'fa' %}امتیاز لازم{% else %}SCORE NEEDED{% endif %}</span><input type="number" min="0" name="bronze_score" value="{{ game.bronze_score }}"></label>
+            <label><span>AVAN POINTS</span><input type="number" min="0" name="bronze_points" value="{{ game.bronze_points }}"></label>
+            <label><span>{% if AVAN_PAGE_LANG == 'fa' %}تخفیف درصدی{% else %}DISCOUNT %{% endif %}</span><input type="number" min="0" max="100" name="bronze_discount_percent" value="{{ game.bronze_discount_percent }}"></label>
+            <label><span>{% if AVAN_PAGE_LANG == 'fa' %}کمک‌هزینه خرید (تومان){% else %}PURCHASE CREDIT (TOMAN){% endif %}</span><input type="number" min="0" name="bronze_subsidy_amount" value="{{ game.bronze_subsidy_amount|floatformat:'0' }}"></label>
+          </div>
+          <div class="play-medal-config silver">
+            <div class="play-medal-config__title"><span>SILVER</span><small>{% if AVAN_PAGE_LANG == 'fa' %}حد لازم و جایزه{% else %}THRESHOLD + REWARD{% endif %}</small></div>
+            <label><span>{% if AVAN_PAGE_LANG == 'fa' %}امتیاز لازم{% else %}SCORE NEEDED{% endif %}</span><input type="number" min="0" name="silver_score" value="{{ game.silver_score }}"></label>
+            <label><span>AVAN POINTS</span><input type="number" min="0" name="silver_points" value="{{ game.silver_points }}"></label>
+            <label><span>{% if AVAN_PAGE_LANG == 'fa' %}تخفیف درصدی{% else %}DISCOUNT %{% endif %}</span><input type="number" min="0" max="100" name="silver_discount_percent" value="{{ game.silver_discount_percent }}"></label>
+            <label><span>{% if AVAN_PAGE_LANG == 'fa' %}کمک‌هزینه خرید (تومان){% else %}PURCHASE CREDIT (TOMAN){% endif %}</span><input type="number" min="0" name="silver_subsidy_amount" value="{{ game.silver_subsidy_amount|floatformat:'0' }}"></label>
+          </div>
+          <div class="play-medal-config gold">
+            <div class="play-medal-config__title"><span>GOLD</span><small>{% if AVAN_PAGE_LANG == 'fa' %}حد لازم و جایزه{% else %}THRESHOLD + REWARD{% endif %}</small></div>
+            <label><span>{% if AVAN_PAGE_LANG == 'fa' %}امتیاز لازم{% else %}SCORE NEEDED{% endif %}</span><input type="number" min="0" name="gold_score" value="{{ game.gold_score }}"></label>
+            <label><span>AVAN POINTS</span><input type="number" min="0" name="gold_points" value="{{ game.gold_points }}"></label>
+            <label><span>{% if AVAN_PAGE_LANG == 'fa' %}تخفیف درصدی{% else %}DISCOUNT %{% endif %}</span><input type="number" min="0" max="100" name="gold_discount_percent" value="{{ game.gold_discount_percent }}"></label>
+            <label><span>{% if AVAN_PAGE_LANG == 'fa' %}کمک‌هزینه خرید (تومان){% else %}PURCHASE CREDIT (TOMAN){% endif %}</span><input type="number" min="0" name="gold_subsidy_amount" value="{{ game.gold_subsidy_amount|floatformat:'0' }}"></label>
+          </div>
+        </div>
+        <div class="play-reward-editor__footer">
+          <label><span>{% if AVAN_PAGE_LANG == 'fa' %}اعتبار جایزه (روز){% else %}REWARD VALIDITY (DAYS){% endif %}</span><input type="number" min="1" name="reward_expiry_days" value="{{ game.reward_expiry_days }}"></label>
+          <div><small>{% if AVAN_PAGE_LANG == 'fa' %}اعداد بالا فقط در پنل مالک دیده می‌شوند.{% else %}These values are owner-only and are not revealed before a run.{% endif %}</small><button type="submit">SAVE GAME SETTINGS</button></div>
+        </div>
+      </form>
+    </article>
+    {% empty %}<div class="owner-empty">NO GAMES SEEDED.</div>{% endfor %}
+  </div>
+</section>
+
+<section class="owner-panel play-owner-section">
+  <div class="owner-panel__head"><div><span>DESIGN COMPETITION</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}چالش‌های لباس و طراحی{% else %}CLOTHING CHALLENGES{% endif %}</h2></div><small>{% if AVAN_PAGE_LANG == 'fa' %}هر مورد را جدا روشن یا خاموش کن.{% else %}Every challenge has its own visibility switch.{% endif %}</small></div>
+  <div class="play-challenge-admin-list">
+    {% for challenge in challenges %}
+    <article class="play-challenge-admin {% if challenge.is_enabled %}is-live{% endif %}">
+      <div class="play-challenge-admin__main">
+        <form method="post" action="/owner/play/challenges/{{ challenge.id }}/toggle/">{% csrf_token %}<input type="hidden" name="enabled" value="0"><label class="owner-live-switch owner-live-switch--compact"><input type="checkbox" name="enabled" value="1" {% if challenge.is_enabled %}checked{% endif %} onchange="this.form.submit()"><span></span></label></form>
+        <div><small>{{ challenge.challenge_type|upper }}</small><h3>{{ challenge.title }}</h3><p>{{ challenge.prompt }}</p></div>
+        <a href="/challenges/{{ challenge.slug }}/" target="_blank">PREVIEW ↗</a>
+      </div>
+      <form method="post" action="/owner/play/challenges/{{ challenge.id }}/quick-update/" class="challenge-private-settings">{% csrf_token %}
+        <label><span>{% if AVAN_PAGE_LANG == 'fa' %}لباس استودیو{% else %}GARMENT{% endif %}</span><select name="garment_product_id"><option value="">ANY CUSTOMIZABLE GARMENT</option>{% for garment in garments %}<option value="{{ garment.id }}" {% if challenge.garment_product_id == garment.id %}selected{% endif %}>{{ garment.name }}</option>{% endfor %}</select></label>
+        <label><span>AVAN POINTS</span><input type="number" min="0" name="reward_points" value="{{ challenge.reward_points }}"></label>
+        <label><span>{% if AVAN_PAGE_LANG == 'fa' %}تخفیف برنده %{% else %}WINNER DISCOUNT %{% endif %}</span><input type="number" min="0" max="100" name="reward_discount_percent" value="{{ challenge.reward_discount_percent }}"></label>
+        <label><span>{% if AVAN_PAGE_LANG == 'fa' %}کمک‌هزینه برنده{% else %}WINNER PURCHASE CREDIT{% endif %}</span><input type="number" min="0" name="reward_subsidy_amount" value="{{ challenge.reward_subsidy_amount|floatformat:'0' }}"></label>
+        <label><span>{% if AVAN_PAGE_LANG == 'fa' %}اعتبار (روز){% else %}VALID DAYS{% endif %}</span><input type="number" min="1" name="reward_expiry_days" value="{{ challenge.reward_expiry_days }}"></label>
+        <button type="submit">SAVE</button>
+      </form>
+    </article>
+    {% empty %}<div class="owner-empty">NO CHALLENGES.</div>{% endfor %}
+  </div>
+</section>
+{% endblock %}

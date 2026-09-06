@@ -1,30 +1,18 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block title %}Search — AVAN{% endblock %}
+{% block title %}{% if AVAN_PAGE_LANG == 'fa' %}جستجو{% else %}Search{% endif %} — AVAN{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/stage5.css' %}"><link rel="stylesheet" href="{% static 'css/explore.css' %}">{% endblock %}
-
 {% block content %}
 <section class="search-page">
-    <header class="search-page__head">
-        <p>AVAN / SEARCH</p>
-        <form action="/search/" method="get"><input type="search" name="q" value="{{ query }}" placeholder="SEARCH AVAN..." autofocus><button type="submit">SEARCH →</button></form>
-    </header>
-
-    {% if query|length < 2 %}
-    <div class="search-prompt"><h2>TYPE AT LEAST 2 CHARACTERS.</h2><p>Search products, public designs and creators from one place.</p></div>
-    {% else %}
-    <section class="search-section"><div class="search-section__head"><span>SHOP</span><h2>PRODUCTS</h2><strong>{{ products|length }}</strong></div><div class="search-product-grid">
-        {% for product in products %}<a href="/shop/{{ product.slug }}/" class="search-product"><div>{% with image=product.images.first %}{% if image %}<img src="{{ image.image.url }}" alt="{{ product.name }}">{% else %}<span>AVAN</span>{% endif %}{% endwith %}</div><small>{{ product.category.name }}</small><h3>{{ product.name }}</h3><strong>{{ product.base_price|floatformat:"0" }} TOMAN</strong></a>{% empty %}<p>NO PRODUCTS FOUND.</p>{% endfor %}
-    </div></section>
-
-    <section class="search-section"><div class="search-section__head"><span>COMMUNITY</span><h2>DESIGNS</h2><strong>{{ design_cards|length }}</strong></div><div class="search-design-grid">
-        {% for card in design_cards %}<a href="/explore/{{ card.design.id }}/" class="search-design"><div>{% include "designs/_preview.html" with design=card.design preview=card.preview compact=True %}</div><small>BY {{ card.design.owner.display_name|default:card.design.owner.username }}</small><h3>{{ card.design.title }}</h3><span>♥ {{ card.design.likes_total }}</span></a>{% empty %}<p>NO DESIGNS FOUND.</p>{% endfor %}
-    </div></section>
-
-    <section class="search-section"><div class="search-section__head"><span>PEOPLE</span><h2>CREATORS</h2><strong>{{ creators|length }}</strong></div><div class="creator-search-grid">
-        {% for creator in creators %}<a href="/creator/{{ creator.username }}/" class="creator-search-card">{% if creator.avatar %}<img src="{{ creator.avatar.url }}" alt="{{ creator.username }}">{% else %}<div>{{ creator.display_name|default:creator.username|slice:":1"|upper }}</div>{% endif %}<span>@{{ creator.username }}</span><h3>{{ creator.display_name|default:creator.username }}</h3><p>{{ creator.bio|truncatechars:90 }}</p><strong>{{ creator.followers_total }} FOLLOWERS</strong></a>{% empty %}<p>NO CREATORS FOUND.</p>{% endfor %}
-    </div></section>
-    {% endif %}
+  <header class="search-page__head"><p>AVAN / {% if AVAN_PAGE_LANG == 'fa' %}جستجو{% else %}SEARCH{% endif %}</p><form action="/search/" method="get"><input type="search" name="q" value="{{ query }}" placeholder="{% if AVAN_PAGE_LANG == 'fa' %}در AVAN جستجو کن...{% else %}SEARCH AVAN...{% endif %}" autofocus><button type="submit">{% if AVAN_PAGE_LANG == 'fa' %}جستجو{% else %}SEARCH{% endif %} →</button></form></header>
+  {% if query|length < 2 %}
+    <div class="search-prompt"><h2>{% if AVAN_PAGE_LANG == 'fa' %}حداقل ۲ حرف بنویس.{% else %}TYPE AT LEAST 2 CHARACTERS.{% endif %}</h2><p>{% if AVAN_PAGE_LANG == 'fa' %}محصولات، دسته‌بندی‌ها، کالکشن‌ها، طرح‌ها و طراحان را از یک جا پیدا کن.{% else %}Search products, categories, collections, public designs and creators from one place.{% endif %}</p></div>
+  {% else %}
+    {% if categories %}<section class="search-section"><div class="search-section__head"><span>{% if AVAN_PAGE_LANG == 'fa' %}مسیر سریع{% else %}QUICK PATHS{% endif %}</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}دسته‌بندی‌ها{% else %}CATEGORIES{% endif %}</h2><strong>{{ categories|length }}</strong></div><div class="search-product-grid">{% for category in categories %}<a href="/shop/?category={{ category.slug }}" class="search-product"><small>{% if AVAN_PAGE_LANG == 'fa' %}دسته‌بندی{% else %}CATEGORY{% endif %}</small><h3>{% if AVAN_PAGE_LANG == 'fa' %}{{ category.name_fa|default:category.name }}{% else %}{{ category.name_en|default:category.name }}{% endif %}</h3></a>{% endfor %}</div></section>{% endif %}
+    {% if collections %}<section class="search-section"><div class="search-section__head"><span>AVAN</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}کالکشن‌ها{% else %}COLLECTIONS{% endif %}</h2><strong>{{ collections|length }}</strong></div><div class="search-product-grid">{% for collection in collections %}<a href="/collections/{{ collection.slug }}/" class="search-product"><div>{% if collection.hero %}<img src="{{ collection.hero.file.url }}" alt="">{% else %}<span>AVAN</span>{% endif %}</div><small>{% if AVAN_PAGE_LANG == 'fa' %}کالکشن{% else %}COLLECTION{% endif %}</small><h3>{% if AVAN_PAGE_LANG == 'fa' %}{{ collection.name_fa|default:collection.name_en }}{% else %}{{ collection.name_en|default:collection.name_fa }}{% endif %}</h3></a>{% endfor %}</div></section>{% endif %}
+    <section class="search-section"><div class="search-section__head"><span>{% if AVAN_PAGE_LANG == 'fa' %}فروشگاه{% else %}SHOP{% endif %}</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}محصولات{% else %}PRODUCTS{% endif %}</h2><strong>{{ products|length }}</strong></div><div class="search-product-grid">{% for product in products %}<a href="/shop/{{ product.slug }}/" class="search-product"><div>{% with image=product.images.first %}{% if image %}<img src="{{ image.image.url }}" alt="">{% else %}<span>AVAN</span>{% endif %}{% endwith %}</div><small>{% if AVAN_PAGE_LANG == 'fa' %}{{ product.category.name_fa|default:product.category.name }}{% else %}{{ product.category.name_en|default:product.category.name }}{% endif %}</small><h3>{% if AVAN_PAGE_LANG == 'fa' %}{{ product.name_fa|default:product.name }}{% else %}{{ product.name_en|default:product.name }}{% endif %}</h3><strong>{{ product.base_price|floatformat:"0" }} {% if AVAN_PAGE_LANG == 'fa' %}تومان{% else %}TOMAN{% endif %}</strong></a>{% empty %}<p>{% if AVAN_PAGE_LANG == 'fa' %}محصولی پیدا نشد.{% else %}NO PRODUCTS FOUND.{% endif %}</p>{% endfor %}</div></section>
+    <section class="search-section"><div class="search-section__head"><span>{% if AVAN_PAGE_LANG == 'fa' %}جامعه{% else %}COMMUNITY{% endif %}</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}طرح‌ها{% else %}DESIGNS{% endif %}</h2><strong>{{ design_cards|length }}</strong></div><div class="search-design-grid">{% for card in design_cards %}<a href="/explore/{{ card.design.id }}/" class="search-design"><div>{% include "designs/_preview.html" with design=card.design preview=card.preview compact=True %}</div><small>{% if AVAN_PAGE_LANG == 'fa' %}طراح{% else %}BY{% endif %} {{ card.design.owner.display_name|default:card.design.owner.username }}</small><h3>{{ card.design.title }}</h3><span>♥ {{ card.design.likes_total }}</span></a>{% empty %}<p>{% if AVAN_PAGE_LANG == 'fa' %}طرحی پیدا نشد.{% else %}NO DESIGNS FOUND.{% endif %}</p>{% endfor %}</div></section>
+    <section class="search-section"><div class="search-section__head"><span>{% if AVAN_PAGE_LANG == 'fa' %}افراد{% else %}PEOPLE{% endif %}</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}طراحان{% else %}CREATORS{% endif %}</h2><strong>{{ creators|length }}</strong></div><div class="creator-search-grid">{% for creator in creators %}<a href="/creator/{{ creator.username }}/" class="creator-search-card">{% if creator.avatar %}<img src="{{ creator.avatar.url }}" alt="">{% else %}<div>{{ creator.display_name|default:creator.username|slice:":1"|upper }}</div>{% endif %}<span>@{{ creator.username }}</span><h3>{{ creator.display_name|default:creator.username }}</h3><p>{{ creator.bio|truncatechars:90 }}</p><strong>{{ creator.followers_total }} {% if AVAN_PAGE_LANG == 'fa' %}دنبال‌کننده{% else %}FOLLOWERS{% endif %}</strong></a>{% empty %}<p>{% if AVAN_PAGE_LANG == 'fa' %}طراحی پیدا نشد.{% else %}NO CREATORS FOUND.{% endif %}</p>{% endfor %}</div></section>
+  {% endif %}
 </section>
 {% endblock %}

@@ -1,21 +1,22 @@
 {% extends "base.html" %}
-{% load static %}
-
+{% load static avan_ui %}
+{% avan_lang as AVAN_PAGE_LANG %}
 {% block title %}{{ challenge.title }} — AVAN Challenge{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/experience.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/experience.css' %}"><link rel="stylesheet" href="{% static 'css/play.css' %}">{% endblock %}
 
 {% block content %}
-<section class="challenge-detail-page">
+<section class="challenge-detail-page challenge-detail-v2">
     <header class="challenge-detail-head">
         <div>
-            <a href="/challenges/">← CHALLENGES</a>
-            <p>{{ challenge.phase|upper }} / AVAN CHALLENGE</p>
+            <a href="/challenges/">← {% if AVAN_PAGE_LANG == 'fa' %}چالش‌ها{% else %}CHALLENGES{% endif %}</a>
+            <p>{{ challenge.phase|upper }} / {{ challenge.challenge_type|upper }}</p>
             <h1>{{ challenge.title }}</h1>
             <h2>{{ challenge.prompt }}</h2>
         </div>
         <div class="challenge-meta">
-            {% if challenge.reward_points %}<div><span>REWARD</span><strong>{{ challenge.reward_points }} POINTS</strong></div>{% endif %}
-            {% if challenge.ends_at %}<div><span>ENDS</span><strong>{{ challenge.ends_at|date:"Y/m/d H:i" }}</strong></div>{% endif %}
+            {% if challenge.garment_product %}<div><span>{% if AVAN_PAGE_LANG == 'fa' %}لباس{% else %}GARMENT{% endif %}</span><strong>{{ challenge.garment_product.name }}</strong></div>{% endif %}
+            <div><span>{% if AVAN_PAGE_LANG == 'fa' %}جایزه{% else %}REWARD{% endif %}</span><strong>{% if AVAN_PAGE_LANG == 'fa' %}بعد از نتیجه اعلام می‌شود{% else %}REVEALED AFTER RESULT{% endif %}</strong></div>
+            {% if challenge.ends_at %}<div><span>{% if AVAN_PAGE_LANG == 'fa' %}پایان{% else %}ENDS{% endif %}</span><strong>{{ challenge.ends_at|date:"Y/m/d H:i" }}</strong></div>{% endif %}
             <div><span>STATUS</span><strong>{{ challenge.phase|upper }}</strong></div>
         </div>
     </header>
@@ -25,46 +26,40 @@
             <span>THE BRIEF</span>
             <p>{{ challenge.description|default:challenge.prompt }}</p>
 
+            {% if challenge.is_open %}
+            <div class="challenge-start-design">
+                <strong>{% if AVAN_PAGE_LANG == 'fa' %}از همین چالش وارد استودیو شو{% else %}START FROM THE BRIEF{% endif %}</strong>
+                <p>{% if challenge.garment_product %}{% if AVAN_PAGE_LANG == 'fa' %}استودیو با همان لباس موردنیاز این چالش باز می‌شود.{% else %}Studio opens with the exact garment required by this challenge.{% endif %}{% else %}{% if AVAN_PAGE_LANG == 'fa' %}یک لباس قابل طراحی انتخاب کن و طرح خودت را بساز.{% else %}Choose any customizable garment and build your entry.{% endif %}{% endif %}</p>
+                <a href="{% if challenge.garment_product %}/design/?product={{ challenge.garment_product_id }}{% else %}/design/garments/{% endif %}">{% if AVAN_PAGE_LANG == 'fa' %}شروع طراحی{% else %}START DESIGNING{% endif %} →</a>
+            </div>
+            {% endif %}
+
             {% if success %}<div class="challenge-success">{{ success }}</div>{% endif %}
             {% if error %}<div class="challenge-error">{{ error }}</div>{% endif %}
 
             {% if challenge.is_open %}
-                {% if request.user.is_authenticated %}
                 <form method="post" class="challenge-entry-form">
                     {% csrf_token %}
-                    <h3>SUBMIT ONE OF YOUR PUBLISHED DESIGNS</h3>
+                    <h3>{% if AVAN_PAGE_LANG == 'fa' %}طرح منتشرشده‌ات را ارسال کن{% else %}SUBMIT A PUBLISHED DESIGN{% endif %}</h3>
                     {% if my_designs %}
                     <select name="design_id" required>
-                        <option value="">SELECT DESIGN</option>
+                        <option value="">{% if AVAN_PAGE_LANG == 'fa' %}انتخاب طرح{% else %}SELECT DESIGN{% endif %}</option>
                         {% for design in my_designs %}<option value="{{ design.id }}">{{ design.title }}</option>{% endfor %}
                     </select>
-                    <input type="text" name="note" maxlength="240" placeholder="Optional note">
-                    <button type="submit">ENTER CHALLENGE →</button>
+                    <input type="text" name="note" maxlength="240" placeholder="{% if AVAN_PAGE_LANG == 'fa' %}یادداشت اختیاری{% else %}Optional note{% endif %}">
+                    <button type="submit">{% if AVAN_PAGE_LANG == 'fa' %}ارسال به چالش{% else %}ENTER CHALLENGE{% endif %} →</button>
                     {% else %}
-                    <p>You need a public published design first.</p>
-                    <a href="/design/">OPEN AVAN STUDIO →</a>
+                    <p>{% if AVAN_PAGE_LANG == 'fa' %}هنوز طرح عمومی منتشرشده سازگار با این چالش نداری.{% else %}You need a compatible public published design first.{% endif %}</p>
                     {% endif %}
                 </form>
-                {% else %}
-                <a href="/account/login/?next=/challenges/{{ challenge.slug }}/" class="challenge-login">SIGN IN TO ENTER →</a>
-                {% endif %}
             {% endif %}
         </section>
 
         <aside class="challenge-results">
             <span>FINALISTS / WINNERS</span>
             {% for entry in entries %}
-            <a href="/explore/{{ entry.design.id }}/" class="challenge-result">
-                <div>
-                    <small>{{ entry.status|upper }}</small>
-                    <strong>{{ entry.design.title }}</strong>
-                    <span>@{{ entry.user.username }}</span>
-                </div>
-                <b>→</b>
-            </a>
-            {% empty %}
-            <p>No finalists announced yet.</p>
-            {% endfor %}
+            <a href="/explore/{{ entry.design.id }}/" class="challenge-result"><div><small>{{ entry.status|upper }}</small><strong>{{ entry.design.title }}</strong><span>@{{ entry.user.username }}</span></div><b>→</b></a>
+            {% empty %}<p>{% if AVAN_PAGE_LANG == 'fa' %}هنوز فینالیستی اعلام نشده.{% else %}No finalists announced yet.{% endif %}</p>{% endfor %}
         </aside>
     </div>
 </section>

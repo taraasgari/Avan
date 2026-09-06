@@ -15,40 +15,104 @@
     <link rel="stylesheet" href="{% static 'css/stage11-content.css' %}">
     <link rel="stylesheet" href="{% static 'css/stage12-growth.css' %}">
     <link rel="stylesheet" href="{% static 'css/stage13-launch.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stage14-owner-ux.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stage16-products.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stage19-owner.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="owner-body">
 <div class="owner-shell">
     <aside class="owner-sidebar" data-owner-sidebar>
-        <div class="owner-brand"><a href="/owner/"><strong>AVAN</strong><span>{% avan_t "owner" %}</span></a><button type="button" data-owner-menu-close aria-label="Close">×</button></div>
-        <div class="owner-preferences"><button type="button" data-theme-toggle><span data-theme-label>{% avan_t "night" %}</span></button><button type="button" data-language-toggle>{% avan_t "language" %}</button></div>
-        <nav class="owner-nav">
-            {% if request.user.is_superuser or owner_access.can_view_dashboard %}<a href="/owner/" class="{% if request.path == '/owner/' %}is-active{% endif %}"><span>01</span>{% avan_t "overview" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_view_analytics %}<a href="/owner/analytics/" class="{% if '/owner/analytics/' in request.path %}is-active{% endif %}"><span>02</span>{% avan_t "analytics" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_catalog %}<a href="/owner/products/" class="{% if '/owner/products/' in request.path %}is-active{% endif %}"><span>03</span>{% avan_t "products" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_catalog %}<a href="/owner/catalog/" class="{% if '/owner/catalog/' in request.path %}is-active{% endif %}"><span>04</span>{% avan_t "catalog_manager" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_inventory %}<a href="/owner/warehouse/" class="{% if '/owner/warehouse/' in request.path %}is-active{% endif %}"><span>05</span>{% avan_t "warehouse" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_orders %}<a href="/owner/orders/" class="{% if '/owner/orders/' in request.path %}is-active{% endif %}"><span>06</span>{% avan_t "orders" %} {% if owner_pending_orders %}<b>{{ owner_pending_orders }}</b>{% endif %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_orders or owner_access.can_manage_inventory %}<a href="/owner/operations/" class="{% if '/owner/operations/' in request.path or '/owner/shipping/' in request.path or '/owner/returns/' in request.path or '/owner/inventory-movements/' in request.path or '/owner/production/' in request.path or '/owner/shipping-methods/' in request.path %}is-active{% endif %}"><span>07</span>{% avan_t "operations" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_customers %}<a href="/owner/customers/" class="{% if '/owner/customers/' in request.path %}is-active{% endif %}"><span>08</span>{% avan_t "customers" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_designs %}<a href="/owner/designs/" class="{% if '/owner/designs/' in request.path %}is-active{% endif %}"><span>09</span>{% avan_t "designs" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_designs %}<a href="/owner/creators/" class="{% if '/owner/creators/' in request.path %}is-active{% endif %}"><span>10</span>{% avan_t "creators" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_marketing %}<a href="/owner/marketing/" class="{% if '/owner/marketing/' in request.path %}is-active{% endif %}"><span>11</span>{% avan_t "marketing" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_content %}<a href="/owner/content/" class="{% if '/owner/content/' in request.path %}is-active{% endif %}"><span>11.5</span>{% avan_t "content" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_finance %}<a href="/owner/finance/" class="{% if '/owner/finance/' in request.path %}is-active{% endif %}"><span>12</span>{% avan_t "finance" %} {% if owner_pending_payouts %}<b>{{ owner_pending_payouts }}</b>{% endif %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_orders or owner_access.can_manage_finance or owner_access.can_manage_marketing %}<a href="/owner/commerce/" class="{% if '/owner/commerce/' in request.path %}is-active{% endif %}"><span>12B</span>COMMERCE</a>{% endif %}
-            {% if request.user.is_superuser %}<a href="/owner/staff/" class="{% if '/owner/staff/' in request.path %}is-active{% endif %}"><span>13</span>{% avan_t "staff" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_reports %}<a href="/owner/reports/" class="{% if '/owner/reports/' in request.path %}is-active{% endif %}"><span>14</span>{% avan_t "reports" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_marketing %}<a href="/owner/growth/" class="{% if '/owner/growth/' in request.path %}is-active{% endif %}"><span>15</span>{% avan_t "growth" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_designs %}<a href="/owner/moderation/" class="{% if '/owner/moderation/' in request.path %}is-active{% endif %}"><span>16</span>{% avan_t "moderation" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_security %}<a href="/owner/security/" class="{% if '/owner/security/' in request.path %}is-active{% endif %}"><span>17</span>{% avan_t "security" %}</a>{% endif %}
-            {% if request.user.is_superuser or owner_access.can_manage_settings %}<a href="/owner/settings/" class="{% if '/owner/settings/' in request.path %}is-active{% endif %}"><span>18</span>{% avan_t "settings" %}</a>{% endif %}
-            {% if request.user.is_superuser %}<a href="/owner/launch/" class="{% if '/owner/launch/' in request.path %}is-active{% endif %}"><span>19</span>LAUNCH / OPS</a>{% endif %}
+        <div class="owner-brand">
+            <a href="/owner/"><strong>AVAN</strong><span>{% if AVAN_PAGE_LANG == 'fa' %}مدیریت فروشگاه{% else %}OWNER CONSOLE{% endif %}</span></a>
+            <button type="button" data-owner-menu-close aria-label="Close">×</button>
+        </div>
+
+        <div class="owner-sidebar-tools">
+            <label class="owner-nav-search">
+                <span>⌕</span>
+                <input type="search" data-owner-nav-search placeholder="{% if AVAN_PAGE_LANG == 'fa' %}جستجو در پنل...{% else %}Search panel...{% endif %}" autocomplete="off">
+            </label>
+            <div class="owner-preferences">
+                <button type="button" data-theme-toggle class="theme-icon-button" aria-label="Theme"><span class="theme-icon theme-icon--moon">☾</span><span class="theme-icon theme-icon--sun">☀</span></button>
+                <button type="button" data-language-toggle>{% avan_t "language" %}</button>
+            </div>
+        </div>
+
+        <nav class="owner-nav" data-owner-nav>
+            <section class="owner-nav-group">
+                <h3>{% if AVAN_PAGE_LANG == 'fa' %}اصلی{% else %}HOME{% endif %}</h3>
+                {% if request.user.is_superuser or "dashboard" in owner_sections %}<a href="/owner/" class="{% if request.path == '/owner/' %}is-active{% endif %}"><i>⌂</i><span>{% avan_t "overview" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "analytics" in owner_sections %}<a href="/owner/analytics/" class="{% if '/owner/analytics/' in request.path %}is-active{% endif %}"><i>↗</i><span>{% avan_t "analytics" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "appearance" in owner_sections %}<a href="/owner/appearance/" class="{% if '/owner/appearance/' in request.path %}is-active{% endif %}"><i>◐</i><span>{% if AVAN_PAGE_LANG == 'fa' %}طراحی و ظاهر سایت{% else %}SITE APPEARANCE{% endif %}</span></a>{% endif %}
+            </section>
+
+            <section class="owner-nav-group">
+                <h3>{% if AVAN_PAGE_LANG == 'fa' %}فروشگاه و محتوا{% else %}STORE & CONTENT{% endif %}</h3>
+                {% if request.user.is_superuser or "products" in owner_sections %}<a href="/owner/products/" class="{% if '/owner/products/' in request.path %}is-active{% endif %}"><i>□</i><span>{% avan_t "products" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "catalog" in owner_sections %}<a href="/owner/catalog/" class="{% if '/owner/catalog/' in request.path %}is-active{% endif %}"><i>▦</i><span>{% avan_t "catalog_manager" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "content" in owner_sections %}<a href="/owner/content/" class="{% if '/owner/content/' in request.path %}is-active{% endif %}"><i>✎</i><span>{% if AVAN_PAGE_LANG == 'fa' %}محتوا و سئو محصول{% else %}CONTENT STUDIO{% endif %}</span></a>{% endif %}
+            </section>
+
+            <section class="owner-nav-group">
+                <h3>{% if AVAN_PAGE_LANG == 'fa' %}فروش و عملیات{% else %}SALES & OPERATIONS{% endif %}</h3>
+                {% if request.user.is_superuser or "orders" in owner_sections %}<a href="/owner/orders/" class="{% if '/owner/orders/' in request.path %}is-active{% endif %}"><i>≣</i><span>{% avan_t "orders" %}</span>{% if owner_pending_orders %}<b>{{ owner_pending_orders }}</b>{% endif %}</a>{% endif %}
+                {% if request.user.is_superuser or "inventory" in owner_sections %}<a href="/owner/warehouse/" class="{% if '/owner/warehouse/' in request.path %}is-active{% endif %}"><i>▤</i><span>{% avan_t "warehouse" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "operations" in owner_sections %}<a href="/owner/operations/" class="{% if '/owner/operations/' in request.path %}is-active{% endif %}"><i>↻</i><span>{% avan_t "operations" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "shipping" in owner_sections %}<a href="/owner/shipping/" class="{% if '/owner/shipping/' in request.path or '/owner/shipping-methods/' in request.path %}is-active{% endif %}"><i>⇢</i><span>{% avan_t "shipping" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "returns" in owner_sections %}<a href="/owner/returns/" class="{% if '/owner/returns/' in request.path %}is-active{% endif %}"><i>↶</i><span>{% avan_t "returns" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "production" in owner_sections %}<a href="/owner/production/" class="{% if '/owner/production/' in request.path %}is-active{% endif %}"><i>▧</i><span>{% avan_t "production" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "commerce" in owner_sections %}<a href="/owner/commerce/" class="{% if '/owner/commerce/' in request.path %}is-active{% endif %}"><i>◈</i><span>{% if AVAN_PAGE_LANG == 'fa' %}تجارت و کمپین{% else %}COMMERCE{% endif %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "finance" in owner_sections %}<a href="/owner/finance/" class="{% if '/owner/finance/' in request.path %}is-active{% endif %}"><i>₮</i><span>{% avan_t "finance" %}</span>{% if owner_pending_payouts %}<b>{{ owner_pending_payouts }}</b>{% endif %}</a>{% endif %}
+            </section>
+
+            <section class="owner-nav-group">
+                <h3>{% if AVAN_PAGE_LANG == 'fa' %}مشتریان و جامعه{% else %}CUSTOMERS & COMMUNITY{% endif %}</h3>
+                {% if request.user.is_superuser or "customers" in owner_sections %}<a href="/owner/customers/" class="{% if '/owner/customers/' in request.path %}is-active{% endif %}"><i>◎</i><span>{% avan_t "customers" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "support" in owner_sections %}<a href="/owner/support/" class="{% if '/owner/support/' in request.path %}is-active{% endif %}"><i>?</i><span>{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی{% else %}SUPPORT{% endif %}</span>{% if owner_support_waiting %}<b>{{ owner_support_waiting }}</b>{% endif %}</a>{% endif %}
+                {% if request.user.is_superuser or "designs" in owner_sections %}<a href="/owner/designs/" class="{% if '/owner/designs/' in request.path %}is-active{% endif %}"><i>✦</i><span>{% avan_t "designs" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "creators" in owner_sections %}<a href="/owner/creators/" class="{% if '/owner/creators/' in request.path %}is-active{% endif %}"><i>♙</i><span>{% avan_t "creators" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "moderation" in owner_sections %}<a href="/owner/moderation/" class="{% if '/owner/moderation/' in request.path %}is-active{% endif %}"><i>!</i><span>{% avan_t "moderation" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "play" in owner_sections %}<a href="/owner/play/" class="{% if '/owner/play/' in request.path %}is-active{% endif %}"><i>▶</i><span>{% if AVAN_PAGE_LANG == 'fa' %}بازی‌ها و چالش‌ها{% else %}PLAY & CHALLENGES{% endif %}</span></a>{% endif %}
+            </section>
+
+            <section class="owner-nav-group">
+                <h3>{% if AVAN_PAGE_LANG == 'fa' %}رشد و گزارش{% else %}GROWTH & REPORTING{% endif %}</h3>
+                {% if request.user.is_superuser or "marketing" in owner_sections %}<a href="/owner/marketing/" class="{% if '/owner/marketing/' in request.path %}is-active{% endif %}"><i>⌁</i><span>{% avan_t "marketing" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "growth" in owner_sections %}<a href="/owner/growth/" class="{% if '/owner/growth/' in request.path %}is-active{% endif %}"><i>↑</i><span>{% avan_t "growth" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "reports" in owner_sections %}<a href="/owner/reports/" class="{% if '/owner/reports/' in request.path %}is-active{% endif %}"><i>▥</i><span>{% avan_t "reports" %}</span></a>{% endif %}
+            </section>
+
+            <section class="owner-nav-group">
+                <h3>{% if AVAN_PAGE_LANG == 'fa' %}سیستم{% else %}SYSTEM{% endif %}</h3>
+                {% if request.user.is_superuser or "security" in owner_sections %}<a href="/owner/security/" class="{% if '/owner/security/' in request.path %}is-active{% endif %}"><i>◇</i><span>{% avan_t "security" %}</span></a>{% endif %}
+                {% if request.user.is_superuser %}<a href="/owner/staff/" class="{% if '/owner/staff/' in request.path %}is-active{% endif %}"><i>♟</i><span>{% avan_t "staff" %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "settings" in owner_sections %}<a href="/owner/settings/" class="{% if '/owner/settings/' in request.path %}is-active{% endif %}"><i>⚙</i><span>{% avan_t "settings" %}</span></a>{% endif %}
+                {% if request.user.is_superuser %}<a href="/owner/launch/" class="{% if '/owner/launch/' in request.path %}is-active{% endif %}"><i>✓</i><span>{% if AVAN_PAGE_LANG == 'fa' %}راه‌اندازی و عملیات فنی{% else %}LAUNCH / OPS{% endif %}</span></a>{% endif %}
+            </section>
+            <div class="owner-nav-empty" data-owner-nav-empty hidden>{% if AVAN_PAGE_LANG == 'fa' %}بخشی پیدا نشد.{% else %}No section found.{% endif %}</div>
         </nav>
-        <div class="owner-sidebar__foot"><a href="/admin/" target="_blank">{% avan_t "django_admin" %} ↗</a><a href="/" target="_blank">{% avan_t "open_store" %} ↗</a><small>{{ request.user.username }}</small></div>
+
+        <div class="owner-sidebar__foot">
+            <div class="owner-sidebar__user"><span>{{ request.user.username|slice:":1"|upper }}</span><div><strong>{{ request.user.display_name|default:request.user.username }}</strong><small>{% if request.user.is_superuser %}{% if AVAN_PAGE_LANG == 'fa' %}مالک اصلی{% else %}SUPERUSER{% endif %}{% else %}{% if AVAN_PAGE_LANG == 'fa' %}ادمین{% else %}STAFF{% endif %}{% endif %}</small></div></div>
+            <div class="owner-sidebar__links"><a href="/" target="_blank">{% avan_t "open_store" %} ↗</a><a href="/admin/" target="_blank">{% avan_t "django_admin" %} ↗</a></div>
+        </div>
     </aside>
+
+    <button class="owner-sidebar-backdrop" type="button" data-owner-menu-close aria-label="Close navigation"></button>
+
     <div class="owner-main">
-        <header class="owner-topbar"><button type="button" class="owner-menu-button" data-owner-menu-open>{% avan_t "menu" %}</button><div><span>{% avan_t "owner_console" %}</span><strong>{{ owner_settings.store_name|default:'AVAN' }}</strong></div><div class="owner-topbar__alerts">{% if owner_review_orders %}<a href="/owner/orders/?status=needs_review">REVIEW {{ owner_review_orders }}</a>{% endif %}{% if owner_pending_payouts %}<a href="/owner/finance/">PAYOUTS {{ owner_pending_payouts }}</a>{% endif %}</div></header>
+        <header class="owner-topbar">
+            <div class="owner-topbar__left">
+                <button type="button" class="owner-menu-button" data-owner-menu-open>{% avan_t "menu" %}</button>
+                <div class="owner-topbar__identity"><span>{% if AVAN_PAGE_LANG == 'fa' %}پنل مدیریت{% else %}OWNER CONSOLE{% endif %}</span><strong>{{ owner_settings.store_name|default:'AVAN' }}</strong></div>
+            </div>
+            <div class="owner-topbar__right">
+                <div class="owner-topbar__alerts">{% if owner_review_orders %}{% if request.user.is_superuser or "orders" in owner_sections %}<a href="/owner/orders/?status=needs_review">{% if AVAN_PAGE_LANG == 'fa' %}نیازمند بررسی{% else %}REVIEW{% endif %} {{ owner_review_orders }}</a>{% endif %}{% endif %}{% if owner_support_waiting %}{% if request.user.is_superuser or "support" in owner_sections %}<a href="/owner/support/">{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی{% else %}SUPPORT{% endif %} {{ owner_support_waiting }}</a>{% endif %}{% endif %}{% if owner_pending_payouts %}{% if request.user.is_superuser or "finance" in owner_sections %}<a href="/owner/finance/">{% if AVAN_PAGE_LANG == 'fa' %}تسویه{% else %}PAYOUTS{% endif %} {{ owner_pending_payouts }}</a>{% endif %}{% endif %}</div>
+                {% if request.user.is_superuser or "appearance" in owner_sections %}<a class="owner-topbar__preview" href="/owner/appearance/">{% if AVAN_PAGE_LANG == 'fa' %}ویرایش ظاهر{% else %}EDIT SITE{% endif %}</a>{% endif %}
+                <a class="owner-topbar__store" href="/" target="_blank">{% if AVAN_PAGE_LANG == 'fa' %}مشاهده سایت{% else %}VIEW STORE{% endif %} ↗</a>
+            </div>
+        </header>
         {% if messages %}<div class="owner-flashes">{% for message in messages %}<div class="owner-flash owner-flash--{{ message.tags|default:'info' }}">{{ message }}</div>{% endfor %}</div>{% endif %}
         <main class="owner-content">{% block content %}{% endblock %}</main>
     </div>

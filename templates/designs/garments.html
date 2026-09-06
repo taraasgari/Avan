@@ -1,0 +1,31 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}Choose a Garment — AVAN{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/stage16-products.css' %}">{% endblock %}
+{% block content %}
+<section class="s16-garment-picker">
+  <header class="s16-garment-picker__head">
+    <span>AVAN STUDIO</span>
+    <h1>{% if request.avan_language == 'fa' %}لباست را برای طراحی انتخاب کن.{% else %}CHOOSE YOUR GARMENT.{% endif %}</h1>
+    <p>{% if request.avan_language == 'fa' %}این‌ها همان محصولات واقعی فروشگاه‌اند که مالک برای طراحی فعال کرده. رنگ، سایز و موجودی مستقیم از کاتالوگ فروشگاه می‌آید.{% else %}These are the same real store products enabled for customization. Colors, sizes and stock come directly from the catalog.{% endif %}</p>
+  </header>
+  <div class="s16-garment-grid">
+    {% for card in garment_cards %}
+    <article class="s16-garment-card">
+      <a class="s16-garment-card__media" href="/design/?product={{ card.product.id }}">
+        {% if card.image_url %}<img src="{{ card.image_url }}" alt="{{ card.product.name }}">{% else %}<div class="s16-no-image">AVAN</div>{% endif %}
+        <span class="s16-garment-badge">{% if card.profile %}{{ card.profile.get_garment_type_display }}{% else %}GARMENT{% endif %}</span>
+        {% if card.has_3d_model %}<span class="s16-3d-badge">3D READY</span>{% endif %}
+      </a>
+      <div class="s16-garment-card__body">
+        <small>{{ card.product.category.name }}</small><h2>{{ card.product.name }}</h2>
+        <div class="s16-color-row">{% for color in card.colors|slice:":8" %}<i title="{{ color.name }}" style="background:{{ color.hex }}"></i>{% empty %}<span>NO COLORS</span>{% endfor %}</div>
+        <div class="s16-garment-meta"><strong>{{ card.product.base_price|floatformat:'0' }} {% if request.avan_language == 'fa' %}تومان{% else %}TOMAN{% endif %}</strong><span>{% if card.in_stock %}{% if request.avan_language == 'fa' %}موجود{% else %}IN STOCK{% endif %}{% else %}{% if request.avan_language == 'fa' %}ناموجود{% else %}OUT OF STOCK{% endif %}{% endif %}</span></div>
+        <a class="s16-design-btn" href="/design/?product={{ card.product.id }}">{% if request.avan_language == 'fa' %}طراحی روی این لباس →{% else %}DESIGN THIS GARMENT →{% endif %}</a>
+      </div>
+    </article>
+    {% empty %}
+    <div class="s16-garment-empty"><strong>{% if request.avan_language == 'fa' %}هنوز لباس قابل طراحی فعال نشده.{% else %}NO CUSTOMIZABLE GARMENTS YET.{% endif %}</strong></div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

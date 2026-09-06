@@ -1,38 +1,33 @@
 {% extends "base.html" %}
-{% load static %}
-
-{% block title %}Challenges — AVAN{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/experience.css' %}">{% endblock %}
+{% load static avan_ui %}
+{% avan_lang as AVAN_PAGE_LANG %}
+{% block title %}{% if AVAN_PAGE_LANG == 'fa' %}چالش‌های طراحی آوان{% else %}AVAN Design Challenges{% endif %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/experience.css' %}"><link rel="stylesheet" href="{% static 'css/play.css' %}">{% endblock %}
 
 {% block content %}
-<section class="experience-page">
-    <header class="experience-hero experience-hero--red">
-        <div>
-            <p>AVAN / DESIGN CHALLENGES</p>
-            <h1>CREATE.<br>COMPETE.</h1>
-        </div>
-        <div>
-            <p>Use published AVAN designs to enter themed challenges. Rewards are configured per challenge.</p>
-            {% if request.user.is_authenticated %}<a href="/rewards/">MY AVAN POINTS →</a>{% endif %}
-        </div>
+<section class="challenge-v2-page"><div class="challenge-member-strip">MEMBERS ONLY / LOGIN REQUIRED</div>
+    <header class="challenge-v2-hero">
+        <div><span>AVAN / CHALLENGES</span><h1>{% if AVAN_PAGE_LANG == 'fa' %}یک محدودیت.<br>یک طرح بهتر.{% else %}ONE BRIEF.<br>YOUR BEST IDEA.{% endif %}</h1></div>
+        <div><p>{% if AVAN_PAGE_LANG == 'fa' %}هر چالشی که مالک فعال کند اینجا ظاهر می‌شود. لباس، موضوع، محدودیت رنگ یا فصل می‌تواند برای هر چالش متفاوت باشد.{% else %}Only owner-enabled challenges appear here. Each brief can target a garment, theme, color constraint or seasonal drop.{% endif %}</p><a href="/play/">{% if AVAN_PAGE_LANG == 'fa' %}بازی‌های تک‌نفره{% else %}SOLO GAMES{% endif %} →</a></div>
     </header>
 
-    <div class="challenge-grid">
+    <div class="challenge-v2-grid">
         {% for challenge in challenges %}
-        <a href="/challenges/{{ challenge.slug }}/" class="challenge-card">
-            <div class="challenge-card__visual">
+        <article class="challenge-v2-card">
+            <a href="/challenges/{{ challenge.slug }}/" class="challenge-v2-card__cover">
                 {% if challenge.cover_image %}<img src="{{ challenge.cover_image.url }}" alt="{{ challenge.title }}">{% else %}<span>{{ forloop.counter|stringformat:"02d" }}</span>{% endif %}
-                <em>{{ challenge.phase|upper }}</em>
-            </div>
-            <div class="challenge-card__body">
-                <small>{{ challenge.entry_count }} ENTRIES</small>
+                <div><b>{{ challenge.phase|upper }}</b><em>{{ challenge.challenge_type|upper }}</em></div>
+            </a>
+            <div class="challenge-v2-card__body">
+                <small>{{ challenge.entry_count }} {% if AVAN_PAGE_LANG == 'fa' %}ارسال{% else %}ENTRIES{% endif %}</small>
                 <h2>{{ challenge.title }}</h2>
                 <p>{{ challenge.prompt }}</p>
-                {% if challenge.reward_points %}<strong>{{ challenge.reward_points }} AVAN POINTS</strong>{% endif %}
+                {% if challenge.garment_product %}<div class="challenge-garment">{% if AVAN_PAGE_LANG == 'fa' %}لباس:{% else %}GARMENT:{% endif %} <strong>{{ challenge.garment_product.name }}</strong></div>{% endif %}
+                <footer><a href="/challenges/{{ challenge.slug }}/">{% if AVAN_PAGE_LANG == 'fa' %}مشاهده چالش{% else %}VIEW BRIEF{% endif %} →</a><span>{% if AVAN_PAGE_LANG == 'fa' %}جایزه مخفی{% else %}PRIVATE REWARD{% endif %}</span></footer>
             </div>
-        </a>
+        </article>
         {% empty %}
-        <div class="experience-empty"><span>NO CHALLENGES AVAILABLE YET.</span></div>
+        <div class="play-empty">{% if AVAN_PAGE_LANG == 'fa' %}فعلاً هیچ چالشی فعال نیست.{% else %}No challenges are enabled right now.{% endif %}</div>
         {% endfor %}
     </div>
 </section>

@@ -9,10 +9,13 @@ register = template.Library()
 def _language(context):
     request = context.get("request")
     if request is not None:
+        request_language = getattr(request, "avan_language", None)
+        if request_language:
+            return normalize_language(request_language)
         cookie = request.COOKIES.get("avan_language")
         if cookie:
             return normalize_language(cookie)
-    return normalize_language(getattr(settings, "LANGUAGE_CODE", "en"))
+    return "fa"
 
 
 @register.simple_tag(takes_context=True)

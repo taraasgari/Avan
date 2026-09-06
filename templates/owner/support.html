@@ -1,0 +1,11 @@
+{% extends "owner/base.html" %}
+{% block title %}{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی کاربران{% else %}Support{% endif %} — AVAN OWNER{% endblock %}
+{% block content %}
+<header class="owner-page-head"><div><span>{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی{% else %}SUPPORT DESK{% endif %}</span><h1>{% if AVAN_PAGE_LANG == 'fa' %}پیام‌های کاربران.{% else %}CUSTOMER SUPPORT.{% endif %}</h1><p>{% if AVAN_PAGE_LANG == 'fa' %}درخواست‌ها را ببین، پاسخ بده، اولویت تعیین کن و گفتگو را ببند.{% else %}Review, reply, prioritize and close customer tickets.{% endif %}</p></div></header>
+<section class="owner-panel">
+  <form method="get" class="stage19-support-filters"><input name="q" value="{{ q }}" placeholder="{% if AVAN_PAGE_LANG == 'fa' %}نام، ایمیل، موضوع یا شماره سفارش...{% else %}User, email, subject or order...{% endif %}"><select name="status"><option value="">{% if AVAN_PAGE_LANG == 'fa' %}همه وضعیت‌ها{% else %}ALL STATUS{% endif %}</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if active_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select><button type="submit">{% if AVAN_PAGE_LANG == 'fa' %}فیلتر{% else %}FILTER{% endif %}</button></form>
+  <div class="stage19-support-table">
+    {% for ticket in tickets %}<a href="/owner/support/{{ ticket.reference }}/"><div><strong>{{ ticket.subject }}</strong><span>{{ ticket.user.display_name|default:ticket.user.username }} · {{ ticket.user.email|default:"—" }}</span></div><small>{% if ticket.order_number %}#{{ ticket.order_number }} · {% endif %}{{ ticket.last_message_at|date:"Y/m/d H:i" }}</small><b class="is-{{ ticket.priority }}">{{ ticket.get_priority_display }}</b><em>{{ ticket.get_status_display }}</em></a>{% empty %}<div class="owner-empty">{% if AVAN_PAGE_LANG == 'fa' %}درخواستی پیدا نشد.{% else %}NO TICKETS FOUND.{% endif %}</div>{% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -8,7 +8,7 @@
 <section class="account-page">
     <header class="account-header"><div><span>MY AVAN</span><h1>HI, {{ request.user.display_name|default:request.user.username|upper }}.</h1></div><form method="post" action="/account/logout/">{% csrf_token %}<button type="submit" class="account-logout">SIGN OUT</button></form></header>
 
-    <nav class="account-nav"><a href="/account/" class="is-active">OVERVIEW</a><a href="#orders">ORDERS</a><a href="/account/wishlist/">SAVED PRODUCTS</a><a href="/account/saved-designs/">SAVED DESIGNS</a><a href="/account/designs/">MY DESIGNS</a><a href="/outfits/">MY OUTFITS</a><a href="/size-passport/">SIZE PASSPORT</a><a href="/account/creator/analytics/">CREATOR ANALYTICS</a><a href="/account/notifications/">NOTIFICATIONS</a><a href="/rewards/">AVAN POINTS</a><a href="/account/addresses/">ADDRESSES</a><a href="/account/returns/">RETURNS</a><a href="/account/profile/">PROFILE</a></nav>
+    <nav class="account-nav"><a href="/account/" class="is-active">OVERVIEW</a><a href="#orders">ORDERS</a><a href="/account/wishlist/">SAVED PRODUCTS</a><a href="/account/saved-designs/">SAVED DESIGNS</a><a href="/account/designs/">MY DESIGNS</a><a href="/outfits/">MY OUTFITS</a><a href="/size-passport/">SIZE PASSPORT</a><a href="/account/creator/analytics/">CREATOR ANALYTICS</a><a href="/account/notifications/">NOTIFICATIONS</a><a href="/rewards/">AVAN POINTS</a><a href="/account/addresses/">ADDRESSES</a><a href="/account/returns/">RETURNS</a><a href="/account/support/">SUPPORT</a><a href="/account/profile/">PROFILE</a></nav>
 
     <div class="account-content">
         <section class="account-stats"><article><span>ORDERS</span><strong>{{ request.user.orders.count }}</strong></article><article><span>FOLLOWERS</span><strong>{{ request.user.creator_followers.count }}</strong></article><article><span>NOTIFICATIONS</span><strong>{{ AVAN_UNREAD_NOTIFICATIONS }}</strong><small>UNREAD</small></article></section>
@@ -21,6 +21,7 @@
             <a href="/account/creator/analytics/" class="account-quick-card"><span>CREATOR</span><strong>ANALYTICS</strong><small>Likes, saves, remixes and paid wears →</small></a>
             <a href="/account/addresses/" class="account-quick-card"><span>DELIVERY</span><strong>ADDRESS BOOK</strong><small>Save addresses for faster checkout →</small></a>
             <a href="/account/returns/" class="account-quick-card"><span>CARE</span><strong>RETURNS</strong><small>Track return requests →</small></a>
+            <a href="/account/support/" class="account-quick-card"><span>HELP</span><strong>SUPPORT</strong><small>Talk directly with AVAN support →</small></a>
             <a href="/challenges/" class="account-quick-card"><span>COMPETE</span><strong>ACTIVE CHALLENGES</strong><small>Submit designs and win points →</small></a>
         </section>
 

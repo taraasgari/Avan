@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static avan_ui %}
+{% avan_lang as AVAN_PAGE_LANG %}
+{% block title %}{% if AVAN_PAGE_LANG == 'fa' %}AVAN PLAY{% else %}AVAN PLAY{% endif %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/play.css' %}">{% endblock %}
+
+{% block content %}
+<section class="play-v3-page">
+  <header class="play-v3-hero">
+    <div class="play-v3-hero__eyebrow"><span>AVAN PLAY / SOLO MODE</span><b>MEMBERS ONLY</b></div>
+    <div class="play-v3-hero__grid">
+      <div>
+        <h1>{% if AVAN_PAGE_LANG == 'fa' %}بازی‌هایی که<br>راحت نیستن.{% else %}GAMES THAT<br>DON'T GO EASY.{% endif %}</h1>
+        <p>{% if AVAN_PAGE_LANG == 'fa' %}چهار بازی تک‌نفره با فشار زمانی، دقت بالا و سختی افزایشی. رکوردت ذخیره می‌شود؛ حد مدال و نوع جایزه قبل از بازی مخفی است.{% else %}Four solo games built around pressure, precision and escalating difficulty. Your record is saved; medal thresholds and reward values stay hidden before the run.{% endif %}</p>
+      </div>
+      <div class="play-v3-account">
+        <span>{% if AVAN_PAGE_LANG == 'fa' %}پروفایل بازی{% else %}PLAY PROFILE{% endif %}</span>
+        <strong>@{{ request.user.username }}</strong>
+        <div><a href="/rewards/">{% if AVAN_PAGE_LANG == 'fa' %}جایزه‌های من{% else %}MY REWARDS{% endif %} →</a><a href="/challenges/">{% if AVAN_PAGE_LANG == 'fa' %}چالش‌های طراحی{% else %}DESIGN CHALLENGES{% endif %} →</a></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="play-v3-grid">
+    {% for game in games %}
+    <a href="/play/{{ game.slug }}/" class="play-v3-card play-v3-card--{{ game.game_type }}">
+      <div class="play-v3-card__art" aria-hidden="true">
+        <i></i><i></i><i></i><span>0{{ forloop.counter }}</span>
+      </div>
+      <div class="play-v3-card__content">
+        <div class="play-v3-card__meta"><span>{{ game.get_game_type_display|upper }}</span>{% if game.user_best %}<b>BEST {{ game.user_best }}</b>{% else %}<b>NO RUN YET</b>{% endif %}</div>
+        <h2>{% if AVAN_PAGE_LANG == 'fa' and game.title_fa %}{{ game.title_fa }}{% else %}{{ game.title }}{% endif %}</h2>
+        <p>{% if AVAN_PAGE_LANG == 'fa' and game.description_fa %}{{ game.description_fa }}{% else %}{{ game.description }}{% endif %}</p>
+        <footer><strong>{% if AVAN_PAGE_LANG == 'fa' %}ورود به بازی{% else %}ENTER GAME{% endif %} →</strong><span>HIDDEN MEDALS / HIDDEN REWARDS</span></footer>
+      </div>
+    </a>
+    {% empty %}<div class="play-v3-empty">{% if AVAN_PAGE_LANG == 'fa' %}فعلاً بازی فعالی وجود ندارد.{% else %}No games are live right now.{% endif %}</div>{% endfor %}
+  </div>
+
+  <section class="play-v3-board">
+    <header><div><span>LAST 7 DAYS</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}رکوردهای برتر{% else %}TOP RUNS{% endif %}</h2></div><p>{% if AVAN_PAGE_LANG == 'fa' %}فقط رکورد نمایش داده می‌شود؛ حد مدال و جایزه‌ها خصوصی باقی می‌مانند.{% else %}Only scores are public here. Medal thresholds and reward values stay private.{% endif %}</p></header>
+    <div class="play-v3-board__rows">
+      {% for row in leaderboard %}<div><b>{{ forloop.counter|stringformat:"02d" }}</b><strong>@{{ row.user.username }}</strong><span>{{ row.game.title }}</span><em>{{ row.score }}</em></div>{% empty %}<div class="play-v3-board__empty">NO SCORES YET.</div>{% endfor %}
+    </div>
+  </section>
+</section>
+{% endblock %}

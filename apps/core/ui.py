@@ -6,6 +6,7 @@ TRANSLATIONS = {
     "for_you": {"en": "FOR YOU", "fa": "برای شما"},
     "drops": {"en": "DROPS", "fa": "دراپ‌ها"},
     "challenges": {"en": "CHALLENGES", "fa": "چالش‌ها"},
+    "play": {"en": "PLAY", "fa": "بازی"},
     "search": {"en": "SEARCH", "fa": "جستجو"},
     "owner": {"en": "OWNER", "fa": "مالک"},
     "alerts": {"en": "ALERTS", "fa": "اعلان‌ها"},
@@ -60,11 +61,16 @@ TRANSLATIONS = {
     "security": {"en": "SECURITY", "fa": "امنیت"},
     "notification_preferences": {"en": "NOTIFICATION SETTINGS", "fa": "تنظیمات اعلان"},
     "report": {"en": "REPORT", "fa": "گزارش"},
+    "support": {"en": "SUPPORT", "fa": "پشتیبانی"},
+    "staff_admins": {"en": "STAFF ADMINS", "fa": "ادمین‌ها"},
+    "site_appearance": {"en": "SITE APPEARANCE", "fa": "ظاهر سایت"},
 }
 
 
 def normalize_language(value):
-    return "fa" if str(value or "").lower().startswith("fa") else "en"
+    if not value:
+        return "fa"
+    return "fa" if str(value).lower().startswith("fa") else "en"
 
 
 def translate(key, language="en"):

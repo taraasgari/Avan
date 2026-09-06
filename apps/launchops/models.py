@@ -13,6 +13,35 @@ class StaffAccess(models.Model):
         SECURITY = "security", "Security / Audit"
         CUSTOM = "custom", "Custom"
 
+
+    SECTION_CHOICES = [
+        ("dashboard", "Dashboard / نمای کلی"),
+        ("analytics", "Analytics / تحلیل‌ها"),
+        ("appearance", "Site appearance / ظاهر سایت"),
+        ("products", "Products / محصولات"),
+        ("catalog", "Catalog / کاتالوگ"),
+        ("content", "Content & SEO / محتوا و سئو"),
+        ("orders", "Orders / سفارش‌ها"),
+        ("inventory", "Warehouse / انبار"),
+        ("operations", "Operations / عملیات"),
+        ("shipping", "Shipping / ارسال"),
+        ("returns", "Returns / مرجوعی"),
+        ("production", "Production / تولید"),
+        ("commerce", "Commerce / تجارت"),
+        ("finance", "Finance / مالی"),
+        ("customers", "Customers / مشتریان"),
+        ("support", "Support / پشتیبانی"),
+        ("designs", "Designs / طرح‌ها"),
+        ("creators", "Creators / طراحان"),
+        ("moderation", "Moderation / نظارت"),
+        ("play", "Play & Challenges / بازی و چالش"),
+        ("marketing", "Marketing / بازاریابی"),
+        ("growth", "Growth & SEO / رشد و سئو"),
+        ("reports", "Reports / گزارش‌ها"),
+        ("security", "Security / امنیت"),
+        ("settings", "Settings / تنظیمات"),
+    ]
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -33,6 +62,7 @@ class StaffAccess(models.Model):
     can_manage_reports = models.BooleanField(default=False)
     can_manage_security = models.BooleanField(default=False)
     can_manage_settings = models.BooleanField(default=False)
+    section_permissions = models.JSONField(default=list, blank=True)
 
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -51,6 +81,39 @@ class StaffAccess(models.Model):
 
     def __str__(self):
         return f"{self.user} — {self.get_role_display()}"
+
+    @classmethod
+    def preset_sections_for_role(cls, role):
+        presets = {
+            cls.Role.MANAGER: ["dashboard","analytics","appearance","products","catalog","content","orders","inventory","operations","shipping","returns","production","commerce","customers","support","designs","creators","moderation","play","marketing","growth","reports"],
+            cls.Role.CATALOG: ["dashboard","products","catalog","content","inventory"],
+            cls.Role.FULFILLMENT: ["dashboard","orders","inventory","operations","shipping","returns","production","customers"],
+            cls.Role.SUPPORT: ["dashboard","orders","customers","support","returns","designs"],
+            cls.Role.MARKETING: ["dashboard","analytics","content","designs","creators","moderation","play","marketing","growth"],
+            cls.Role.FINANCE: ["dashboard","analytics","orders","commerce","finance","reports"],
+            cls.Role.SECURITY: ["dashboard","reports","security"],
+            cls.Role.CUSTOM: ["dashboard"],
+        }
+        return list(presets.get(role, ["dashboard"]))
+
+    @classmethod
+    def legacy_flags_for_sections(cls, sections):
+        sections = set(sections or [])
+        return {
+            "can_view_dashboard": "dashboard" in sections,
+            "can_view_analytics": "analytics" in sections,
+            "can_manage_catalog": bool({"products", "catalog"} & sections),
+            "can_manage_inventory": bool({"inventory", "production"} & sections),
+            "can_manage_orders": bool({"orders", "operations", "shipping", "returns"} & sections),
+            "can_manage_customers": bool({"customers", "support"} & sections),
+            "can_manage_designs": bool({"designs", "creators", "moderation"} & sections),
+            "can_manage_marketing": bool({"play", "marketing", "growth"} & sections),
+            "can_manage_finance": bool({"finance", "commerce"} & sections),
+            "can_manage_content": "content" in sections,
+            "can_manage_reports": "reports" in sections,
+            "can_manage_security": "security" in sections,
+            "can_manage_settings": "settings" in sections,
+        }
 
     @classmethod
     def preset_for_role(cls, role):
@@ -120,7 +183,10 @@ class StaffAccess(models.Model):
     def apply_role_preset(self, role=None):
         role = role or self.role
         self.role = role
+        self.section_permissions = self.preset_sections_for_role(role)
         for field, value in self.preset_for_role(role).items():
+            setattr(self, field, value)
+        for field, value in self.legacy_flags_for_sections(self.section_permissions).items():
             setattr(self, field, value)
 
 

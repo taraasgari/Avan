@@ -1,0 +1,95 @@
+{% extends "owner/base.html" %}
+{% load static %}
+{% block title %}{% if AVAN_PAGE_LANG == 'fa' %}طراحی ظاهر سایت{% else %}Site Appearance{% endif %} — AVAN OWNER{% endblock %}
+{% block content %}
+<header class="owner-page-head">
+  <div>
+    <span>{% if AVAN_PAGE_LANG == 'fa' %}نمایش بصری / بدون کدنویسی{% else %}VISUAL EDITOR / NO CODE{% endif %}</span>
+    <h1>{% if AVAN_PAGE_LANG == 'fa' %}ظاهر سایت.{% else %}SITE APPEARANCE.{% endif %}</h1>
+    <p>{% if AVAN_PAGE_LANG == 'fa' %}رنگ‌ها، اندازه فونت، فاصله‌ها، گردی کارت‌ها و تراکم کلی فروشگاه را تغییر بده و قبل از ذخیره، نتیجه را زنده ببین.{% else %}Adjust colors, typography, spacing and component shape with a live preview before publishing the changes.{% endif %}</p>
+  </div>
+  <div class="owner-head-actions"><a class="owner-btn" href="/" target="_blank">{% if AVAN_PAGE_LANG == 'fa' %}باز کردن سایت ↗{% else %}OPEN STOREFRONT ↗{% endif %}</a></div>
+</header>
+
+<div class="appearance-layout" data-appearance-editor>
+  <section class="owner-panel appearance-controls">
+    <form method="post" data-appearance-form>
+      {% csrf_token %}
+      {% if appearance_form.non_field_errors %}<div class="owner-warning">{{ appearance_form.non_field_errors }}</div>{% endif %}
+
+      <div class="appearance-section">
+        <h3>{% if AVAN_PAGE_LANG == 'fa' %}پریست سریع{% else %}Quick presets{% endif %}</h3>
+        <p>{% if AVAN_PAGE_LANG == 'fa' %}یک نقطه شروع انتخاب کن؛ بعد هر مقدار را جداگانه تغییر بده.{% else %}Choose a starting point, then fine-tune every value below.{% endif %}</p>
+        <div class="appearance-actions">
+          <button class="owner-btn" type="button" data-appearance-preset="clean">{% if AVAN_PAGE_LANG == 'fa' %}تم تمیز{% else %}CLEAN{% endif %}</button>
+          <button class="owner-btn" type="button" data-appearance-preset="soft">{% if AVAN_PAGE_LANG == 'fa' %}نرم و مدرن{% else %}SOFT{% endif %}</button>
+          <button class="owner-btn" type="button" data-appearance-preset="bold">{% if AVAN_PAGE_LANG == 'fa' %}درشت و جسور{% else %}BOLD{% endif %}</button>
+        </div>
+      </div>
+
+      <div class="appearance-section">
+        <h3>{% if AVAN_PAGE_LANG == 'fa' %}رنگ‌ها{% else %}Colors{% endif %}</h3>
+        <div class="appearance-form-grid">
+          <label class="appearance-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}رنگ اصلی AVAN{% else %}Primary accent{% endif %}</span><div class="appearance-color">{{ appearance_form.primary_color }}<code data-color-output="id_primary_color">{{ appearance.primary_color }}</code></div>{{ appearance_form.primary_color.errors }}</label>
+          <label class="appearance-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}پس‌زمینه روشن{% else %}Light background{% endif %}</span><div class="appearance-color">{{ appearance_form.light_background }}<code data-color-output="id_light_background">{{ appearance.light_background }}</code></div>{{ appearance_form.light_background.errors }}</label>
+          <label class="appearance-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}سطح کارت روشن{% else %}Light surface{% endif %}</span><div class="appearance-color">{{ appearance_form.light_surface }}<code data-color-output="id_light_surface">{{ appearance.light_surface }}</code></div>{{ appearance_form.light_surface.errors }}</label>
+          <label class="appearance-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}پس‌زمینه شب{% else %}Dark background{% endif %}</span><div class="appearance-color">{{ appearance_form.dark_background }}<code data-color-output="id_dark_background">{{ appearance.dark_background }}</code></div>{{ appearance_form.dark_background.errors }}</label>
+          <label class="appearance-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}سطح کارت شب{% else %}Dark surface{% endif %}</span><div class="appearance-color">{{ appearance_form.dark_surface }}<code data-color-output="id_dark_surface">{{ appearance.dark_surface }}</code></div>{{ appearance_form.dark_surface.errors }}</label>
+        </div>
+      </div>
+
+      <div class="appearance-section">
+        <h3>{% if AVAN_PAGE_LANG == 'fa' %}فونت و خوانایی{% else %}Typography & readability{% endif %}</h3>
+        <p>{% if AVAN_PAGE_LANG == 'fa' %}فارسی را جداگانه بزرگ‌تر گذاشتیم تا نوشته‌ها ریز و خسته‌کننده نباشند.{% else %}Persian has an independent base size so RTL copy does not feel too small.{% endif %}</p>
+        <div class="appearance-form-grid">
+          <label class="appearance-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}اندازه فونت انگلیسی{% else %}English base font{% endif %}</span>{{ appearance_form.base_font_size }}<small>15–22 px</small>{{ appearance_form.base_font_size.errors }}</label>
+          <label class="appearance-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}اندازه فونت فارسی{% else %}Persian base font{% endif %}</span>{{ appearance_form.persian_font_size }}<small>16–24 px</small>{{ appearance_form.persian_font_size.errors }}</label>
+        </div>
+      </div>
+
+      <div class="appearance-section">
+        <h3>{% if AVAN_PAGE_LANG == 'fa' %}چیدمان{% else %}Layout{% endif %}</h3>
+        <div class="appearance-form-grid">
+          <label class="appearance-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}حداکثر عرض محتوا{% else %}Content width{% endif %}</span>{{ appearance_form.content_width }}<small>1080–1800 px</small>{{ appearance_form.content_width.errors }}</label>
+          <label class="appearance-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}فاصله از دو طرف{% else %}Page gutter{% endif %}</span>{{ appearance_form.page_gutter }}<small>16–72 px</small>{{ appearance_form.page_gutter.errors }}</label>
+          <label class="appearance-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}ارتفاع هدر{% else %}Header height{% endif %}</span>{{ appearance_form.header_height }}<small>64–96 px</small>{{ appearance_form.header_height.errors }}</label>
+          <label class="appearance-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}فاصله بخش‌ها{% else %}Section spacing{% endif %}</span>{{ appearance_form.section_spacing }}<small>40–120 px</small>{{ appearance_form.section_spacing.errors }}</label>
+        </div>
+      </div>
+
+      <div class="appearance-section">
+        <h3>{% if AVAN_PAGE_LANG == 'fa' %}فرم اجزا{% else %}Component shape{% endif %}</h3>
+        <div class="appearance-form-grid">
+          <label class="appearance-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}گردی کارت‌ها{% else %}Card radius{% endif %}</span>{{ appearance_form.card_radius }}<small>0–28 px</small>{{ appearance_form.card_radius.errors }}</label>
+          <label class="appearance-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}گردی دکمه‌ها{% else %}Button radius{% endif %}</span>{{ appearance_form.button_radius }}<small>0–28 px</small>{{ appearance_form.button_radius.errors }}</label>
+        </div>
+        <label class="appearance-check">{{ appearance_form.card_shadow }} <span>{% if AVAN_PAGE_LANG == 'fa' %}سایه ملایم برای کارت‌ها{% else %}Soft card shadow{% endif %}</span></label>
+      </div>
+
+      <div class="appearance-actions">
+        <button class="owner-btn owner-btn--primary" type="submit" name="action" value="save">{% if AVAN_PAGE_LANG == 'fa' %}ذخیره و اعمال روی سایت{% else %}SAVE & PUBLISH{% endif %}</button>
+        <button class="owner-btn" type="button" data-appearance-revert>{% if AVAN_PAGE_LANG == 'fa' %}لغو تغییرات پیش‌نمایش{% else %}REVERT PREVIEW{% endif %}</button>
+        <button class="owner-btn owner-btn--danger" type="submit" name="action" value="reset" formnovalidate>{% if AVAN_PAGE_LANG == 'fa' %}بازگشت به پیش‌فرض AVAN{% else %}RESET TO AVAN DEFAULTS{% endif %}</button>
+      </div>
+      <p class="appearance-help">{% if AVAN_PAGE_LANG == 'fa' %}این ویرایشگر CSS آزاد نمی‌گیرد؛ فقط تنظیمات امن و کنترل‌شده ذخیره می‌شوند تا ظاهر سایت با یک مقدار اشتباه خراب نشود.{% else %}The editor stores constrained design tokens, not arbitrary CSS, so a bad value cannot inject code or destroy the storefront layout.{% endif %}</p>
+    </form>
+  </section>
+
+  <section class="owner-panel appearance-preview-panel">
+    <div class="appearance-preview-toolbar">
+      <strong>{% if AVAN_PAGE_LANG == 'fa' %}پیش‌نمایش زنده{% else %}LIVE PREVIEW{% endif %}</strong>
+      <div><button type="button" class="is-active" data-preview-theme="light">{% if AVAN_PAGE_LANG == 'fa' %}روز{% else %}LIGHT{% endif %}</button><button type="button" data-preview-theme="dark">{% if AVAN_PAGE_LANG == 'fa' %}شب{% else %}DARK{% endif %}</button><button type="button" data-preview-device="desktop">DESKTOP</button><button type="button" data-preview-device="mobile">MOBILE</button></div>
+    </div>
+    <div class="appearance-preview-frame" data-appearance-preview>
+      <header class="ap-header"><strong class="ap-brand">AVAN</strong><nav class="ap-nav"><span>SHOP</span><span>DESIGN</span><span>EXPLORE</span></nav><span class="ap-bag">BAG 02</span></header>
+      <section class="ap-hero"><div><span class="ap-kicker">AVAN / NEW SEASON</span><h2>WEAR WHAT<br>YOU IMAGINE.</h2><p>{% if AVAN_PAGE_LANG == 'fa' %}این یک پیش‌نمایش زنده است تا قبل از ذخیره، اندازه فونت، رنگ، فاصله و فرم اجزا را ببینی.{% else %}This live preview reacts immediately to typography, color, spacing and shape controls before you publish them.{% endif %}</p><div class="ap-hero-actions"><span class="ap-button is-primary">SHOP NOW</span><span class="ap-button">EXPLORE</span></div></div><div class="ap-hero-art"></div></section>
+      <section class="ap-section"><div class="ap-section-head"><h3>{% if AVAN_PAGE_LANG == 'fa' %}محصولات منتخب{% else %}Featured products{% endif %}</h3><span>VIEW ALL →</span></div><div class="ap-products">
+        {% for product in preview_products %}<article class="ap-card"><div class="ap-card-image">{% with image=product.images.first %}{% if image %}<img src="{{ image.image.url }}" alt="">{% else %}<span>AV</span>{% endif %}{% endwith %}</div><div class="ap-card-info"><strong>{{ product.name }}</strong><small>{{ product.category.name }}</small><b>{{ product.base_price|floatformat:"0" }} TOMAN</b></div></article>{% empty %}
+        <article class="ap-card"><div class="ap-card-image"><span>AV</span></div><div class="ap-card-info"><strong>OVERSIZED TEE</strong><small>STREET ESSENTIAL</small><b>890,000 TOMAN</b></div></article><article class="ap-card"><div class="ap-card-image"><span>AN</span></div><div class="ap-card-info"><strong>AVAN HOODIE</strong><small>NEW DROP</small><b>1,490,000 TOMAN</b></div></article><article class="ap-card"><div class="ap-card-image"><span>01</span></div><div class="ap-card-info"><strong>HEAVY TEE</strong><small>CORE</small><b>990,000 TOMAN</b></div></article>
+        {% endfor %}
+      </div></section>
+    </div>
+  </section>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/owner-appearance.js' %}" defer></script>{% endblock %}

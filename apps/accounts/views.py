@@ -1,8 +1,10 @@
+from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from apps.notifications.models import Notification
@@ -11,6 +13,7 @@ from apps.orders.models import Order
 from apps.wishlist.models import WishlistItem
 
 from .forms import ProfileForm, RegisterForm
+from .models import SupportMessage, SupportTicket
 
 
 User = get_user_model()
@@ -173,3 +176,53 @@ def notification_mark_read(request, notification_id):
 def notifications_mark_all_read(request):
     request.user.notifications.filter(is_read=False).update(is_read=True)
     return JsonResponse({"ok": True, "unread": 0})
+
+@login_required(login_url="/account/login/")
+def support_center(request):
+    tickets = request.user.support_tickets.all()[:100]
+    return render(request, "accounts/support.html", {"tickets": tickets, "categories": SupportTicket.Category.choices})
+
+
+@login_required(login_url="/account/login/")
+@require_POST
+def support_create(request):
+    subject = (request.POST.get("subject") or "").strip()[:180]
+    body = (request.POST.get("body") or "").strip()[:5000]
+    order_number = (request.POST.get("order_number") or "").strip()[:80]
+    category = request.POST.get("category") or SupportTicket.Category.OTHER
+    valid_categories = {value for value, _ in SupportTicket.Category.choices}
+    if category not in valid_categories:
+        category = SupportTicket.Category.OTHER
+    if len(subject) < 3 or len(body) < 3:
+        messages.error(request, "عنوان و متن پیام را کامل وارد کنید.")
+        return redirect("accounts:support")
+
+    ticket = SupportTicket.objects.create(
+        user=request.user,
+        subject=subject,
+        category=category,
+        order_number=order_number,
+        status=SupportTicket.Status.WAITING_SUPPORT,
+    )
+    SupportMessage.objects.create(ticket=ticket, sender=request.user, body=body, is_staff_reply=False)
+    messages.success(request, "درخواست پشتیبانی ثبت شد.")
+    return redirect("accounts:support-detail", reference=ticket.reference)
+
+
+@login_required(login_url="/account/login/")
+def support_detail(request, reference):
+    ticket = get_object_or_404(SupportTicket.objects.prefetch_related("messages__sender"), reference=reference, user=request.user)
+    if request.method == "POST":
+        if ticket.status == SupportTicket.Status.CLOSED:
+            messages.error(request, "این گفتگو بسته شده است.")
+        else:
+            body = (request.POST.get("body") or "").strip()[:5000]
+            if body:
+                SupportMessage.objects.create(ticket=ticket, sender=request.user, body=body, is_staff_reply=False)
+                ticket.status = SupportTicket.Status.WAITING_SUPPORT
+                ticket.last_message_at = timezone.now()
+                ticket.save(update_fields=["status", "last_message_at", "updated_at"])
+                messages.success(request, "پیام شما ارسال شد.")
+        return redirect("accounts:support-detail", reference=ticket.reference)
+    return render(request, "accounts/support_detail.html", {"ticket": ticket})
+

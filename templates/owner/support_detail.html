@@ -1,0 +1,16 @@
+{% extends "owner/base.html" %}
+{% block title %}{{ ticket.subject }} — AVAN OWNER{% endblock %}
+{% block content %}
+<header class="owner-page-head"><div><a href="/owner/support/">{% if AVAN_PAGE_LANG == 'fa' %}← پشتیبانی{% else %}← SUPPORT{% endif %}</a><span>{{ ticket.get_category_display }}</span><h1>{{ ticket.subject }}</h1><p>{{ ticket.user.display_name|default:ticket.user.username }} · {{ ticket.user.email|default:"—" }}{% if ticket.order_number %} · #{{ ticket.order_number }}{% endif %}</p></div><div class="owner-head-actions"><span class="owner-status">{{ ticket.get_status_display }}</span></div></header>
+<div class="stage19-support-detail-grid">
+<section class="owner-panel">
+  <div class="stage19-owner-thread">{% for message in ticket.messages.all %}<article class="{% if message.is_staff_reply %}is-staff{% else %}is-user{% endif %}"><header><strong>{% if message.is_staff_reply %}{{ message.sender.display_name|default:message.sender.username }} / AVAN{% else %}{{ ticket.user.display_name|default:ticket.user.username }}{% endif %}</strong><small>{{ message.created_at|date:"Y/m/d H:i" }}</small></header><p>{{ message.body|linebreaksbr }}</p></article>{% endfor %}</div>
+  {% if ticket.status != 'closed' %}<form method="post" class="stage19-owner-reply">{% csrf_token %}<input type="hidden" name="action" value="reply"><textarea name="body" rows="5" maxlength="5000" required placeholder="{% if AVAN_PAGE_LANG == 'fa' %}پاسخ پشتیبانی...{% else %}Support reply...{% endif %}"></textarea><button type="submit">{% if AVAN_PAGE_LANG == 'fa' %}ارسال پاسخ{% else %}SEND REPLY{% endif %}</button></form>{% endif %}
+</section>
+<aside class="owner-panel stage19-ticket-tools">
+  <h3>{% if AVAN_PAGE_LANG == 'fa' %}کنترل گفتگو{% else %}TICKET CONTROLS{% endif %}</h3>
+  <form method="post">{% csrf_token %}<input type="hidden" name="action" value="priority"><label><span>{% if AVAN_PAGE_LANG == 'fa' %}اولویت{% else %}PRIORITY{% endif %}</span><select name="priority">{% for value,label in priority_choices %}<option value="{{ value }}" {% if ticket.priority == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label><button type="submit">{% if AVAN_PAGE_LANG == 'fa' %}ذخیره اولویت{% else %}SAVE PRIORITY{% endif %}</button></form>
+  {% if ticket.status == 'closed' %}<form method="post">{% csrf_token %}<button name="action" value="reopen">{% if AVAN_PAGE_LANG == 'fa' %}باز کردن مجدد{% else %}REOPEN{% endif %}</button></form>{% else %}<form method="post">{% csrf_token %}<button name="action" value="close" class="is-danger">{% if AVAN_PAGE_LANG == 'fa' %}بستن گفتگو{% else %}CLOSE TICKET{% endif %}</button></form>{% endif %}
+</aside>
+</div>
+{% endblock %}

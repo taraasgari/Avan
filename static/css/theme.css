@@ -52,3 +52,35 @@ html[dir="rtl"] :where(h1,h2,h3,.lead,.owner-page-head,.ops-hero) { text-align:r
 html[dir="rtl"] .mobile-menu__panel { left:auto; right:0; transform:translateX(105%); }
 html[dir="rtl"] .mobile-menu.is-open .mobile-menu__panel { transform:translateX(0); }
 @media (max-width:960px){ .site-header .avan-pref { display:none; } }
+
+/* Stage 19 — contrast hardening and consistent readable surfaces */
+:root{
+  --avan-text-strong:#111111;
+  --avan-text-soft:#5f6368;
+  --avan-control-bg:#ffffff;
+  --avan-control-text:#111111;
+  --avan-danger:#b42318;
+  --avan-success:#16794b;
+}
+html[data-theme="dark"]{
+  --avan-text-strong:#f7f7f8;
+  --avan-text-soft:#b9bbc2;
+  --avan-control-bg:#17171a;
+  --avan-control-text:#f7f7f8;
+  --avan-danger:#ff8a80;
+  --avan-success:#72d6a1;
+}
+body,:where(h1,h2,h3,h4,h5,h6,p,span,strong,small,label,li,dt,dd){color:inherit}
+a{color:inherit}
+:where(input,select,textarea,button){font:inherit}
+:where(input,select,textarea){background:var(--avan-control-bg)!important;color:var(--avan-control-text)!important;border-color:var(--avan-line)!important}
+:where(input,textarea)::placeholder{color:var(--avan-muted)!important;opacity:.82}
+html[data-theme="dark"] :where(.product-card,.shop-card,.account-section,.account-stats article,.account-quick-card,.wishlist-card,.saved-product,.stage5-panel,.marketplace-panel,.experience-card,.community-card,.support-compose,.support-history,.support-thread,.support-reply,.owner-panel){background:var(--avan-surface)!important;color:var(--avan-text)!important;border-color:var(--avan-line)!important}
+html[data-theme="dark"] :where(.product-card small,.shop-card small,.account-page small,.account-page p,.support-page small,.support-page p,.owner-content small,.owner-content p){color:var(--avan-muted)!important}
+html[data-theme="dark"] :where(.btn,.account-quick-card,.cart-view-bag,.owner-btn){border-color:var(--avan-line)}
+html[data-theme="dark"] :where(.btn:not(.btn-primary),.account-quick-card,.cart-view-bag){background:var(--avan-surface)!important;color:var(--avan-text)!important}
+html[data-theme="dark"] :where(.btn-primary,.cart-checkout,.owner-btn--primary){background:var(--avan-accent)!important;color:#fff!important}
+html[dir="rtl"] body{font-family:Tahoma,"Segoe UI",Arial,sans-serif;font-size:var(--avan-fa-font-size,18px);line-height:1.75}
+html[dir="ltr"] body{font-family:"Segoe UI",Arial,sans-serif;font-size:var(--avan-base-font-size,17px)}
+html[dir="rtl"] :where(button,input,select,textarea){font-family:Tahoma,"Segoe UI",Arial,sans-serif}
+.theme-icon-button{color:var(--avan-text)!important}

@@ -18,7 +18,6 @@ class Category(models.Model):
     seo_title_fa = models.CharField(max_length=180, blank=True, default="")
     seo_description_en = models.CharField(max_length=320, blank=True, default="")
     seo_description_fa = models.CharField(max_length=320, blank=True, default="")
-
     class Meta:
         ordering = ["sort_order", "name"]
 
@@ -73,6 +72,12 @@ class Product(models.Model):
     seo_title_fa = models.CharField(max_length=180, blank=True, default="")
     seo_description_en = models.CharField(max_length=320, blank=True, default="")
     seo_description_fa = models.CharField(max_length=320, blank=True, default="")
+    search_tags = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        help_text="Comma-separated search tags/keywords set by the owner.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

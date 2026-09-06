@@ -82,6 +82,19 @@ class Challenge(models.Model):
     starts_at = models.DateTimeField(null=True, blank=True)
     ends_at = models.DateTimeField(null=True, blank=True)
     reward_points = models.PositiveIntegerField(default=0)
+    reward_discount_percent = models.PositiveSmallIntegerField(default=0)
+    reward_subsidy_amount = models.DecimalField(max_digits=12, decimal_places=0, default=0)
+    reward_expiry_days = models.PositiveIntegerField(default=30)
+    is_enabled = models.BooleanField(default=True, help_text="Master visibility switch for the public site.")
+    challenge_type = models.CharField(max_length=32, default="theme")
+    garment_product = models.ForeignKey(
+        "catalog.Product",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="design_challenges",
+    )
+    rules = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -90,7 +103,7 @@ class Challenge(models.Model):
 
     @property
     def is_open(self):
-        if self.status != self.Status.PUBLISHED:
+        if not self.is_enabled or self.status != self.Status.PUBLISHED:
             return False
         now = timezone.now()
         if self.starts_at and now < self.starts_at:
@@ -109,6 +122,11 @@ class Challenge(models.Model):
         if self.ends_at and now > self.ends_at:
             return "ended"
         return "live" if self.status == self.Status.PUBLISHED else "draft"
+
+    def clean(self):
+        super().clean()
+        if self.reward_discount_percent > 100:
+            raise ValidationError({"reward_discount_percent": "Discount percent cannot exceed 100."})
 
     def __str__(self):
         return self.title
@@ -146,6 +164,14 @@ class ChallengeEntry(models.Model):
             )
         ]
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.status == self.Status.WINNER and not self.reward_granted:
+            from .services import grant_challenge_entry_reward
+            if grant_challenge_entry_reward(self):
+                type(self).objects.filter(pk=self.pk, reward_granted=False).update(reward_granted=True)
+                self.reward_granted = True
+
     def __str__(self):
         return f"{self.challenge} / {self.user} / {self.design}"
 
@@ -179,3 +205,94 @@ class RewardTransaction(models.Model):
 
     def __str__(self):
         return f"{self.wallet.user} / {self.amount:+d} / {self.reason}"
+
+class SoloGame(models.Model):
+    class GameType(models.TextChoices):
+        RUNNER = "runner", "Needle Grid"
+        CATCH = "catch", "Pattern Drop"
+        MEMORY = "memory", "Signal Forge"
+        COLOR = "color", "Tag Strike"
+
+    slug = models.SlugField(max_length=80, unique=True)
+    game_type = models.CharField(max_length=16, choices=GameType.choices)
+    title = models.CharField(max_length=100)
+    title_fa = models.CharField(max_length=100, blank=True)
+    description = models.CharField(max_length=240, blank=True)
+    description_fa = models.CharField(max_length=240, blank=True)
+    is_enabled = models.BooleanField(default=False)
+    sort_order = models.PositiveIntegerField(default=0)
+    bronze_score = models.PositiveIntegerField(default=500)
+    silver_score = models.PositiveIntegerField(default=1200)
+    gold_score = models.PositiveIntegerField(default=2200)
+    bronze_points = models.PositiveIntegerField(default=10)
+    silver_points = models.PositiveIntegerField(default=25)
+    gold_points = models.PositiveIntegerField(default=50)
+    bronze_discount_percent = models.PositiveSmallIntegerField(default=0)
+    silver_discount_percent = models.PositiveSmallIntegerField(default=0)
+    gold_discount_percent = models.PositiveSmallIntegerField(default=0)
+    bronze_subsidy_amount = models.DecimalField(max_digits=12, decimal_places=0, default=0)
+    silver_subsidy_amount = models.DecimalField(max_digits=12, decimal_places=0, default=0)
+    gold_subsidy_amount = models.DecimalField(max_digits=12, decimal_places=0, default=0)
+    reward_expiry_days = models.PositiveIntegerField(default=30)
+    score_cap = models.PositiveIntegerField(default=10000)
+    max_score_per_second = models.PositiveIntegerField(default=120)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+
+    def reward_tier_for(self, score):
+        if score >= self.gold_score:
+            return "gold", self.gold_points
+        if score >= self.silver_score:
+            return "silver", self.silver_points
+        if score >= self.bronze_score:
+            return "bronze", self.bronze_points
+        return "none", 0
+
+    def reward_bundle_for(self, score):
+        tier, points = self.reward_tier_for(score)
+        if tier == "none":
+            return {"tier": tier, "points": 0, "discount_percent": 0, "subsidy_amount": 0}
+        return {
+            "tier": tier,
+            "points": points,
+            "discount_percent": getattr(self, f"{tier}_discount_percent"),
+            "subsidy_amount": getattr(self, f"{tier}_subsidy_amount"),
+        }
+
+    def clean(self):
+        super().clean()
+        for field_name in ("bronze_discount_percent", "silver_discount_percent", "gold_discount_percent"):
+            if getattr(self, field_name, 0) > 100:
+                raise ValidationError({field_name: "Discount percent cannot exceed 100."})
+        if not (self.bronze_score < self.silver_score < self.gold_score):
+            raise ValidationError("Medal score thresholds must increase from bronze to silver to gold.")
+
+    def __str__(self):
+        return self.title
+
+
+class GameScore(models.Model):
+    game = models.ForeignKey(SoloGame, on_delete=models.CASCADE, related_name="scores")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="avan_game_scores",
+    )
+    score = models.PositiveIntegerField()
+    reward_tier = models.CharField(max_length=16, default="none")
+    points_awarded = models.PositiveIntegerField(default=0)
+    played_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-score", "played_at"]
+        indexes = [
+            models.Index(fields=["game", "-score"]),
+            models.Index(fields=["user", "-played_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user} / {self.game} / {self.score}"
+

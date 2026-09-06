@@ -1,57 +1,44 @@
 {% extends "owner/base.html" %}
-{% block title %}Staff — AVAN OWNER{% endblock %}
+{% block title %}{% if AVAN_PAGE_LANG == 'fa' %}مدیریت ادمین‌ها{% else %}Staff access{% endif %} — AVAN OWNER{% endblock %}
 {% block content %}
 <header class="owner-page-head">
-  <div><span>LEAST PRIVILEGE ACCESS</span><h1>STAFF.</h1><p>Stage 13 gives each staff account explicit Owner Console permissions. Superuser remains the only account that can change staff access.</p></div>
-  <a class="owner-btn" href="/admin/auth/group/" target="_blank">DJANGO GROUPS ↗</a>
+  <div><span>{% if AVAN_PAGE_LANG == 'fa' %}دسترسی ادمین‌ها{% else %}STAFF ACCESS{% endif %}</span><h1>{% if AVAN_PAGE_LANG == 'fa' %}هر ادمین فقط همون چیزی رو ببینه که تو می‌خوای.{% else %}CONTROL EVERY SECTION.{% endif %}</h1><p>{% if AVAN_PAGE_LANG == 'fa' %}مالک اصلی همیشه دسترسی کامل دارد. برای بقیه می‌تونی تک‌تک بخش‌های پنل را روشن یا خاموش کنی. مدیریت ادمین‌ها و Launch فقط برای مالک اصلی می‌ماند.{% else %}Give each staff member only the exact Owner Console sections they need. Staff management and launch controls remain superuser-only.{% endif %}</p></div>
 </header>
 
-<section class="owner-panel">
-  <div class="owner-panel__head"><div><span>AUTHORIZED</span><h2>STAFF ACCOUNTS</h2></div><p>Use a role preset, then customize only what that person actually needs.</p></div>
-  <div class="stage13-staff-list">
-    {% for row in staff_rows %}
-      <article class="stage13-staff-card">
-        <div class="stage13-staff-head">
-          <div><strong>{{ row.user.display_name|default:row.user.username }}</strong><span>@{{ row.user.username }} · {{ row.user.email|default:"NO EMAIL" }}</span></div>
-          {% if row.user.is_superuser %}<span class="owner-status is-red">OWNER / SUPERUSER</span>{% else %}<span class="owner-status">STAFF</span>{% endif %}
-        </div>
-        {% if row.user.is_superuser %}
-          <p class="owner-note">Superuser bypasses section permissions and is the only role allowed to manage staff and launch controls.</p>
-        {% else %}
-          <form method="post" action="/owner/staff/{{ row.user.id }}/permissions/" class="stage13-permission-form">
-            {% csrf_token %}
-            <label class="owner-field"><span>ROLE PRESET</span><select name="role">{% for value,label in role_choices %}<option value="{{ value }}" {% if row.access.role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-            <div class="stage13-permission-grid">
-              <label><input type="checkbox" name="can_view_dashboard" value="1" {% if row.access.can_view_dashboard %}checked{% endif %}> Dashboard</label>
-              <label><input type="checkbox" name="can_view_analytics" value="1" {% if row.access.can_view_analytics %}checked{% endif %}> Analytics</label>
-              <label><input type="checkbox" name="can_manage_catalog" value="1" {% if row.access.can_manage_catalog %}checked{% endif %}> Products / Catalog</label>
-              <label><input type="checkbox" name="can_manage_inventory" value="1" {% if row.access.can_manage_inventory %}checked{% endif %}> Warehouse / Production</label>
-              <label><input type="checkbox" name="can_manage_orders" value="1" {% if row.access.can_manage_orders %}checked{% endif %}> Orders / Shipping / Returns</label>
-              <label><input type="checkbox" name="can_manage_customers" value="1" {% if row.access.can_manage_customers %}checked{% endif %}> Customers</label>
-              <label><input type="checkbox" name="can_manage_designs" value="1" {% if row.access.can_manage_designs %}checked{% endif %}> Designs / Creators / Moderation</label>
-              <label><input type="checkbox" name="can_manage_marketing" value="1" {% if row.access.can_manage_marketing %}checked{% endif %}> Marketing / Growth</label>
-              <label><input type="checkbox" name="can_manage_finance" value="1" {% if row.access.can_manage_finance %}checked{% endif %}> Finance / Refunds</label>
-              <label><input type="checkbox" name="can_manage_content" value="1" {% if row.access.can_manage_content %}checked{% endif %}> Content / SEO</label>
-              <label><input type="checkbox" name="can_manage_reports" value="1" {% if row.access.can_manage_reports %}checked{% endif %}> Reports</label>
-              <label><input type="checkbox" name="can_manage_security" value="1" {% if row.access.can_manage_security %}checked{% endif %}> Security Center</label>
-              <label><input type="checkbox" name="can_manage_settings" value="1" {% if row.access.can_manage_settings %}checked{% endif %}> Store Settings</label>
-            </div>
-            <div class="stage13-staff-actions">
-              <button class="owner-btn owner-btn--primary" type="submit">SAVE CUSTOM ACCESS</button>
-              <button class="owner-btn" name="apply_preset" value="1" type="submit">APPLY ROLE PRESET</button>
-            </div>
-          </form>
-          <form method="post" action="/owner/staff/{{ row.user.id }}/toggle/" class="stage13-remove-staff">{% csrf_token %}<button class="owner-link-button">REMOVE STAFF ACCESS</button></form>
-        {% endif %}
-      </article>
-    {% empty %}<div class="owner-empty">NO STAFF ACCOUNTS.</div>{% endfor %}
+<section class="owner-panel stage19-staff-add">
+  <div class="owner-panel__head"><div><span>{% if AVAN_PAGE_LANG == 'fa' %}افزودن ادمین{% else %}ADD STAFF{% endif %}</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}کاربر را ادمین کن{% else %}PROMOTE A USER{% endif %}</h2></div></div>
+  <div class="stage19-user-pool">
+    {% for user in other_users %}
+      <form method="post" action="/owner/staff/{{ user.id }}/toggle/">{% csrf_token %}<div><strong>{{ user.display_name|default:user.username }}</strong><small>@{{ user.username }} · {{ user.email|default:"—" }}</small></div><button type="submit">{% if AVAN_PAGE_LANG == 'fa' %}افزودن به ادمین‌ها{% else %}MAKE STAFF{% endif %}</button></form>
+    {% empty %}<p>{% if AVAN_PAGE_LANG == 'fa' %}کاربر فعالی برای افزودن پیدا نشد.{% else %}No eligible users found.{% endif %}</p>{% endfor %}
   </div>
 </section>
 
 <section class="owner-panel">
-  <div class="owner-panel__head"><div><span>ADD ACCESS</span><h2>ACTIVE USERS</h2></div><p>New staff accounts start with the conservative Support preset. You can change it immediately above.</p></div>
-  <div class="owner-table-wrap"><table class="owner-table"><thead><tr><th>USER</th><th>EMAIL</th><th></th></tr></thead><tbody>
-    {% for user in other_users %}<tr><td>{{ user.display_name|default:user.username }}<small>@{{ user.username }}</small></td><td>{{ user.email }}</td><td><form method="post" action="/owner/staff/{{ user.id }}/toggle/">{% csrf_token %}<button class="owner-link-button">MAKE STAFF</button></form></td></tr>{% empty %}<tr><td colspan="3">NO AVAILABLE USERS.</td></tr>{% endfor %}
-  </tbody></table></div>
+  <div class="owner-panel__head"><div><span>{% if AVAN_PAGE_LANG == 'fa' %}ادمین‌های فعال{% else %}AUTHORIZED STAFF{% endif %}</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}دسترسی‌ها{% else %}PERMISSIONS{% endif %}</h2></div><p>{% if AVAN_PAGE_LANG == 'fa' %}Preset فقط شروع کاره؛ بعدش هر تیک رو خودت تغییر بده.{% else %}Presets are optional starting points; every section can be customized.{% endif %}</p></div>
+  <div class="stage19-staff-list">
+  {% for row in staff_rows %}
+    <article class="stage19-staff-card">
+      <header><div><strong>{{ row.user.display_name|default:row.user.username }}</strong><span>@{{ row.user.username }} · {{ row.user.email|default:"—" }}</span></div>{% if row.user.is_superuser %}<b>{% if AVAN_PAGE_LANG == 'fa' %}مالک اصلی{% else %}OWNER{% endif %}</b>{% else %}<b>STAFF</b>{% endif %}</header>
+      {% if row.user.is_superuser %}
+        <div class="stage19-owner-lock">{% if AVAN_PAGE_LANG == 'fa' %}این حساب دسترسی کامل دارد و از این صفحه محدود نمی‌شود.{% else %}This account has full access and cannot be restricted here.{% endif %}</div>
+      {% else %}
+        <form method="post" action="/owner/staff/{{ row.user.id }}/permissions/" class="stage19-permission-form">{% csrf_token %}
+          <div class="stage19-permission-toolbar">
+            <label><span>{% if AVAN_PAGE_LANG == 'fa' %}نقش پیشنهادی{% else %}ROLE PRESET{% endif %}</span><select name="role">{% for value,label in role_choices %}<option value="{{ value }}" {% if row.access.role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+            <button name="apply_preset" value="1" type="submit">{% if AVAN_PAGE_LANG == 'fa' %}اعمال Preset{% else %}APPLY PRESET{% endif %}</button>
+          </div>
+          <div class="stage19-section-permissions">
+            {% for key,label in section_choices %}
+              <label><input type="checkbox" name="sections" value="{{ key }}" {% if key in row.access.section_permissions %}checked{% endif %}><span>{{ label }}</span></label>
+            {% endfor %}
+          </div>
+          <div class="stage19-permission-actions"><button type="submit">{% if AVAN_PAGE_LANG == 'fa' %}ذخیره دسترسی‌ها{% else %}SAVE ACCESS{% endif %}</button></div>
+        </form>
+        <form method="post" action="/owner/staff/{{ row.user.id }}/toggle/" class="stage19-remove-staff">{% csrf_token %}<button type="submit">{% if AVAN_PAGE_LANG == 'fa' %}حذف دسترسی ادمین{% else %}REMOVE STAFF ACCESS{% endif %}</button></form>
+      {% endif %}
+    </article>
+  {% endfor %}
+  </div>
 </section>
 {% endblock %}

@@ -12,6 +12,9 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     path("wishlist/", views.wishlist_page, name="wishlist"),
     path("profile/", views.profile_settings, name="profile-settings"),
+    path("support/", views.support_center, name="support"),
+    path("support/new/", views.support_create, name="support-create"),
+    path("support/<uuid:reference>/", views.support_detail, name="support-detail"),
     path("notifications/", views.notification_center, name="notifications"),
     path(
         "notifications/read-all/",

@@ -5,7 +5,11 @@ from django.shortcuts import get_object_or_404, render
 
 from apps.catalog.models import Product
 from apps.marketplace.models import MarketplaceSettings
-from .models import Design
+from .ai import ai_is_configured
+from .models import (
+    Design, FabricOption, GarmentStudioProfile, StickerAsset, StickerCategory,
+    StudioFont, StudioSettings,
+)
 
 
 def _product_payload(product):
@@ -59,6 +63,16 @@ def _product_payload(product):
         "sizes": list(sizes.values()),
         "variants": variants,
         "mockups": mockups,
+        "studio": {
+            "garment_type": getattr(getattr(product, "studio_profile", None), "garment_type", "tee"),
+            "default_fabric": getattr(getattr(getattr(product, "studio_profile", None), "default_fabric", None), "slug", None),
+            "enabled": getattr(getattr(product, "studio_profile", None), "is_enabled", True),
+            "front_reference": getattr(getattr(product, "studio_profile", None), "front_reference", None).url if getattr(getattr(product, "studio_profile", None), "front_reference", None) else (image.image.url if image else None),
+            "back_reference": getattr(getattr(product, "studio_profile", None), "back_reference", None).url if getattr(getattr(product, "studio_profile", None), "back_reference", None) else None,
+            "left_sleeve_reference": getattr(getattr(product, "studio_profile", None), "left_sleeve_reference", None).url if getattr(getattr(product, "studio_profile", None), "left_sleeve_reference", None) else None,
+            "right_sleeve_reference": getattr(getattr(product, "studio_profile", None), "right_sleeve_reference", None).url if getattr(getattr(product, "studio_profile", None), "right_sleeve_reference", None) else None,
+            "model_url": getattr(getattr(product, "studio_profile", None), "model_file", None).url if getattr(getattr(product, "studio_profile", None), "model_file", None) else None,
+        },
     }
 
 
@@ -106,18 +120,63 @@ def _preview_payload(design):
     }
 
 
+def garment_chooser(request):
+    products = (
+        Product.objects
+        .filter(is_active=True, product_type=Product.ProductType.CUSTOMIZABLE)
+        .select_related("category", "studio_profile", "studio_profile__default_fabric")
+        .prefetch_related("images", "variants__color", "variants__size")
+        .order_by("category__sort_order", "name")
+    )
+    cards = []
+    for product in products:
+        profile = getattr(product, "studio_profile", None)
+        if profile is not None and not profile.is_enabled:
+            continue
+        if profile and profile.front_reference:
+            image_url = profile.front_reference.url
+        else:
+            primary = product.images.first()
+            image_url = primary.image.url if primary else ""
+        variants = list(product.variants.filter(is_active=True).select_related("color", "size"))
+        colors = {}
+        sizes = set()
+        in_stock = False
+        for variant in variants:
+            colors[variant.color_id] = {"name": variant.color.name, "hex": variant.color.hex_code or "#dddddd"}
+            sizes.add(variant.size.name)
+            if variant.available_stock > 0:
+                in_stock = True
+        cards.append({
+            "product": product,
+            "profile": profile,
+            "image_url": image_url,
+            "colors": list(colors.values()),
+            "sizes": sorted(sizes),
+            "in_stock": in_stock,
+            "has_3d_model": bool(profile and profile.model_file),
+        })
+    return render(request, "designs/garments.html", {"garment_cards": cards})
+
+
 def studio(request, design_id=None):
     products_qs = (
         Product.objects
         .filter(is_active=True, product_type=Product.ProductType.CUSTOMIZABLE)
-        .prefetch_related(
-            "images", "variants__color", "variants__size", "design_mockups__color"
-        )
+        .select_related("studio_profile", "studio_profile__default_fabric")
+        .prefetch_related("images", "variants__color", "variants__size", "design_mockups__color")
         .order_by("name")
     )
-    products = list(products_qs)
-    if not products:
-        return render(request, "designs/studio.html", {"studio_products": [], "initial_design": None, "creator_pricing_enabled": MarketplaceSettings.load().creator_pricing_enabled})
+    products = [
+        product for product in products_qs
+        if getattr(getattr(product, "studio_profile", None), "is_enabled", True)
+    ]
+    studio_settings = StudioSettings.load()
+    fabrics = list(FabricOption.objects.filter(is_active=True))
+    fonts = list(StudioFont.objects.filter(is_active=True))
+    sticker_categories = list(
+        StickerCategory.objects.filter(is_active=True).prefetch_related("stickers")
+    )
 
     initial_design = None
     if design_id:
@@ -125,41 +184,50 @@ def studio(request, design_id=None):
             raise Http404
         design = get_object_or_404(
             Design.objects.select_related("base_product", "base_color"),
-            id=design_id,
-            owner=request.user,
+            id=design_id, owner=request.user,
         )
         initial_design = {
-            "id": str(design.id),
-            "title": design.title,
-            "product_id": design.base_product_id,
-            "color_id": design.base_color_id,
-            "status": design.status,
-            "visibility": design.visibility,
-            "allow_remix": design.allow_remix,
-            "is_for_sale": design.is_for_sale,
-            "sale_price": int(design.sale_price or 0),
-            "design_data": design.design_data,
+            "id": str(design.id), "title": design.title, "product_id": design.base_product_id,
+            "color_id": design.base_color_id, "status": design.status, "visibility": design.visibility,
+            "allow_remix": design.allow_remix, "is_for_sale": design.is_for_sale,
+            "sale_price": int(design.sale_price or 0), "design_data": design.design_data,
         }
 
     requested_product = request.GET.get("product")
     if not initial_design and requested_product:
         try:
             selected = next(product for product in products if str(product.id) == str(requested_product))
-            products.remove(selected)
-            products.insert(0, selected)
+            products.remove(selected); products.insert(0, selected)
         except StopIteration:
             pass
 
-    return render(
-        request,
-        "designs/studio.html",
-        {
-            "studio_products": [_product_payload(product) for product in products],
-            "initial_design": initial_design,
-            "is_authenticated_for_studio": request.user.is_authenticated,
-            "creator_pricing_enabled": MarketplaceSettings.load().creator_pricing_enabled,
-        },
-    )
+    stickers_payload = []
+    for category in sticker_categories:
+        stickers_payload.append({
+            "id": category.id, "name": category.name, "name_fa": category.name_fa, "slug": category.slug,
+            "stickers": [
+                {"id": sticker.id, "title": sticker.title, "title_fa": sticker.title_fa,
+                 "url": sticker.image.url, "preview": sticker.preview_url}
+                for sticker in category.stickers.all() if sticker.is_active
+            ],
+        })
+
+    return render(request, "designs/studio.html", {
+        "studio_products": [_product_payload(product) for product in products],
+        "initial_design": initial_design,
+        "is_authenticated_for_studio": request.user.is_authenticated,
+        "creator_pricing_enabled": MarketplaceSettings.load().creator_pricing_enabled,
+        "studio_fabrics": [{"id": f.id, "name": f.name, "name_fa": f.name_fa, "slug": f.slug,
+                            "roughness": f.roughness, "weave": f.weave_strength, "scale": f.weave_scale, "sheen": f.sheen}
+                           for f in fabrics],
+        "studio_fonts": [{"id": f.id, "name": f.name, "language": f.language_support, "family": f.css_family,
+                           "file_url": f.font_file.url if f.font_file else ""} for f in fonts],
+        "sticker_library": stickers_payload,
+        "studio_settings": {"ai_enabled": studio_settings.ai_enabled, "ai_configured": ai_is_configured(),
+                            "allow_user_stickers": studio_settings.allow_user_stickers,
+                            "inspiration_enabled": studio_settings.inspiration_enabled},
+        "studio_owner_mode": bool(request.user.is_authenticated and request.user.is_superuser),
+    })
 
 
 @login_required(login_url="/account/login/")

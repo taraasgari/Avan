@@ -67,7 +67,7 @@ class DesignAssetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DesignAsset
-        fields = ["id", "original_name", "mime_type", "url", "created_at"]
+        fields = ["id", "original_name", "mime_type", "kind", "source_prompt", "url", "created_at"]
 
     def get_url(self, obj):
         # Keep stored design documents host-independent. The browser can resolve this local media URL.
