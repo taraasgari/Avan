@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}{% if AVAN_PAGE_LANG == 'fa' %}AVAN — ایده‌ات را بپوش{% else %}AVAN — Wear Your Idea{% endif %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/stage20-home.css' %}">{% endblock %}
+{% block content %}
+<section class="v20-home-hero">
+  <div class="v20-home-hero__copy">
+    <span>{% if AVAN_PAGE_LANG == 'fa' %}{{ AVAN_PAGE_DESIGN.hero_kicker_fa|default:'AVAN / نسل جدید مد' }}{% else %}{{ AVAN_PAGE_DESIGN.hero_kicker_en|default:'AVAN / NEW GENERATION FASHION' }}{% endif %}</span>
+    <h1>{% if AVAN_PAGE_LANG == 'fa' %}{{ AVAN_PAGE_DESIGN.hero_title_fa|default:'ایده‌ات را بپوش.' }}{% else %}{{ AVAN_PAGE_DESIGN.hero_title_en|default:'WEAR YOUR IDEA.' }}{% endif %}</h1>
+    <p>{% if AVAN_PAGE_LANG == 'fa' %}{{ AVAN_PAGE_DESIGN.hero_subtitle_fa|default:'لباس AVAN را انتخاب کن، استایل خودت را پیدا کن یا طرح خودت را روی لباس بساز.' }}{% else %}{{ AVAN_PAGE_DESIGN.hero_subtitle_en|default:'Choose AVAN garments, discover your style or create your own design.' }}{% endif %}</p>
+    <div class="v20-home-actions"><a href="{{ AVAN_PAGE_DESIGN.primary_url|default:'/shop/' }}" class="is-primary">{% if AVAN_PAGE_LANG == 'fa' %}{{ AVAN_PAGE_DESIGN.primary_label_fa|default:'مشاهده فروشگاه' }}{% else %}{{ AVAN_PAGE_DESIGN.primary_label_en|default:'SHOP NOW' }}{% endif %}</a><a href="{{ AVAN_PAGE_DESIGN.secondary_url|default:'/design/garments/' }}">{% if AVAN_PAGE_LANG == 'fa' %}{{ AVAN_PAGE_DESIGN.secondary_label_fa|default:'لباس خودت را طراحی کن' }}{% else %}{{ AVAN_PAGE_DESIGN.secondary_label_en|default:'DESIGN YOUR OWN' }}{% endif %}</a></div>
+  </div>
+  <div class="v20-home-hero__visual"><div class="v20-wordmark">AVAN</div><p>{% if AVAN_PAGE_LANG == 'fa' %}فروشگاه × طراحی × کالکشن × بازی{% else %}SHOP × DESIGN × COLLECTIONS × PLAY{% endif %}</p></div>
+</section>
+<section class="v20-home-links"><a href="/shop/"><span>01</span><strong>{% if AVAN_PAGE_LANG == 'fa' %}فروشگاه{% else %}SHOP{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}لباس‌ها و محصولات AVAN{% else %}AVAN garments and products{% endif %}</small></a><a href="/design/garments/"><span>02</span><strong>{% if AVAN_PAGE_LANG == 'fa' %}طراحی{% else %}DESIGN{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}طرح خودت را روی لباس بساز{% else %}Create on an AVAN garment{% endif %}</small></a><a href="/collections/"><span>03</span><strong>{% if AVAN_PAGE_LANG == 'fa' %}کالکشن‌ها{% else %}COLLECTIONS{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}انتخاب‌های تازه و محدود{% else %}Fresh and limited selections{% endif %}</small></a><a href="/play/"><span>04</span><strong>{% if AVAN_PAGE_LANG == 'fa' %}AVAN PLAY{% else %}AVAN PLAY{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}بازی کن و جایزه بگیر{% else %}Play and earn rewards{% endif %}</small></a></section>
+{% endblock %}

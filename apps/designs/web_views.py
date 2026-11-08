@@ -71,7 +71,8 @@ def _product_payload(product):
             "back_reference": getattr(getattr(product, "studio_profile", None), "back_reference", None).url if getattr(getattr(product, "studio_profile", None), "back_reference", None) else None,
             "left_sleeve_reference": getattr(getattr(product, "studio_profile", None), "left_sleeve_reference", None).url if getattr(getattr(product, "studio_profile", None), "left_sleeve_reference", None) else None,
             "right_sleeve_reference": getattr(getattr(product, "studio_profile", None), "right_sleeve_reference", None).url if getattr(getattr(product, "studio_profile", None), "right_sleeve_reference", None) else None,
-            "model_url": getattr(getattr(product, "studio_profile", None), "model_file", None).url if getattr(getattr(product, "studio_profile", None), "model_file", None) else None,
+            "neck_label_reference": getattr(getattr(product, "studio_profile", None), "neck_label_reference", None).url if getattr(getattr(product, "studio_profile", None), "neck_label_reference", None) else None,
+            "print_zones": getattr(getattr(product, "studio_profile", None), "print_zones", {}) or {},
         },
     }
 

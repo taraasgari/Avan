@@ -104,7 +104,7 @@ class StudioProductSetupForm(forms.ModelForm):
             "back_reference",
             "left_sleeve_reference",
             "right_sleeve_reference",
-            "model_file",
+            "neck_label_reference",
             "notes",
         ]
         widgets = {
@@ -136,6 +136,9 @@ class StudioProductSetupForm(forms.ModelForm):
 
     def clean_right_sleeve_reference(self):
         return self._clean_reference("right_sleeve_reference")
+
+    def clean_neck_label_reference(self):
+        return self._clean_reference("neck_label_reference")
 
     def clean_model_file(self):
         upload = self.cleaned_data.get("model_file")

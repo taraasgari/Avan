@@ -1,38 +1,4 @@
-{% extends "base.html" %}
-{% load static %}
+{% extends "base.html" %}{% load static avan_ui %}
 {% block title %}{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی — AVAN{% else %}Support — AVAN{% endif %}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/support.css' %}">{% endblock %}
-{% block content %}
-<section class="support-page">
-  <header class="support-hero">
-    <div><span>AVAN / {% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی{% else %}SUPPORT{% endif %}</span><h1>{% if AVAN_PAGE_LANG == 'fa' %}چطور می‌تونیم کمکت کنیم؟{% else %}HOW CAN WE HELP?{% endif %}</h1><p>{% if AVAN_PAGE_LANG == 'fa' %}درخواستت رو ثبت کن؛ پاسخ مالک یا تیم پشتیبانی همین‌جا داخل گفتگو میاد.{% else %}Open a ticket and continue the conversation with AVAN support here.{% endif %}</p></div>
-  </header>
-
-  <div class="support-layout">
-    <section class="support-compose">
-      <div class="support-card-head"><strong>{% if AVAN_PAGE_LANG == 'fa' %}درخواست جدید{% else %}NEW REQUEST{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}برای هر موضوع یک تیکت جدا بساز.{% else %}Use one ticket per topic.{% endif %}</small></div>
-      <form method="post" action="/account/support/new/" class="support-form">{% csrf_token %}
-        <label><span>{% if AVAN_PAGE_LANG == 'fa' %}موضوع{% else %}SUBJECT{% endif %}</span><input name="subject" maxlength="180" required placeholder="{% if AVAN_PAGE_LANG == 'fa' %}مثلاً مشکل در سفارش یا پرداخت{% else %}Order or payment issue{% endif %}"></label>
-        <div class="support-form-grid">
-          <label><span>{% if AVAN_PAGE_LANG == 'fa' %}دسته{% else %}CATEGORY{% endif %}</span><select name="category">{% for value,label in categories %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></label>
-          <label><span>{% if AVAN_PAGE_LANG == 'fa' %}شماره سفارش (اختیاری){% else %}ORDER NUMBER (OPTIONAL){% endif %}</span><input name="order_number" maxlength="80"></label>
-        </div>
-        <label><span>{% if AVAN_PAGE_LANG == 'fa' %}پیام{% else %}MESSAGE{% endif %}</span><textarea name="body" rows="7" maxlength="5000" required></textarea></label>
-        <button type="submit">{% if AVAN_PAGE_LANG == 'fa' %}ثبت درخواست پشتیبانی{% else %}CREATE SUPPORT TICKET{% endif %}</button>
-      </form>
-    </section>
-
-    <section class="support-history">
-      <div class="support-card-head"><strong>{% if AVAN_PAGE_LANG == 'fa' %}گفتگوهای من{% else %}MY TICKETS{% endif %}</strong><small>{{ tickets|length }}</small></div>
-      <div class="support-ticket-list">
-      {% for ticket in tickets %}
-        <a href="/account/support/{{ ticket.reference }}/" class="support-ticket-row">
-          <div><small>{{ ticket.get_category_display }}</small><strong>{{ ticket.subject }}</strong><span>{% if ticket.order_number %}#{{ ticket.order_number }} · {% endif %}{{ ticket.last_message_at|date:"Y/m/d H:i" }}</span></div>
-          <b class="support-status support-status--{{ ticket.status }}">{{ ticket.get_status_display }}</b>
-        </a>
-      {% empty %}<div class="support-empty">{% if AVAN_PAGE_LANG == 'fa' %}هنوز درخواستی ثبت نکردی.{% else %}NO SUPPORT TICKETS YET.{% endif %}</div>{% endfor %}
-      </div>
-    </section>
-  </div>
-</section>
-{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/support.css' %}"><link rel="stylesheet" href="{% static 'css/stage20-support.css' %}">{% endblock %}
+{% block content %}<section class="support-page"><header class="support-hero"><div><span>AVAN / {% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی{% else %}SUPPORT{% endif %}</span><h1>{% if AVAN_PAGE_LANG == 'fa' %}پیگیری و پشتیبانی سفارش{% else %}ORDER HELP & SUPPORT{% endif %}</h1><p>{% if AVAN_PAGE_LANG == 'fa' %}سفارش مرتبط را انتخاب کن تا تیم پشتیبانی همان لحظه وضعیت، کد پیگیری و آیتم‌ها را ببیند.{% else %}Choose the related order so support can see its live status and tracking data.{% endif %}</p></div><a href="/track/" class="btn">{% if AVAN_PAGE_LANG == 'fa' %}پیگیری سفارش{% else %}TRACK ORDER{% endif %}</a></header><div class="support-layout"><section class="support-compose"><div class="support-card-head"><strong>{% if AVAN_PAGE_LANG == 'fa' %}درخواست جدید{% else %}NEW REQUEST{% endif %}</strong></div><form method="post" action="/account/support/new/" class="support-form">{% csrf_token %}<label><span>{% if AVAN_PAGE_LANG == 'fa' %}موضوع{% else %}SUBJECT{% endif %}</span><input name="subject" maxlength="180" required></label><div class="support-form-grid"><label><span>{% if AVAN_PAGE_LANG == 'fa' %}دسته{% else %}CATEGORY{% endif %}</span><select name="category">{% for value,label in categories %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></label><label><span>{% if AVAN_PAGE_LANG == 'fa' %}سفارش مرتبط{% else %}RELATED ORDER{% endif %}</span><select name="order_id"><option value="">{% if AVAN_PAGE_LANG == 'fa' %}بدون سفارش{% else %}No order{% endif %}</option>{% for order in orders %}<option value="{{ order.id }}" {% if request.GET.order == order.id|stringformat:'s' %}selected{% endif %}>{{ order.tracking_code }} — {% avan_status order.status %}</option>{% endfor %}</select></label></div><label><span>{% if AVAN_PAGE_LANG == 'fa' %}پیام{% else %}MESSAGE{% endif %}</span><textarea name="body" rows="7" maxlength="5000" required></textarea></label><button type="submit">{% if AVAN_PAGE_LANG == 'fa' %}ثبت درخواست{% else %}CREATE TICKET{% endif %}</button></form></section><section class="support-history"><div class="support-card-head"><strong>{% if AVAN_PAGE_LANG == 'fa' %}گفتگوهای من{% else %}MY TICKETS{% endif %}</strong><small>{{ tickets|length }}</small></div><div class="support-ticket-list">{% for ticket in tickets %}<a href="/account/support/{{ ticket.reference }}/" class="support-ticket-row"><div><small>{{ ticket.get_category_display }}</small><strong>{{ ticket.subject }}</strong><span>{% if ticket.order %}{{ ticket.order.tracking_code }} · {% avan_status ticket.order.status %} · {% elif ticket.order_number %}{{ ticket.order_number }} · {% endif %}{{ ticket.last_message_at|date:'Y/m/d H:i' }}</span></div><b class="support-status support-status--{{ ticket.status }}">{% avan_status ticket.status %}</b></a>{% empty %}<div class="support-empty">{% if AVAN_PAGE_LANG == 'fa' %}هنوز درخواستی ثبت نکردی.{% else %}NO SUPPORT TICKETS YET.{% endif %}</div>{% endfor %}</div></section></div></section>{% endblock %}

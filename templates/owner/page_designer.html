@@ -1,0 +1,34 @@
+{% extends "owner/base.html" %}{% load static %}
+{% block title %}طراحی بصری سایت — AVAN OWNER{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/stage20-owner-design.css' %}">{% endblock %}
+{% block content %}
+<section class="v20-builder">
+  <header class="v20-builder__head"><div><span>AVAN / VISUAL BUILDER</span><h1>{% if AVAN_PAGE_LANG == 'fa' %}طراحی بصری صفحات{% else %}VISUAL PAGE DESIGNER{% endif %}</h1><p>{% if AVAN_PAGE_LANG == 'fa' %}صفحه را انتخاب کن، تغییرات را زنده ببین و فقط وقتی آماده بود منتشر کن.{% else %}Choose a page, preview the draft and publish when ready.{% endif %}</p></div><a href="{{ selected_page.page_path }}?visual_preview=1" target="_blank" class="owner-btn">{% if AVAN_PAGE_LANG == 'fa' %}باز کردن پیش‌نمایش ↗{% else %}OPEN PREVIEW ↗{% endif %}</a></header>
+  <div class="v20-builder__layout">
+    <aside class="v20-builder__pages">{% for page in pages %}<a href="?page={{ page.page_key }}" class="{% if page.id == selected_page.id %}is-active{% endif %}"><strong>{% if AVAN_PAGE_LANG == 'fa' %}{{ page.page_label_fa }}{% else %}{{ page.page_label_en }}{% endif %}</strong><small>{{ page.page_path }}</small></a>{% endfor %}</aside>
+    <main class="v20-builder__preview"><div class="v20-builder__bar"><b>{% if AVAN_PAGE_LANG == 'fa' %}پیش‌نمایش زنده{% else %}LIVE PREVIEW{% endif %}</b><span>DESKTOP / LIGHT-DARK FROM SITE</span></div><iframe src="{{ selected_page.page_path }}?visual_preview=1" title="preview" data-visual-preview></iframe></main>
+    <aside class="v20-builder__controls">
+      <form method="post">{% csrf_token %}<input type="hidden" name="page_key" value="{{ selected_page.page_key }}">
+        <div class="v20-control-group"><h3>{% if AVAN_PAGE_LANG == 'fa' %}رنگ و فاصله{% else %}STYLE TOKENS{% endif %}</h3>
+          <label>Background<input name="background" value="{{ visual_data.background|default:'' }}" placeholder="#ffffff"></label>
+          <label>Text<input name="text_color" value="{{ visual_data.text_color|default:'' }}" placeholder="#111111"></label>
+          <label>Surface<input name="surface" value="{{ visual_data.surface|default:'' }}" placeholder="#f6f6f6"></label>
+          <label>Accent<input name="accent" value="{{ visual_data.accent|default:'' }}" placeholder="#d50000"></label>
+          <label>Section gap<input name="section_gap" value="{{ visual_data.section_gap|default:'' }}" placeholder="72"></label>
+          <label>Card radius<input name="card_radius" value="{{ visual_data.card_radius|default:'' }}" placeholder="12"></label>
+        </div>
+        <div class="v20-control-group"><h3>{% if AVAN_PAGE_LANG == 'fa' %}متن اصلی صفحه{% else %}PAGE HERO COPY{% endif %}</h3>
+          <label>تیتر کوچک فارسی<input name="hero_kicker_fa" value="{{ visual_data.hero_kicker_fa|default:'' }}"></label><label>English kicker<input name="hero_kicker_en" value="{{ visual_data.hero_kicker_en|default:'' }}"></label>
+          <label>عنوان فارسی<textarea name="hero_title_fa">{{ visual_data.hero_title_fa|default:'' }}</textarea></label><label>English title<textarea name="hero_title_en">{{ visual_data.hero_title_en|default:'' }}</textarea></label>
+          <label>توضیح فارسی<textarea name="hero_subtitle_fa">{{ visual_data.hero_subtitle_fa|default:'' }}</textarea></label><label>English subtitle<textarea name="hero_subtitle_en">{{ visual_data.hero_subtitle_en|default:'' }}</textarea></label>
+          <label>دکمه اصلی فارسی<input name="primary_label_fa" value="{{ visual_data.primary_label_fa|default:'' }}"></label><label>Primary EN<input name="primary_label_en" value="{{ visual_data.primary_label_en|default:'' }}"></label><label>URL<input name="primary_url" value="{{ visual_data.primary_url|default:'' }}"></label>
+          <label>دکمه دوم فارسی<input name="secondary_label_fa" value="{{ visual_data.secondary_label_fa|default:'' }}"></label><label>Secondary EN<input name="secondary_label_en" value="{{ visual_data.secondary_label_en|default:'' }}"></label><label>URL<input name="secondary_url" value="{{ visual_data.secondary_url|default:'' }}"></label>
+          <label class="v20-check"><input type="checkbox" name="hide_header" {% if visual_data.hide_header %}checked{% endif %}> {% if AVAN_PAGE_LANG == 'fa' %}نوار سایت در این صفحه مخفی شود{% else %}Hide site header on this page{% endif %}</label>
+        </div>
+        <div class="v20-actions"><button name="action" value="save">{% if AVAN_PAGE_LANG == 'fa' %}ذخیره پیش‌نویس{% else %}SAVE DRAFT{% endif %}</button><button name="action" value="publish" class="is-primary">{% if AVAN_PAGE_LANG == 'fa' %}انتشار تغییرات{% else %}PUBLISH{% endif %}</button></div>
+      </form>
+    </aside>
+  </div>
+</section>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/stage20-owner-design.js' %}" defer></script>{% endblock %}

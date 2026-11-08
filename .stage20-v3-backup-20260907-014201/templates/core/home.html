@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AVAN ΓÇö Wear What You Imagine{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<section class="home-hero">
+    <div class="home-hero__content">
+        <p class="home-hero__eyebrow">AVAN / NEW GENERATION FASHION</p>
+
+        <h1>
+            WEAR<br>
+            YOUR<br>
+            IDEA.
+        </h1>
+
+        <p class="home-hero__text">
+            ┘ä╪¿╪º╪│ΓÇî┘ç╪º█î Avan ╪▒╪º ╪º┘å╪¬╪«╪º╪¿ ┌⌐┘å╪î ╪º╪│╪¬╪º█î┘ä ╪«┘ê╪»╪¬ ╪▒╪º ┘╛█î╪»╪º ┌⌐┘å
+            █î╪º ╪╖╪▒╪¡ ╪«┘ê╪»╪¬ ╪▒╪º ╪▒┘ê█î ┘ä╪¿╪º╪│ ╪¿╪│╪º╪▓.
+        </p>
+
+        <div class="home-hero__actions">
+            <a href="/shop/" class="btn btn-primary">
+                SHOP NOW
+            </a>
+
+            <a href="/design/" class="btn">
+                DESIGN YOUR OWN
+            </a>
+        </div>
+    </div>
+
+    <div class="home-hero__visual">
+        <span class="home-hero__badge">
+            AVAN DROP / 001
+        </span>
+    </div>
+</section>
+
+
+<section class="home-section" id="shop">
+
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">SHOP</p>
+            <h2 class="section-title">CHOOSE YOUR FIT.</h2>
+        </div>
+
+        <a href="/shop/" class="section-link">
+            VIEW ALL
+        </a>
+    </div>
+
+    <div class="category-grid">
+
+        <a href="/shop/?category=t-shirts"
+           class="category-card">
+            <span class="category-card__index">01</span>
+            <h3>T-SHIRTS</h3>
+        </a>
+
+        <a href="/shop/?category=oversized"
+           class="category-card">
+            <span class="category-card__index">02</span>
+            <h3>OVERSIZED</h3>
+        </a>
+
+        <a href="/shop/?category=hoodies"
+           class="category-card">
+            <span class="category-card__index">03</span>
+            <h3>HOODIES</h3>
+        </a>
+
+        <a href="/shop/"
+           class="category-card">
+            <span class="category-card__index">04</span>
+            <h3>ALL PIECES</h3>
+        </a>
+
+    </div>
+</section>
+
+
+<section class="home-section home-section--dark"
+         id="design">
+
+    <div class="studio-block">
+
+        <div class="studio-copy">
+            <p class="section-kicker">
+                AVAN STUDIO
+            </p>
+
+            <h2 class="section-title">
+                MAKE IT<br>
+                YOURS.
+            </h2>
+
+            <p>
+                █î┌⌐█î ╪º╪▓ ┘ä╪¿╪º╪│ΓÇî┘ç╪º█î ╪¬┘ê┘ä█î╪» Avan ╪▒╪º ╪º┘å╪¬╪«╪º╪¿ ┌⌐┘å ┘ê
+                ╪╖╪▒╪º╪¡█î╪î ┘å┘ê╪┤╪¬┘ç █î╪º ╪¬╪╡┘ê█î╪▒ ╪«┘ê╪»╪¬ ╪▒╪º ╪▒┘ê█î ╪ó┘å ┘é╪▒╪º╪▒ ╪¿╪»┘ç.
+                ╪╖╪▒╪¡ ╪▒╪º ╪░╪«█î╪▒┘ç ┌⌐┘å ┘ê ┘ç╪▒ ╪▓┘à╪º┘å ╪«┘ê╪º╪│╪¬█î ╪º╪»╪º┘à┘ç ╪¿╪»┘ç.
+            </p>
+
+            <div>
+                <a href="/design/"
+                   class="btn btn-primary">
+                    START DESIGNING
+                </a>
+            </div>
+        </div>
+
+        <div class="studio-stage">
+
+            <div class="fake-shirt">
+                YOUR<br>ART
+            </div>
+
+            <span class="studio-label">
+                LIVE DESIGN PREVIEW
+            </span>
+
+        </div>
+
+    </div>
+</section>
+
+
+<section class="home-section">
+
+    <div class="section-head">
+
+        <div>
+            <p class="section-kicker">
+                NEW / FEATURED
+            </p>
+
+            <h2 class="section-title">
+                FRESH PIECES.
+            </h2>
+        </div>
+
+        <a href="/shop/"
+           class="section-link">
+            SHOP ALL
+        </a>
+
+    </div>
+
+
+    <div class="product-grid">
+
+        {% for product in featured_products %}
+
+        <article class="product-card">
+
+            <a href="/shop/{{ product.slug }}/">
+
+                <div class="product-card__media">
+
+                    {% with image=product.images.first %}
+
+                        {% if image %}
+
+                            <img
+                                src="{{ image.image.url }}"
+                                alt="{{ image.alt_text|default:product.name }}"
+                                loading="lazy"
+                            >
+
+                        {% else %}
+
+                            <div class="product-placeholder">
+                                AVAN
+                            </div>
+
+                        {% endif %}
+
+                    {% endwith %}
+
+                    {% if product.product_type == "customizable" %}
+                        <span class="product-tag">
+                            CUSTOMIZE
+                        </span>
+                    {% endif %}
+
+                </div>
+
+                <div class="product-card__body">
+
+                    <h3>
+                        {{ product.name }}
+                    </h3>
+
+                    <div class="product-card__meta">
+
+                        <span>
+                            {{ product.category.name }}
+                        </span>
+
+                        <strong>
+                            {{ product.base_price }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </article>
+
+        {% empty %}
+
+        <p>
+            ┘ç┘å┘ê╪▓ ┘à╪¡╪╡┘ê┘ä█î ╪º╪╢╪º┘ü┘ç ┘å╪┤╪»┘ç.
+        </p>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+
+<section class="home-section" id="drops">
+
+    <div class="drop-card">
+
+        <p class="section-kicker"
+           style="color:white;">
+            AVAN DROP 001
+        </p>
+
+        <h2>
+            RED<br>
+            DISTRICT.
+        </h2>
+
+        <p>
+            LIMITED RELEASE / COMING SOON
+        </p>
+
+        <div>
+            <a href="/drops/"
+               class="btn"
+               style="border-color:white;">
+                DISCOVER DROP
+            </a>
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="home-section home-section--soft">
+
+    <div class="section-head">
+
+        <div>
+            <p class="section-kicker">
+                YOUR AVAN
+            </p>
+
+            <h2 class="section-title">
+                MORE THAN A STORE.
+            </h2>
+        </div>
+
+    </div>
+
+
+    <div class="experience-grid">
+
+        <a href="/outfits/"
+           class="experience-card">
+
+            <span class="experience-card__number">
+                01
+            </span>
+
+            <div>
+                <h3>OUTFIT BUILDER</h3>
+
+                <p>
+                    ┘ä╪¿╪º╪│ΓÇî┘ç╪º ╪▒╪º ┌⌐┘å╪º╪▒ ┘ç┘à ╪¿╪¿█î┘å ┘ê
+                    ╪º╪│╪¬╪º█î┘ä ┌⌐╪º┘à┘ä ╪«┘ê╪»╪¬ ╪▒╪º ╪¿╪│╪º╪▓.
+                </p>
+            </div>
+
+        </a>
+
+
+        <a href="/size-passport/"
+           class="experience-card">
+
+            <span class="experience-card__number">
+                02
+            </span>
+
+            <div>
+                <h3>SIZE PASSPORT</h3>
+
+                <p>
+                    ╪│╪º█î╪▓ ┘ê Fit ╪»┘ä╪«┘ê╪º┘ç╪¬ ╪▒╪º █î┌⌐╪¿╪º╪▒ ┘ê╪º╪▒╪» ┌⌐┘å
+                    ╪¬╪º ╪º┘å╪¬╪«╪º╪¿ ┘ä╪¿╪º╪│ ╪▒╪º╪¡╪¬ΓÇî╪¬╪▒ ╪┤┘ê╪».
+                </p>
+            </div>
+
+        </a>
+
+
+        <a href="/explore/"
+           class="experience-card">
+
+            <span class="experience-card__number">
+                03
+            </span>
+
+            <div>
+                <h3>EXPLORE</h3>
+
+                <p>
+                    ╪╖╪▒╪º╪¡█îΓÇî┘ç╪º█î ┘à┘å╪¬╪«╪¿ ┌⌐╪º╪▒╪¿╪▒╪º┘å ╪▒╪º ╪¿╪¿█î┘å╪î
+                    ╪░╪«█î╪▒┘ç ┌⌐┘å █î╪º ╪¿╪▒╪º█î ╪«┘ê╪»╪¬ Remix ┌⌐┘å.
+                </p>
+            </div>
+
+        </a>
+
+    </div>
+
+</section>
+
+
+<section class="home-section home-section--dark"
+         id="challenges">
+
+    <div class="section-head">
+
+        <div>
+
+            <p class="section-kicker">
+                AVAN CHALLENGES
+            </p>
+
+            <h2 class="section-title">
+                PLAY.<br>
+                CREATE.<br>
+                WIN.
+            </h2>
+
+        </div>
+
+    </div>
+
+    <p style="max-width:620px;color:#aaa;line-height:1.9;">
+        ╪»╪▒ ┌å╪º┘ä╪┤ΓÇî┘ç╪º█î Avan ╪┤╪▒┌⌐╪¬ ┌⌐┘å╪î
+        ╪º┘à╪¬█î╪º╪▓ ╪¿┌»█î╪▒ ┘ê ╪º╪▓ ╪º┘à╪¬█î╪º╪▓┘ç╪º ╪¿╪▒╪º█î
+        ╪¬╪«┘ü█î┘ü╪î ╪º╪▒╪│╪º┘ä ╪▒╪º█î┌»╪º┘å ┘ê ╪¼╪º█î╪▓┘ç ╪º╪│╪¬┘ü╪º╪»┘ç ┌⌐┘å.
+    </p>
+
+    <br>
+
+    <a href="/challenges/"
+       class="btn btn-primary">
+        VIEW CHALLENGES
+    </a>
+
+</section>
+
+{% endblock %}

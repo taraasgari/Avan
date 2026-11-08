@@ -44,7 +44,7 @@
                 <h3>{% if AVAN_PAGE_LANG == 'fa' %}اصلی{% else %}HOME{% endif %}</h3>
                 {% if request.user.is_superuser or "dashboard" in owner_sections %}<a href="/owner/" class="{% if request.path == '/owner/' %}is-active{% endif %}"><i>⌂</i><span>{% avan_t "overview" %}</span></a>{% endif %}
                 {% if request.user.is_superuser or "analytics" in owner_sections %}<a href="/owner/analytics/" class="{% if '/owner/analytics/' in request.path %}is-active{% endif %}"><i>↗</i><span>{% avan_t "analytics" %}</span></a>{% endif %}
-                {% if request.user.is_superuser or "appearance" in owner_sections %}<a href="/owner/appearance/" class="{% if '/owner/appearance/' in request.path %}is-active{% endif %}"><i>◐</i><span>{% if AVAN_PAGE_LANG == 'fa' %}طراحی و ظاهر سایت{% else %}SITE APPEARANCE{% endif %}</span></a>{% endif %}
+                {% if request.user.is_superuser or "appearance" in owner_sections %}<a href="/owner/design/" class="{% if '/owner/design/' in request.path %}is-active{% endif %}"><i>✦</i><span>{% if AVAN_PAGE_LANG == 'fa' %}طراحی بصری سایت{% else %}VISUAL SITE DESIGN{% endif %}</span></a>{% endif %}
             </section>
 
             <section class="owner-nav-group">
@@ -109,7 +109,7 @@
             </div>
             <div class="owner-topbar__right">
                 <div class="owner-topbar__alerts">{% if owner_review_orders %}{% if request.user.is_superuser or "orders" in owner_sections %}<a href="/owner/orders/?status=needs_review">{% if AVAN_PAGE_LANG == 'fa' %}نیازمند بررسی{% else %}REVIEW{% endif %} {{ owner_review_orders }}</a>{% endif %}{% endif %}{% if owner_support_waiting %}{% if request.user.is_superuser or "support" in owner_sections %}<a href="/owner/support/">{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی{% else %}SUPPORT{% endif %} {{ owner_support_waiting }}</a>{% endif %}{% endif %}{% if owner_pending_payouts %}{% if request.user.is_superuser or "finance" in owner_sections %}<a href="/owner/finance/">{% if AVAN_PAGE_LANG == 'fa' %}تسویه{% else %}PAYOUTS{% endif %} {{ owner_pending_payouts }}</a>{% endif %}{% endif %}</div>
-                {% if request.user.is_superuser or "appearance" in owner_sections %}<a class="owner-topbar__preview" href="/owner/appearance/">{% if AVAN_PAGE_LANG == 'fa' %}ویرایش ظاهر{% else %}EDIT SITE{% endif %}</a>{% endif %}
+                {% if request.user.is_superuser or "appearance" in owner_sections %}<a class="owner-topbar__preview owner-topbar__design" href="/owner/design/">✨ {% if AVAN_PAGE_LANG == 'fa' %}طراحی{% else %}DESIGN{% endif %}</a>{% endif %}
                 <a class="owner-topbar__store" href="/" target="_blank">{% if AVAN_PAGE_LANG == 'fa' %}مشاهده سایت{% else %}VIEW STORE{% endif %} ↗</a>
             </div>
         </header>

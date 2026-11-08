@@ -13,6 +13,7 @@ _OWNER_PATH_SECTIONS = [
     ("/owner/commerce/shipping-rules/", "shipping"),
     ("/owner/commerce/", "commerce"),
     ("/owner/content/", "content"),
+    ("/owner/design/", "appearance"),
     ("/owner/appearance/", "appearance"),
     ("/owner/analytics/", "analytics"),
     ("/owner/catalog/", "catalog"),

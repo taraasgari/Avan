@@ -31,3 +31,8 @@ def avan_lang(context):
 @register.simple_tag(takes_context=True)
 def avan_dir(context):
     return "rtl" if _language(context) == "fa" else "ltr"
+
+
+@register.simple_tag(takes_context=True)
+def avan_status(context, value):
+    return translate(str(value or ""), _language(context))

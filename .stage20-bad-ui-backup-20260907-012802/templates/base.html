@@ -1,0 +1,149 @@
+{% load static avan_ui avan_content %}
+{% avan_lang as AVAN_PAGE_LANG %}{% avan_dir as AVAN_PAGE_DIR %}{% seo_for_request request as AVAN_SEO %}
+<!doctype html>
+<html lang="{{ AVAN_PAGE_LANG }}" dir="{{ AVAN_PAGE_DIR }}" data-avan-language="{{ AVAN_PAGE_LANG }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="theme-color" content="#D50000">
+    <meta name="description" content="{{ AVAN_SEO.description }}">
+    <meta name="robots" content="{% if AVAN_SEO.noindex %}noindex,nofollow{% else %}index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1{% endif %}">
+    <link rel="canonical" href="{{ AVAN_SEO.canonical }}">
+    <link rel="alternate" hreflang="en" href="{{ AVAN_SEO.alternate_en }}">
+    <link rel="alternate" hreflang="fa" href="{{ AVAN_SEO.alternate_fa }}">
+    <link rel="alternate" hreflang="x-default" href="{{ AVAN_SEO.alternate_en }}">
+    <meta property="og:site_name" content="AVAN">
+    <meta property="og:title" content="{{ AVAN_SEO.title }}">
+    <meta property="og:description" content="{{ AVAN_SEO.description }}">
+    <meta property="og:url" content="{{ AVAN_SEO.canonical }}">
+    <meta property="og:type" content="{{ AVAN_SEO.og_type|default:'website' }}">
+    {% if AVAN_SEO.og_image %}<meta property="og:image" content="{{ AVAN_SEO.og_image }}">{% endif %}
+    <meta name="twitter:card" content="{% if AVAN_SEO.og_image %}summary_large_image{% else %}summary{% endif %}">
+    <meta name="twitter:title" content="{{ AVAN_SEO.title }}">
+    <meta name="twitter:description" content="{{ AVAN_SEO.description }}">
+    {% if AVAN_SEO.og_image %}<meta name="twitter:image" content="{{ AVAN_SEO.og_image }}">{% endif %}
+    {% if AVAN_SEO.json_ld_json %}<script type="application/ld+json">{{ AVAN_SEO.json_ld_json|safe }}</script>{% endif %}
+    {% for schema in AVAN_SEO.schemas_json %}<script type="application/ld+json">{{ schema|safe }}</script>{% endfor %}
+    <script>(function(){try{var t=localStorage.getItem('avan_theme');if(t!=='dark'&&t!=='light')t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}})();</script>
+    <style id="avan-site-appearance">
+      :root{
+        --red:{{ AVAN_APPEARANCE.primary_color }};
+        --avan-accent:{{ AVAN_APPEARANCE.primary_color }};
+        --avan-light-bg:{{ AVAN_APPEARANCE.light_background }};
+        --avan-light-surface:{{ AVAN_APPEARANCE.light_surface }};
+        --avan-dark-bg:{{ AVAN_APPEARANCE.dark_background }};
+        --avan-dark-surface:{{ AVAN_APPEARANCE.dark_surface }};
+        --avan-base-font-size:{{ AVAN_APPEARANCE.base_font_size }}px;
+        --avan-fa-font-size:{{ AVAN_APPEARANCE.persian_font_size }}px;
+        --avan-content-width:{{ AVAN_APPEARANCE.content_width }}px;
+        --avan-page-gutter:{{ AVAN_APPEARANCE.page_gutter }}px;
+        --avan-header-height:{{ AVAN_APPEARANCE.header_height }}px;
+        --avan-section-spacing:{{ AVAN_APPEARANCE.section_spacing }}px;
+        --avan-card-radius:{{ AVAN_APPEARANCE.card_radius }}px;
+        --avan-button-radius:{{ AVAN_APPEARANCE.button_radius }}px;
+        --avan-card-shadow:{% if AVAN_APPEARANCE.card_shadow %}0 14px 34px rgba(17,17,17,.075){% else %}none{% endif %};
+      }
+    </style>
+    <link rel="manifest" href="{% static 'pwa/manifest.webmanifest' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/cart.css' %}">
+    <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+    <link rel="stylesheet" href="{% static 'css/shell.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stage14-site-refresh.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stage18-header.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stage20-shell.css' %}">
+    {% block extra_css %}{% endblock %}
+    <title>{% block title %}{{ AVAN_SEO.title|default:AVAN_BRAND_NAME }}{% endblock %}</title>
+</head>
+<body>
+<header class="site-header site-header-v5" {% if AVAN_PAGE_DESIGN.hide_header %}hidden{% endif %}>
+  <div class="v5-top">
+    <a class="v5-brand" href="/" aria-label="AVAN">AVAN</a>
+    <form class="v5-search" action="/search/" method="get" role="search" data-live-search-form>
+      <span class="v5-search__icon">⌕</span>
+      <input type="search" name="q" placeholder="{% if AVAN_PAGE_LANG == 'fa' %}جستجو در محصولات، طرح‌ها، کالکشن‌ها و طراحان...{% else %}Search products, designs, collections and creators...{% endif %}" autocomplete="off" data-live-search-input>
+      <kbd>ENTER</kbd><div class="header-search-suggestions" data-search-suggestions hidden></div>
+    </form>
+    <div class="v5-actions">
+      <button type="button" class="v5-icon" data-theme-toggle aria-label="{% if AVAN_PAGE_LANG == 'fa' %}حالت شب و روز{% else %}Theme{% endif %}"><span class="theme-icon theme-icon--moon">☾</span><span class="theme-icon theme-icon--sun">☀</span></button>
+      <button type="button" class="v5-lang" data-language-toggle>{% avan_t "language" %}</button>
+      {% if request.user.is_authenticated %}
+      <details class="v5-account">
+        <summary><span class="v5-account__avatar">{{ request.user.display_name|default:request.user.username|slice:":1"|upper }}</span><span><small>{% if request.user.is_superuser %}{% if AVAN_PAGE_LANG == 'fa' %}مالک{% else %}OWNER{% endif %}{% else %}{% if AVAN_PAGE_LANG == 'fa' %}حساب من{% else %}MY ACCOUNT{% endif %}{% endif %}</small><strong>{{ request.user.display_name|default:request.user.username }}</strong></span><b>⌄</b></summary>
+        <div class="v5-account-menu">
+          <div class="v5-account-menu__head"><strong>{{ request.user.display_name|default:request.user.username }}</strong><small>{{ request.user.email }}</small></div>
+          <a href="/account/">{% if AVAN_PAGE_LANG == 'fa' %}پروفایل و حساب من{% else %}MY PROFILE{% endif %}</a>
+          <a href="/account/#orders">{% if AVAN_PAGE_LANG == 'fa' %}سفارش‌های من{% else %}MY ORDERS{% endif %}</a>
+          <a href="/account/wishlist/">{% if AVAN_PAGE_LANG == 'fa' %}علاقه‌مندی‌ها{% else %}WISHLIST{% endif %}</a>
+          <a href="/rewards/">{% if AVAN_PAGE_LANG == 'fa' %}امتیازها و جوایز{% else %}POINTS & REWARDS{% endif %}</a>
+          <a href="/account/support/" class="v5-support-link">{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی من{% else %}MY SUPPORT{% endif %}{% if AVAN_SUPPORT_UNREAD %}<b class="v5-menu-badge">{{ AVAN_SUPPORT_UNREAD }}</b>{% endif %}</a>
+          <a href="/track/">{% if AVAN_PAGE_LANG == 'fa' %}پیگیری سفارش{% else %}TRACK ORDER{% endif %}</a>
+          {% if request.user.is_staff %}<div class="v5-account-menu__divider"></div><span class="v5-account-menu__label">{% if AVAN_PAGE_LANG == 'fa' %}مدیریت{% else %}MANAGEMENT{% endif %}</span><a href="/owner/">{% if AVAN_PAGE_LANG == 'fa' %}داشبورد مدیریت{% else %}OWNER DASHBOARD{% endif %}</a>{% endif %}
+          {% if request.user.is_superuser %}<a href="/owner/design/">{% if AVAN_PAGE_LANG == 'fa' %}طراحی بصری سایت{% else %}VISUAL SITE DESIGN{% endif %}</a><a href="/owner/staff/">{% if AVAN_PAGE_LANG == 'fa' %}ادمین‌ها و دسترسی‌ها{% else %}STAFF ACCESS{% endif %}</a>{% endif %}
+          <div class="v5-account-menu__divider"></div><form method="post" action="/account/logout/">{% csrf_token %}<button>{% if AVAN_PAGE_LANG == 'fa' %}خروج از حساب{% else %}SIGN OUT{% endif %}</button></form>
+        </div>
+      </details>
+      {% else %}<a href="/account/login/" class="v5-login">{% if AVAN_PAGE_LANG == 'fa' %}ورود / ثبت‌نام{% else %}SIGN IN{% endif %}</a>{% endif %}
+      <a href="/account/notifications/" class="v5-icon v5-notifications" aria-label="{% avan_t 'alerts' %}">♡{% if AVAN_UNREAD_NOTIFICATIONS %}<b>{{ AVAN_UNREAD_NOTIFICATIONS }}</b>{% endif %}</a>
+      <button type="button" class="v5-bag" data-cart-open><span>{% avan_t "bag" %}</span><b data-cart-count>0</b></button>
+      <button type="button" class="mobile-menu-trigger v5-mobile-menu" data-menu-open aria-label="{% avan_t 'menu' %}"><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="v5-navrow">
+    <nav class="v5-nav" aria-label="Main navigation">
+      <a href="/">{% avan_t "home" %}</a><a href="/shop/">{% avan_t "shop" %}</a><a href="/design/garments/">{% avan_t "design" %}</a><a href="/collections/">{% avan_t "collections" %}</a><span></span><a href="/explore/">{% avan_t "explore" %}</a><a href="/play/">{% avan_t "play" %}</a><a href="/challenges/">{% avan_t "challenges" %}</a><a href="/drops/">{% avan_t "drops" %}</a>
+    </nav>
+    {% if request.user.is_authenticated %}<a class="v5-for-you" href="/for-you/">{% avan_t "for_you" %} ←</a>{% endif %}
+  </div>
+</header>
+<main class="avan-page" data-page-key="{{ AVAN_PAGE_DESIGN.page_key }}" style="{% if AVAN_PAGE_DESIGN.background %}--page-bg:{{ AVAN_PAGE_DESIGN.background }};{% endif %}{% if AVAN_PAGE_DESIGN.text_color %}--page-text:{{ AVAN_PAGE_DESIGN.text_color }};{% endif %}{% if AVAN_PAGE_DESIGN.surface %}--page-surface:{{ AVAN_PAGE_DESIGN.surface }};{% endif %}{% if AVAN_PAGE_DESIGN.accent %}--page-accent:{{ AVAN_PAGE_DESIGN.accent }};{% endif %}{% if AVAN_PAGE_DESIGN.section_gap %}--page-gap:{{ AVAN_PAGE_DESIGN.section_gap }}px;{% endif %}{% if AVAN_PAGE_DESIGN.card_radius %}--page-radius:{{ AVAN_PAGE_DESIGN.card_radius }}px;{% endif %}">{% block content %}{% endblock %}</main>
+
+{% include "partials/cart_drawer.html" %}
+
+<div class="avan-search" data-search-overlay aria-hidden="true">
+    <button type="button" class="avan-search__backdrop" data-search-close aria-label="{% avan_t 'close' %}"></button>
+    <div class="avan-search__panel">
+        <div class="avan-search__head"><span>AVAN / {% avan_t "search" %}</span><button type="button" data-search-close>×</button></div>
+        <form action="/search/" method="get">
+            <input type="search" name="q" placeholder="WHAT ARE YOU LOOKING FOR?" data-search-input autocomplete="off">
+            <button type="submit">{% avan_t "search" %} →</button>
+        </form>
+        <div class="avan-search__quick"><span>{% avan_t "quick_access" %}</span><a href="/shop/">{% avan_t "shop" %}</a><a href="/explore/">{% avan_t "explore" %}</a>{% if request.user.is_authenticated %}<a href="/following/">{% avan_t "following" %}</a><a href="/outfits/">{% avan_t "outfits" %}</a>{% endif %}</div>
+    </div>
+</div>
+
+<div class="mobile-menu" data-mobile-menu aria-hidden="true">
+    <button type="button" class="mobile-menu__backdrop" data-menu-close aria-label="{% avan_t 'close' %}"></button>
+    <aside class="mobile-menu__panel">
+        <div class="mobile-menu__head"><strong>AVAN</strong><button type="button" data-menu-close>×</button></div>
+        <div class="mobile-preferences"><button type="button" data-theme-toggle class="theme-icon-button" aria-label="Theme"><span class="theme-icon theme-icon--moon">☾</span><span class="theme-icon theme-icon--sun">☀</span></button><button type="button" data-language-toggle>{% avan_t "language" %}</button></div>
+        <nav>
+            <a href="/shop/"><span>01</span>{% avan_t "shop" %}</a>
+            <a href="/design/garments/"><span>02</span>{% avan_t "design" %}</a>
+            <a href="/explore/"><span>03</span>{% avan_t "explore" %}</a>
+            <a href="/drops/"><span>04</span>{% avan_t "drops" %}</a>
+            <a href="/challenges/"><span>05</span>{% avan_t "challenges" %}</a>
+            <a href="/play/"><span>06</span>{% avan_t "play" %}</a>
+        </nav>
+        <div class="mobile-menu__account">
+            {% if request.user.is_authenticated %}
+            {% if request.user.is_superuser %}<a href="/owner/">{% avan_t "owner_console" %}</a>{% endif %}<a href="/for-you/">{% avan_t "for_you" %}</a><a href="/following/">{% avan_t "following_feed" %}</a><a href="/outfits/">{% avan_t "my_outfits" %}</a><a href="/size-passport/">{% avan_t "size_passport" %}</a><a href="/account/addresses/">{% avan_t "addresses" %}</a><a href="/account/returns/">{% avan_t "returns" %}</a><a href="/account/notification-preferences/">{% avan_t "notification_preferences" %}</a><a href="/account/support/">{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی{% else %}SUPPORT{% endif %}</a><a href="/account/creator/wallet/">{% avan_t "creator_wallet" %}</a><a href="/account/">{% avan_t "my_avan" %}</a>
+            {% else %}<a href="/account/login/">{% avan_t "sign_in" %}</a>{% endif %}
+        </div>
+    </aside>
+</div>
+
+<nav class="mobile-bottom-nav" aria-label="Mobile quick navigation">
+    <a href="/">{% avan_t "home" %}</a><a href="/shop/">{% avan_t "shop" %}</a><a href="/design/garments/" class="mobile-bottom-nav__design">{% avan_t "design" %}</a><a href="/explore/">{% avan_t "explore" %}</a><button type="button" data-cart-open>{% avan_t "bag" %} <span data-cart-count>0</span></button>
+</nav>
+
+<div hidden id="avan-csrf">{% csrf_token %}</div>
+<script src="{% static 'js/preferences.js' %}" defer></script>
+<script src="{% static 'js/app.js' %}" defer></script>
+<script src="{% static 'js/cart-ui.js' %}" defer></script>
+<script src="{% static 'js/stage12-pwa.js' %}" defer></script>
+<script src="{% static 'js/stage19-search.js' %}" defer></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

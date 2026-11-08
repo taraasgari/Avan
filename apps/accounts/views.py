@@ -179,8 +179,13 @@ def notifications_mark_all_read(request):
 
 @login_required(login_url="/account/login/")
 def support_center(request):
-    tickets = request.user.support_tickets.all()[:100]
-    return render(request, "accounts/support.html", {"tickets": tickets, "categories": SupportTicket.Category.choices})
+    tickets = request.user.support_tickets.select_related("order").all()[:100]
+    orders = request.user.orders.only("id", "tracking_code", "number", "status", "created_at").order_by("-created_at")[:30]
+    return render(request, "accounts/support.html", {
+        "tickets": tickets,
+        "categories": SupportTicket.Category.choices,
+        "orders": orders,
+    })
 
 
 @login_required(login_url="/account/login/")
@@ -189,6 +194,12 @@ def support_create(request):
     subject = (request.POST.get("subject") or "").strip()[:180]
     body = (request.POST.get("body") or "").strip()[:5000]
     order_number = (request.POST.get("order_number") or "").strip()[:80]
+    order = None
+    order_id = (request.POST.get("order_id") or "").strip()
+    if order_id:
+        order = request.user.orders.filter(id=order_id).first()
+        if order:
+            order_number = order.tracking_code or str(order.number)
     category = request.POST.get("category") or SupportTicket.Category.OTHER
     valid_categories = {value for value, _ in SupportTicket.Category.choices}
     if category not in valid_categories:
@@ -202,6 +213,7 @@ def support_create(request):
         subject=subject,
         category=category,
         order_number=order_number,
+        order=order,
         status=SupportTicket.Status.WAITING_SUPPORT,
     )
     SupportMessage.objects.create(ticket=ticket, sender=request.user, body=body, is_staff_reply=False)
@@ -211,7 +223,7 @@ def support_create(request):
 
 @login_required(login_url="/account/login/")
 def support_detail(request, reference):
-    ticket = get_object_or_404(SupportTicket.objects.prefetch_related("messages__sender"), reference=reference, user=request.user)
+    ticket = get_object_or_404(SupportTicket.objects.select_related("order").prefetch_related("messages__sender", "order__items"), reference=reference, user=request.user)
     if request.method == "POST":
         if ticket.status == SupportTicket.Status.CLOSED:
             messages.error(request, "این گفتگو بسته شده است.")

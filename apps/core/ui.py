@@ -64,6 +64,17 @@ TRANSLATIONS = {
     "support": {"en": "SUPPORT", "fa": "پشتیبانی"},
     "staff_admins": {"en": "STAFF ADMINS", "fa": "ادمین‌ها"},
     "site_appearance": {"en": "SITE APPEARANCE", "fa": "ظاهر سایت"},
+    "pending_payment": {"en": "Pending payment", "fa": "در انتظار پرداخت"},
+    "paid": {"en": "Paid", "fa": "پرداخت شده"},
+    "processing": {"en": "Processing", "fa": "در حال آماده‌سازی"},
+    "shipped": {"en": "Shipped", "fa": "ارسال شده"},
+    "delivered": {"en": "Delivered", "fa": "تحویل داده شده"},
+    "cancelled": {"en": "Cancelled", "fa": "لغو شده"},
+    "needs_review": {"en": "Needs review", "fa": "نیازمند بررسی"},
+    "waiting_support": {"en": "Waiting for support", "fa": "در انتظار پاسخ پشتیبانی"},
+    "waiting_user": {"en": "Waiting for user", "fa": "در انتظار پاسخ شما"},
+    "open": {"en": "Open", "fa": "باز"},
+    "closed": {"en": "Closed", "fa": "بسته"},
 }
 
 

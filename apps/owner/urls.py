@@ -43,4 +43,5 @@ urlpatterns = [
     path("reports/export/<str:report_name>/", views.export_report, name="export-report"),
     path("settings/", views.settings_view, name="settings"),
     path("appearance/", views.appearance_editor, name="appearance"),
+    path("design/", views.page_designer, name="page-designer"),
 ]

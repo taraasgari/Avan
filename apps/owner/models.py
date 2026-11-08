@@ -106,3 +106,29 @@ class SiteAppearance(models.Model):
 
     def __str__(self):
         return "AVAN site appearance"
+
+
+class PageDesign(models.Model):
+    """Draft/published visual settings for a storefront page.
+
+    Only structured tokens and copy are stored here; arbitrary HTML/JS is intentionally
+    not supported. This keeps the visual editor safe enough for delegated staff use.
+    """
+
+    page_key = models.SlugField(max_length=80, unique=True)
+    page_label_fa = models.CharField(max_length=120)
+    page_label_en = models.CharField(max_length=120)
+    page_path = models.CharField(max_length=240)
+    draft_data = models.JSONField(default=dict, blank=True)
+    published_data = models.JSONField(default=dict, blank=True)
+    updated_by = models.ForeignKey(
+        "accounts.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="updated_page_designs"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    published_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["page_key"]
+
+    def __str__(self):
+        return self.page_label_fa or self.page_label_en or self.page_key

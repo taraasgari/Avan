@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -26,7 +26,7 @@ from apps.payments.models import PaymentAttempt
 
 from .decorators import owner_required, superuser_required
 from .forms import MarketplaceSettingsForm, OwnerSettingsForm, ProductForm, SiteAppearanceForm, StudioProductSetupForm
-from .models import OwnerSettings, SiteAppearance
+from .models import OwnerSettings, SiteAppearance, PageDesign
 
 
 User = get_user_model()
@@ -206,8 +206,25 @@ def product_studio(request, product_id):
     profile, _ = GarmentStudioProfile.objects.get_or_create(product=product)
     form = StudioProductSetupForm(request.POST or None, request.FILES or None, instance=profile)
     if request.method == "POST" and form.is_valid():
-        form.save()
-        messages.success(request, "Studio garment setup saved.")
+        profile = form.save()
+        zones = {}
+        defaults = {
+            "front": (25, 22, 50, 55), "back": (25, 20, 50, 58),
+            "left_sleeve": (20, 28, 60, 44), "right_sleeve": (20, 28, 60, 44),
+            "neck_label": (32, 40, 36, 22),
+        }
+        for side, fallback in defaults.items():
+            vals = []
+            for key, default in zip(("x", "y", "w", "h"), fallback):
+                try:
+                    value = float(request.POST.get(f"zone_{side}_{key}", default))
+                except (TypeError, ValueError):
+                    value = default
+                vals.append(max(0, min(100, value)))
+            zones[side] = {"x": vals[0], "y": vals[1], "width": vals[2], "height": vals[3]}
+        profile.print_zones = zones
+        profile.save(update_fields=["print_zones", "updated_at"] if hasattr(profile, "updated_at") else ["print_zones"])
+        messages.success(request, "تنظیمات لباس طراحی ذخیره شد.")
         return redirect("owner:product-studio", product_id=product.id)
 
     primary_image = product.images.first()
@@ -223,11 +240,20 @@ def product_studio(request, product_id):
             primary_image=primary_image,
             active_variants=active_variants,
             studio_ready=profile.studio_setup_complete and active_variants.exists(),
-            studio_reference_fields=[
-                (form["front_reference"], "FRONT"),
-                (form["back_reference"], "BACK"),
-                (form["left_sleeve_reference"], "LEFT SLEEVE"),
-                (form["right_sleeve_reference"], "RIGHT SLEEVE"),
+            view_fields=[
+                ("front", "FRONT / جلو", form["front_reference"], profile.front_reference),
+                ("back", "BACK / پشت", form["back_reference"], profile.back_reference),
+                ("left_sleeve", "LEFT SLEEVE / آستین چپ", form["left_sleeve_reference"], profile.left_sleeve_reference),
+                ("right_sleeve", "RIGHT SLEEVE / آستین راست", form["right_sleeve_reference"], profile.right_sleeve_reference),
+                ("neck_label", "NECK LABEL / لیبل پشت یقه", form["neck_label_reference"], profile.neck_label_reference),
+            ],
+            print_zone_rows=[
+                (side, label, (profile.print_zones or {}).get(side, {"x": d[0], "y": d[1], "width": d[2], "height": d[3]}))
+                for side, label, d in [
+                    ("front", "جلو", (25,22,50,55)), ("back", "پشت", (25,20,50,58)),
+                    ("left_sleeve", "آستین چپ", (20,28,60,44)), ("right_sleeve", "آستین راست", (20,28,60,44)),
+                    ("neck_label", "لیبل پشت یقه", (32,40,36,22)),
+                ]
             ],
         ),
     )
@@ -328,10 +354,14 @@ def orders(request):
             order_number = uuid.UUID(q)
         except (TypeError, ValueError):
             pass
-        query = Q(customer_name__icontains=q) | Q(phone__icontains=q) | Q(email__icontains=q)
+        query = (
+            Q(customer_name__icontains=q) | Q(phone__icontains=q) | Q(email__icontains=q)
+            | Q(tracking_code__icontains=q) | Q(items__item_tracking_code__icontains=q)
+            | Q(shipment__tracking_code__icontains=q)
+        )
         if order_number:
             query |= Q(number=order_number)
-        qs = qs.filter(query)
+        qs = qs.filter(query).distinct()
 
     return render(
         request,
@@ -368,6 +398,21 @@ def order_detail(request, order_id):
         else:
             order.status = next_status
             order.save(update_fields=["status", "updated_at"])
+            if order.user_id:
+                status_fa = {
+                    Order.Status.PAID: "پرداخت شد",
+                    Order.Status.PROCESSING: "در حال آماده‌سازی",
+                    Order.Status.SHIPPED: "ارسال شد",
+                    Order.Status.DELIVERED: "تحویل داده شد",
+                    Order.Status.NEEDS_REVIEW: "در حال بررسی",
+                }.get(next_status, order.get_status_display())
+                Notification.objects.create(
+                    user=order.user,
+                    kind=Notification.Kind.ORDER,
+                    title=f"وضعیت سفارش {order.tracking_code}",
+                    body=status_fa,
+                    url=f"/orders/{order.number}/",
+                )
             messages.success(request, "Order status updated.")
         return redirect("owner:order-detail", order_id=order.id)
 
@@ -844,7 +889,7 @@ def appearance_editor(request):
 def support_tickets(request):
     status = (request.GET.get("status") or "").strip()
     q = (request.GET.get("q") or "").strip()[:100]
-    tickets = SupportTicket.objects.select_related("user").prefetch_related("messages").order_by("-last_message_at")
+    tickets = SupportTicket.objects.select_related("user", "order").prefetch_related("messages").order_by("-last_message_at")
     if status in {value for value, _ in SupportTicket.Status.choices}:
         tickets = tickets.filter(status=status)
     if q:
@@ -864,7 +909,7 @@ def support_tickets(request):
 @owner_required
 def support_ticket_detail(request, reference):
     ticket = get_object_or_404(
-        SupportTicket.objects.select_related("user").prefetch_related("messages__sender"),
+        SupportTicket.objects.select_related("user", "order").prefetch_related("messages__sender", "order__items"),
         reference=reference,
     )
     if request.method == "POST":
@@ -904,3 +949,33 @@ def support_ticket_detail(request, reference):
         _owner_context(request, ticket=ticket, priority_choices=SupportTicket.Priority.choices),
     )
 
+
+
+@owner_required
+def page_designer(request):
+    pages = PageDesign.objects.order_by("id")
+    selected_key = request.GET.get("page") or request.POST.get("page_key") or "home"
+    page = get_object_or_404(PageDesign, page_key=selected_key)
+    if request.method == "POST":
+        action = request.POST.get("action", "save")
+        fields = [
+            "background", "text_color", "surface", "accent", "section_gap", "card_radius",
+            "hero_kicker_fa", "hero_kicker_en", "hero_title_fa", "hero_title_en",
+            "hero_subtitle_fa", "hero_subtitle_en", "primary_label_fa", "primary_label_en",
+            "primary_url", "secondary_label_fa", "secondary_label_en", "secondary_url",
+        ]
+        data = {key: (request.POST.get(key) or "").strip() for key in fields}
+        data["hide_header"] = request.POST.get("hide_header") == "on"
+        page.draft_data = data
+        page.updated_by = request.user
+        if action == "publish":
+            page.published_data = data
+            page.published_at = timezone.now()
+            messages.success(request, "تغییرات منتشر شد.")
+        else:
+            messages.success(request, "پیش‌نویس ذخیره شد.")
+        page.save()
+        if request.headers.get("X-Visual-Builder") == "1":
+            return JsonResponse({"ok": True, "published": action == "publish"})
+        return redirect(f"/owner/design/?page={page.page_key}")
+    return render(request, "owner/page_designer.html", _owner_context(request, pages=pages, selected_page=page, visual_data=page.draft_data or page.published_data or {}))

@@ -1,58 +1,15 @@
-{% extends "owner/base.html" %}
-{% block title %}{{ product.name }} Studio Setup — AVAN OWNER{% endblock %}
+{% extends "owner/base.html" %}{% load static %}
+{% block title %}{{ product.name }} — تنظیم لباس طراحی{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/stage20-studio-owner.css' %}">{% endblock %}
 {% block content %}
-<header class="owner-page-head">
-  <div><span>{% if AVAN_PAGE_LANG == 'fa' %}محصول / لباس قابل طراحی{% else %}PRODUCT / CUSTOMIZABLE GARMENT{% endif %}</span><h1>{% if AVAN_PAGE_LANG == 'fa' %}تنظیم لباس برای Studio.{% else %}STUDIO GARMENT SETUP.{% endif %}</h1><p>{{ product.name }} — {% if AVAN_PAGE_LANG == 'fa' %}همین محصول به عنوان لباس پایه برای طراحی کاربر استفاده می‌شود.{% else %}This exact catalog product becomes the base garment users design on.{% endif %}</p></div>
-  <div class="owner-head-actions"><a class="owner-btn" href="/design/?product={{ product.id }}" target="_blank">{% if AVAN_PAGE_LANG == 'fa' %}باز کردن در Studio ↗{% else %}OPEN IN STUDIO ↗{% endif %}</a></div>
-</header>
-<nav class="s16-product-steps">
-  <a href="/owner/products/{{ product.id }}/"><b>1</b><span>{% if AVAN_PAGE_LANG == 'fa' %}اطلاعات{% else %}PRODUCT{% endif %}</span></a>
-  <a href="/owner/products/{{ product.id }}/media/"><b>2</b><span>{% if AVAN_PAGE_LANG == 'fa' %}تصاویر{% else %}IMAGES{% endif %}</span></a>
-  <a href="/owner/products/{{ product.id }}/variants/"><b>3</b><span>{% if AVAN_PAGE_LANG == 'fa' %}رنگ، سایز و موجودی{% else %}VARIANTS{% endif %}</span></a>
-  <a class="is-active" href="/owner/products/{{ product.id }}/studio/"><b>4</b><span>{% if AVAN_PAGE_LANG == 'fa' %}تنظیم Studio{% else %}STUDIO SETUP{% endif %}</span></a>
-</nav>
-
-<div class="s16-studio-status {% if studio_ready %}is-ready{% endif %}">
-  <div><span>{% if studio_ready %}READY{% else %}SETUP{% endif %}</span><strong>{% if studio_ready %}{% if AVAN_PAGE_LANG == 'fa' %}این لباس برای انتخاب در Studio آماده است{% else %}GARMENT IS READY FOR STUDIO{% endif %}{% else %}{% if AVAN_PAGE_LANG == 'fa' %}هنوز چند مورد برای آماده شدن باقی مانده{% else %}FINISH THE GARMENT SETUP{% endif %}{% endif %}</strong></div>
-  <small>{% if AVAN_PAGE_LANG == 'fa' %}برای خرید واقعی حداقل یک SKU فعال و موجود هم لازم است.{% else %}At least one active in-stock SKU is also required for purchasing.{% endif %}</small>
-</div>
-
-<form method="post" enctype="multipart/form-data" class="owner-grid owner-grid--form">{% csrf_token %}
-<section class="owner-panel">
-  <div class="owner-panel__head"><div><span>STUDIO</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}تنظیمات لباس{% else %}GARMENT PROFILE{% endif %}</h2></div></div>
-  <div class="s16-studio-form">
-    <label class="s14-toggle">{{ form.is_enabled }}<div><strong>{% if AVAN_PAGE_LANG == 'fa' %}نمایش در Studio فعال باشد{% else %}AVAILABLE IN STUDIO{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}اگر خاموش شود لباس از لیست طراحی کاربران مخفی می‌شود، ولی از فروشگاه حذف نمی‌شود.{% else %}Disable it to hide from Studio without removing it from the shop.{% endif %}</small></div></label>
-    <label class="owner-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}نوع لباس{% else %}GARMENT TYPE{% endif %}</span>{{ form.garment_type }}</label>
-    <label class="owner-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}پارچه پیش‌فرض{% else %}DEFAULT FABRIC{% endif %}</span>{{ form.default_fabric }}</label>
-    <label class="owner-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}یادداشت داخلی{% else %}INTERNAL NOTE{% endif %}</span>{{ form.notes }}</label>
-  </div>
-
-  <div class="s16-reference-section">
-    <div class="s14-form-section__head"><strong>{% if AVAN_PAGE_LANG == 'fa' %}نماهای واقعی همین لباس{% else %}EXACT GARMENT REFERENCES{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}برای بهترین نتیجه PNG بدون طرح و با زاویه ثابت آپلود کن. اگر نمای جلو خالی باشد، تصویر اصلی محصول به عنوان مرجع استفاده می‌شود.{% else %}Use clean, undecorated PNGs. If Front is empty, the primary product image is used as fallback.{% endif %}</small></div>
-    <div class="s16-reference-grid">
-      <label class="s16-reference-card"><span>FRONT</span>{% if profile.front_reference %}<img src="{{ profile.front_reference.url }}" alt="">{% elif primary_image %}<img src="{{ primary_image.image.url }}" alt=""><small>PRODUCT PRIMARY FALLBACK</small>{% else %}<div class="s16-reference-empty">+</div>{% endif %}{{ form.front_reference }}{% for error in form.front_reference.errors %}<b>{{ error }}</b>{% endfor %}</label>
-      <label class="s16-reference-card"><span>BACK</span>{% if profile.back_reference %}<img src="{{ profile.back_reference.url }}" alt="">{% else %}<div class="s16-reference-empty">+</div>{% endif %}{{ form.back_reference }}{% for error in form.back_reference.errors %}<b>{{ error }}</b>{% endfor %}</label>
-      <label class="s16-reference-card"><span>LEFT SLEEVE</span>{% if profile.left_sleeve_reference %}<img src="{{ profile.left_sleeve_reference.url }}" alt="">{% else %}<div class="s16-reference-empty">+</div>{% endif %}{{ form.left_sleeve_reference }}{% for error in form.left_sleeve_reference.errors %}<b>{{ error }}</b>{% endfor %}</label>
-      <label class="s16-reference-card"><span>RIGHT SLEEVE</span>{% if profile.right_sleeve_reference %}<img src="{{ profile.right_sleeve_reference.url }}" alt="">{% else %}<div class="s16-reference-empty">+</div>{% endif %}{{ form.right_sleeve_reference }}{% for error in form.right_sleeve_reference.errors %}<b>{{ error }}</b>{% endfor %}</label>
-    </div>
-  </div>
-</section>
-
-<aside class="owner-panel owner-side-panel">
-  <div class="owner-panel__head"><div><span>3D</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}مدل سه‌بعدی محصول{% else %}PRODUCT 3D MODEL{% endif %}</h2></div></div>
-  <div class="s16-model-upload">
-    {% if profile.model_file %}<div class="s16-model-current"><b>GLB/GLTF ✓</b><small>{{ profile.model_file.name }}</small></div>{% else %}<div class="s16-model-current is-empty"><b>{% if AVAN_PAGE_LANG == 'fa' %}مدل سه‌بعدی هنوز آپلود نشده{% else %}NO 3D MODEL YET{% endif %}</b><small>{% if AVAN_PAGE_LANG == 'fa' %}فعلاً Studio می‌تواند از نمای محصول استفاده کند. برای 3D واقعی، فایل GLB همان لباس را اینجا می‌گذاریم.{% else %}Studio can use product references for now. Upload the exact garment GLB for the real 3D viewer.{% endif %}</small></div>{% endif %}
-    <label class="owner-field"><span>GLB / GLTF</span>{{ form.model_file }}{% for error in form.model_file.errors %}<b>{{ error }}</b>{% endfor %}</label>
-  </div>
-
-  <div class="s16-product-summary">
-    <strong>{% if AVAN_PAGE_LANG == 'fa' %}اتصال به محصول فروشگاه{% else %}STORE PRODUCT LINK{% endif %}</strong>
-    {% if primary_image %}<img src="{{ primary_image.image.url }}" alt="{{ product.name }}">{% endif %}
-    <h3>{{ product.name }}</h3><p>{{ product.base_price|floatformat:'0' }} {% if AVAN_PAGE_LANG == 'fa' %}تومان{% else %}TOMAN{% endif %}</p>
-    <small>{{ active_variants|length }} SKU</small>
-  </div>
-
-  <button class="owner-btn owner-btn--primary s16-full-btn" type="submit">{% if AVAN_PAGE_LANG == 'fa' %}ذخیره تنظیمات Studio{% else %}SAVE STUDIO SETUP{% endif %}</button>
-</aside>
+<header class="owner-page-head"><div><span>AVAN / CUSTOMIZABLE GARMENT</span><h1>{% if AVAN_PAGE_LANG == 'fa' %}لباس پایه برای طراحی{% else %}DESIGN GARMENT SETUP{% endif %}</h1><p>{% if AVAN_PAGE_LANG == 'fa' %}عکس واقعی جلو، پشت، آستین‌ها و لیبل پشت یقه را یک‌بار تعریف کن. رنگ‌های قابل انتخاب از تنوع‌های همین محصول می‌آیند.{% else %}Set the exact front/back/sleeve/neck-label views once. Available colors come from this product variants.{% endif %}</p></div><div class="owner-head-actions"><a class="owner-btn" href="/design/?product={{ product.id }}" target="_blank">{% if AVAN_PAGE_LANG == 'fa' %}پیش‌نمایش در استودیو ↗{% else %}PREVIEW STUDIO ↗{% endif %}</a></div></header>
+<nav class="s16-product-steps"><a href="/owner/products/{{ product.id }}/"><b>1</b><span>{% if AVAN_PAGE_LANG == 'fa' %}اطلاعات{% else %}PRODUCT{% endif %}</span></a><a href="/owner/products/{{ product.id }}/media/"><b>2</b><span>{% if AVAN_PAGE_LANG == 'fa' %}تصاویر{% else %}IMAGES{% endif %}</span></a><a href="/owner/products/{{ product.id }}/variants/"><b>3</b><span>{% if AVAN_PAGE_LANG == 'fa' %}رنگ، سایز و موجودی{% else %}VARIANTS{% endif %}</span></a><a class="is-active" href="#"><b>4</b><span>{% if AVAN_PAGE_LANG == 'fa' %}لباس طراحی{% else %}DESIGN GARMENT{% endif %}</span></a></nav>
+<form method="post" enctype="multipart/form-data" class="v20-garment-form">{% csrf_token %}
+<section class="owner-panel"><div class="owner-panel__head"><div><span>01</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}تنظیمات اصلی{% else %}GARMENT PROFILE{% endif %}</h2></div></div><div class="v20-garment-settings"><label class="s14-toggle">{{ form.is_enabled }}<div><strong>{% if AVAN_PAGE_LANG == 'fa' %}در بخش طراحی نمایش داده شود{% else %}AVAILABLE IN STUDIO{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}خاموش کردن این گزینه فقط آن را از لیست طراحی مخفی می‌کند.{% endif %}</small></div></label><label class="owner-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}نوع لباس{% else %}GARMENT TYPE{% endif %}</span>{{ form.garment_type }}</label><label class="owner-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}پارچه پیش‌فرض{% else %}DEFAULT FABRIC{% endif %}</span>{{ form.default_fabric }}</label><label class="owner-field"><span>{% if AVAN_PAGE_LANG == 'fa' %}یادداشت داخلی{% else %}NOTE{% endif %}</span>{{ form.notes }}</label></div></section>
+<section class="owner-panel"><div class="owner-panel__head"><div><span>02</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}نماهای لباس{% else %}GARMENT VIEWS{% endif %}</h2></div></div><p class="v20-help">{% if AVAN_PAGE_LANG == 'fa' %}بهترین نتیجه با PNG تمیز، پس‌زمینه شفاف و نور ثابت به دست می‌آید. بهتر است فایل پایه خنثی/خاکستری باشد تا رنگ‌های محصول طبیعی‌تر روی آن اعمال شوند.{% else %}Use clean neutral PNGs with transparent backgrounds for reliable recoloring.{% endif %}</p><div class="v20-view-grid">
+{% for key,label,field,current in view_fields %}<label class="v20-view-card"><strong>{{ label }}</strong><div>{% if current %}<img src="{{ current.url }}" alt="">{% else %}<span>+</span>{% endif %}</div>{{ field }}</label>{% endfor %}
+</div></section>
+<section class="owner-panel"><div class="owner-panel__head"><div><span>03</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}محدوده چاپ هر نما{% else %}PRINT ZONES{% endif %}</h2></div></div><p class="v20-help">{% if AVAN_PAGE_LANG == 'fa' %}اعداد درصدی‌اند؛ X/Y محل شروع و W/H اندازه محدوده طراحی است.{% else %}Values are percentages: X/Y position and W/H size.{% endif %}</p><div class="v20-zone-grid">{% for side,label,zone in print_zone_rows %}<div class="v20-zone-row"><strong>{{ label }}</strong><label>X<input type="number" step="1" min="0" max="100" name="zone_{{ side }}_x" value="{{ zone.x }}"></label><label>Y<input type="number" step="1" min="0" max="100" name="zone_{{ side }}_y" value="{{ zone.y }}"></label><label>W<input type="number" step="1" min="1" max="100" name="zone_{{ side }}_w" value="{{ zone.width }}"></label><label>H<input type="number" step="1" min="1" max="100" name="zone_{{ side }}_h" value="{{ zone.height }}"></label></div>{% endfor %}</div></section>
+<aside class="owner-panel"><div class="owner-panel__head"><div><span>COLORS</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}رنگ‌های قابل طراحی{% else %}AVAILABLE COLORS{% endif %}</h2></div></div><div class="v20-color-summary">{% for variant in active_variants %}<span style="--swatch:{{ variant.color.hex_code|default:'#ddd' }}">{{ variant.color.name }}</span>{% empty %}<small>{% if AVAN_PAGE_LANG == 'fa' %}اول برای محصول رنگ و سایز بساز.{% endif %}</small>{% endfor %}</div><button class="owner-btn owner-btn--primary" type="submit">{% if AVAN_PAGE_LANG == 'fa' %}ذخیره لباس طراحی{% else %}SAVE DESIGN GARMENT{% endif %}</button></aside>
 </form>
 {% endblock %}

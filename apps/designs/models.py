@@ -169,6 +169,8 @@ class GarmentStudioProfile(models.Model):
     back_reference = models.ImageField(upload_to="studio-garments/back/%Y/%m/", blank=True)
     left_sleeve_reference = models.ImageField(upload_to="studio-garments/left-sleeve/%Y/%m/", blank=True)
     right_sleeve_reference = models.ImageField(upload_to="studio-garments/right-sleeve/%Y/%m/", blank=True)
+    neck_label_reference = models.ImageField(upload_to="studio-garments/neck-label/%Y/%m/", blank=True)
+    print_zones = models.JSONField(default=dict, blank=True, help_text="Per-view printable area percentages.")
     model_file = models.FileField(
         upload_to="studio-garments/models/%Y/%m/",
         blank=True,

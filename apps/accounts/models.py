@@ -73,6 +73,9 @@ class SupportTicket(models.Model):
     category = models.CharField(max_length=24, choices=Category.choices, default=Category.OTHER)
     subject = models.CharField(max_length=180)
     order_number = models.CharField(max_length=80, blank=True)
+    order = models.ForeignKey(
+        "orders.Order", on_delete=models.SET_NULL, null=True, blank=True, related_name="support_tickets"
+    )
     status = models.CharField(max_length=24, choices=Status.choices, default=Status.WAITING_SUPPORT)
     priority = models.CharField(max_length=16, choices=Priority.choices, default=Priority.NORMAL)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -1,140 +1,116 @@
-{% extends "base.html" %}
-{% load static %}
-{% block title %}AVAN 3D Studio{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/studio.css' %}"><link rel="stylesheet" href="{% static 'css/stage16-products.css' %}">{% endblock %}
+{% extends "base.html" %}{% load static %}
+{% block title %}{% if AVAN_PAGE_LANG == 'fa' %}استودیو طراحی AVAN{% else %}AVAN Design Studio{% endif %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/stage20-studio.css' %}">{% endblock %}
 {% block content %}
-<section class="studio-pro" data-studio data-authenticated="{% if is_authenticated_for_studio %}1{% else %}0{% endif %}" data-owner="{% if studio_owner_mode %}1{% else %}0{% endif %}">
+<section class="studio-pro" data-studio data-authenticated="{% if is_authenticated_for_studio %}1{% else %}0{% endif %}">
   <header class="studio-pro__topbar">
-    <div class="studio-brandline"><span>AVAN STUDIO / 3D PRO</span><input type="text" maxlength="120" value="{{ initial_design.title|default:'Untitled Design' }}" data-design-title></div>
-    <div class="studio-pro__actions">
-      <span class="save-state" data-save-state>UNSAVED</span>
-      {% if studio_owner_mode %}<button class="ghost-btn owner-studio-btn" type="button" data-open-owner>OWNER STUDIO</button>{% endif %}
-      <a class="ghost-btn" href="/account/designs/">MY DESIGNS</a>
-      <button class="dark-btn" type="button" data-save-design>SAVE</button>
-      <button class="red-btn" type="button" data-publish-design>PUBLISH</button>
+    <div class="studio-pro__identity">
+      <span>AVAN / STUDIO</span>
+      <input type="text" maxlength="120" value="{{ initial_design.title|default:'Untitled Design' }}" data-design-title aria-label="{% if AVAN_PAGE_LANG == 'fa' %}نام طرح{% else %}Design title{% endif %}">
+    </div>
+    <div class="studio-pro__history">
+      <button type="button" data-undo title="Undo">↶</button><button type="button" data-redo title="Redo">↷</button>
+      <span data-save-state>{% if AVAN_PAGE_LANG == 'fa' %}ذخیره نشده{% else %}UNSAVED{% endif %}</span>
+    </div>
+    <div class="studio-pro__save-actions">
+      <a href="/account/designs/" class="studio-pro__quiet">{% if AVAN_PAGE_LANG == 'fa' %}طرح‌های من{% else %}MY DESIGNS{% endif %}</a>
+      <button type="button" data-save-design>{% if AVAN_PAGE_LANG == 'fa' %}ذخیره{% else %}SAVE{% endif %}</button>
+      <button type="button" class="is-primary" data-publish-design>{% if AVAN_PAGE_LANG == 'fa' %}انتشار{% else %}PUBLISH{% endif %}</button>
     </div>
   </header>
 
   {% if studio_products %}
-  <div class="studio-pro__layout">
+  <div class="studio-pro__workspace">
     <aside class="studio-pro__left">
-      <div class="tool-card">
-        <label class="studio-label">GARMENT</label>
-        <select data-product-select>{% for product in studio_products %}<option value="{{ product.id }}">{{ product.name }}</option>{% endfor %}</select><a class="studio-garment-chooser-link" href="/design/garments/">CHOOSE GARMENT</a>
-      </div>
-      <div class="tool-card"><span class="studio-label">COLOR</span><div class="color-grid" data-color-options></div></div>
-      <div class="tool-card"><span class="studio-label">FABRIC</span><div class="fabric-list" data-fabric-options></div></div>
-      <div class="tool-card">
-        <span class="studio-label">DESIGN AREA</span>
-        <div class="zone-grid">
-          <button class="is-active" type="button" data-zone="front">FRONT</button><button type="button" data-zone="back">BACK</button>
-          <button type="button" data-zone="left_sleeve">L SLEEVE</button><button type="button" data-zone="right_sleeve">R SLEEVE</button>
+      <section class="studio-pro__section">
+        <div class="studio-pro__section-title"><span>01</span><strong>{% if AVAN_PAGE_LANG == 'fa' %}لباس{% else %}GARMENT{% endif %}</strong></div>
+        <label class="studio-pro__field"><select data-product-select>{% for p in studio_products %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}</select></label>
+        <div class="studio-pro__colors" data-color-options></div>
+      </section>
+
+      <section class="studio-pro__section">
+        <div class="studio-pro__section-title"><span>02</span><strong>{% if AVAN_PAGE_LANG == 'fa' %}اضافه کن{% else %}ADD{% endif %}</strong></div>
+        <div class="studio-pro__add-grid">
+          <button type="button" data-add-text><b>T</b><span>{% if AVAN_PAGE_LANG == 'fa' %}متن{% else %}Text{% endif %}</span></button>
+          <label><b>⌁</b><span>{% if AVAN_PAGE_LANG == 'fa' %}تصویر{% else %}Image{% endif %}</span><input type="file" accept="image/png,image/jpeg,image/webp" data-image-upload hidden></label>
+          <button type="button" data-open-stickers><b>✦</b><span>{% if AVAN_PAGE_LANG == 'fa' %}استیکر{% else %}Sticker{% endif %}</span></button>
         </div>
-      </div>
-      <div class="tool-card">
-        <span class="studio-label">ADD</span>
-        <div class="add-grid">
-          <button type="button" data-add-text>TEXT</button>
-          <label>IMAGE<input type="file" accept="image/png,image/jpeg,image/webp" data-image-upload hidden></label>
-          <button type="button" data-open-stickers>STICKERS</button>
-          <button type="button" data-open-ai>AI DESIGN</button>
-        </div>
-      </div>
-      <div class="tool-card">
-        <div class="tool-card__head"><span class="studio-label">LAYERS</span><small data-layer-count>0</small></div>
-        <div class="layers-list" data-layers-list></div>
-      </div>
-      <div class="tool-card inspiration-card">
-        <span class="studio-label">INSPIRATION</span>
-        <div class="inspiration-row"><input type="search" placeholder="streetwear typography..." data-inspiration-query><button type="button" data-pinterest-search>PINTEREST ↗</button></div>
-        <small>Use Pinterest for inspiration, then upload artwork you own or have permission to use.</small>
-      </div>
+      </section>
+
+      <section class="studio-pro__section studio-pro__layers-section">
+        <div class="studio-pro__section-title"><span>03</span><strong>{% if AVAN_PAGE_LANG == 'fa' %}لایه‌ها{% else %}LAYERS{% endif %}</strong><em data-layer-count>0</em></div>
+        <div class="studio-pro__layer-list" data-layers-list></div>
+      </section>
     </aside>
 
-    <main class="studio-pro__main">
-      <div class="viewer-shell">
-        <div class="viewer-toolbar">
-          <div class="viewer-pills">
-            <button type="button" data-camera="full" class="is-active">FULL</button>
-            <button type="button" data-camera="collar">COLLAR</button>
-            <button type="button" data-camera="front">FRONT</button>
-            <button type="button" data-camera="back">BACK</button>
-            <button type="button" data-camera="left_sleeve">L SLEEVE</button>
-            <button type="button" data-camera="right_sleeve">R SLEEVE</button>
-          </div>
-          <div class="viewer-help">DRAG TO ROTATE · WHEEL / PINCH TO ZOOM</div>
-        </div>
-        <div class="garment-viewport" data-viewport>
-          <div class="viewport-grid"></div><div class="garment-shadow"></div>
-          <div class="garment-rig" data-garment-rig>
-            <div class="shirt-panel shirt-front" data-panel="front"><div class="fabric-surface"></div><div class="design-texture" data-texture="front"></div><div class="collar-mark"></div></div>
-            <div class="shirt-panel shirt-back" data-panel="back"><div class="fabric-surface"></div><div class="design-texture" data-texture="back"></div></div>
-            <div class="shirt-edge shirt-edge-left"></div><div class="shirt-edge shirt-edge-right"></div>
-            <div class="sleeve sleeve-left sleeve-front" data-panel="left_sleeve"><div class="fabric-surface"></div><div class="design-texture" data-texture="left_sleeve"></div></div>
-            <div class="sleeve sleeve-right sleeve-front" data-panel="right_sleeve"><div class="fabric-surface"></div><div class="design-texture" data-texture="right_sleeve"></div></div>
-            <div class="sleeve sleeve-left sleeve-back"></div><div class="sleeve sleeve-right sleeve-back"></div>
-          </div>
-          <div class="viewer-badge"><span data-current-garment></span><b data-current-fabric></b></div>
-          <button class="reset-view" type="button" data-reset-camera>RESET VIEW</button>
+    <main class="studio-pro__center">
+      <div class="studio-pro__viewbar">
+        <button type="button" class="studio-pro__view-arrow" data-view-prev aria-label="Previous">‹</button>
+        <div class="studio-pro__views" data-view-tabs></div>
+        <button type="button" class="studio-pro__view-arrow" data-view-next aria-label="Next">›</button>
+      </div>
+
+      <div class="studio-pro__canvas-toolbar">
+        <div><strong data-current-view-label></strong><small>{% if AVAN_PAGE_LANG == 'fa' %}لباس را به چپ و راست بکش تا نما عوض شود{% else %}Drag the garment left/right to change view{% endif %}</small></div>
+        <div class="studio-pro__canvas-actions">
+          <button type="button" data-toggle-guide class="is-active">{% if AVAN_PAGE_LANG == 'fa' %}راهنمای چاپ{% else %}PRINT GUIDE{% endif %}</button>
+          <button type="button" data-toggle-grid>{% if AVAN_PAGE_LANG == 'fa' %}شبکه{% else %}GRID{% endif %}</button>
+          <button type="button" data-fit-view>{% if AVAN_PAGE_LANG == 'fa' %}فیت{% else %}FIT{% endif %}</button>
         </div>
       </div>
 
-      <div class="surface-dock">
-        <div class="surface-dock__head">
-          <div><span>PRECISION EDITOR</span><strong data-editor-zone-label>FRONT</strong></div>
-          <small>Move and resize layers here. The 3D preview updates live.</small>
+      <div class="studio-pro__stage" data-garment-stage>
+        <div class="studio-pro__grid" data-grid-overlay hidden></div>
+        <div class="studio-pro__garment-wrap" data-garment-wrap>
+          <img data-garment-image alt="" draggable="false">
+          <div class="studio-pro__garment-tint" data-garment-tint></div>
         </div>
-        <div class="surface-editor-wrap">
-          <div class="surface-editor" data-surface-editor><div class="safe-zone"></div><div class="surface-layers" data-surface-layers></div></div>
+        <div class="studio-pro__print-guide" data-print-guide><span>{% if AVAN_PAGE_LANG == 'fa' %}راهنمای چاپ — محدودیت نیست{% else %}PRINT GUIDE — NOT A LIMIT{% endif %}</span></div>
+        <div class="studio-pro__design-surface" data-design-surface data-design-layers></div>
+        <div class="studio-pro__missing-view" data-missing-view hidden><strong>{% if AVAN_PAGE_LANG == 'fa' %}تصویر این نما هنوز ثبت نشده{% else %}This view has no image yet{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}مالک می‌تواند تصویر واقعی همین لباس را برای این نما اضافه کند.{% else %}The owner can upload the actual garment image for this view.{% endif %}</small></div>
+        <div class="studio-pro__zoom">
+          <button type="button" data-zoom-out>−</button><button type="button" data-zoom-reset>100%</button><button type="button" data-zoom-in>+</button>
         </div>
       </div>
+      <div class="studio-pro__tip">{% if AVAN_PAGE_LANG == 'fa' %}<b>آزاد طراحی کن.</b> کادر چاپ فقط راهنماست؛ متن، عکس و استیکر را هرجایی که می‌خواهی قرار بده.{% else %}<b>Design freely.</b> The print guide is only a guide; place text, images and stickers wherever you want.{% endif %}</div>
     </main>
 
     <aside class="studio-pro__right">
-      <div class="properties-empty" data-properties-empty><span>SELECT A LAYER</span><p>Add text, an image or a sticker, then fine tune it here.</p></div>
-      <div class="properties-panel" data-properties-panel hidden>
-        <div class="property-head"><span>SELECTED LAYER</span><button type="button" data-delete-layer>DELETE</button></div>
-        <label class="property-field text-only"><span>TEXT</span><input type="text" maxlength="240" data-prop-text></label>
-        <label class="property-field text-only"><span>FONT</span><select data-prop-font></select></label>
-        <div class="property-grid text-only"><label><span>COLOR</span><input type="color" data-prop-color></label><label><span>WEIGHT</span><select data-prop-weight><option>400</option><option>600</option><option selected>800</option><option>900</option></select></label></div>
-        <label class="property-field text-only"><span>FONT SIZE <b data-font-size-value></b></span><input type="range" min="10" max="180" data-prop-font-size></label>
-        <label class="property-field text-only"><span>LETTER SPACING <b data-letter-value></b></span><input type="range" min="-8" max="30" step="1" data-prop-letter></label>
-        <label class="property-field"><span>WIDTH <b data-width-value></b></span><input type="range" min="3" max="120" data-prop-width></label>
-        <label class="property-field"><span>ROTATION <b data-rotation-value></b></span><input type="range" min="-180" max="180" data-prop-rotation></label>
-        <label class="property-field"><span>OPACITY <b data-opacity-value></b></span><input type="range" min="5" max="100" data-prop-opacity></label>
-        <div class="layer-order-actions"><button type="button" data-layer-down>MOVE DOWN</button><button type="button" data-layer-up>MOVE UP</button></div>
-        <button class="stickerize-btn" type="button" data-stickerize hidden>REMOVE BG + MAKE STICKER</button>
+      <div class="studio-pro__empty" data-properties-empty>
+        <span>AVAN</span><strong>{% if AVAN_PAGE_LANG == 'fa' %}یک لایه انتخاب کن{% else %}SELECT A LAYER{% endif %}</strong><p>{% if AVAN_PAGE_LANG == 'fa' %}بعد از انتخاب، اندازه، چرخش، فونت، ترتیب و جزئیات را از اینجا کنترل کن.{% else %}Select a layer to control size, rotation, font, order and details.{% endif %}</p>
+      </div>
+      <div data-properties-panel hidden>
+        <div class="studio-pro__prop-head"><div><small>{% if AVAN_PAGE_LANG == 'fa' %}لایه انتخاب‌شده{% else %}SELECTED LAYER{% endif %}</small><strong data-selected-layer-name>—</strong></div><div><button type="button" data-toggle-lock title="Lock">⌾</button><button type="button" data-toggle-visible title="Visible">◉</button><button type="button" data-delete-layer title="Delete">×</button></div></div>
+
+        <section class="studio-pro__prop-section text-only">
+          <label class="studio-pro__field"><span>{% if AVAN_PAGE_LANG == 'fa' %}متن{% else %}TEXT{% endif %}</span><textarea rows="3" data-prop-text></textarea></label>
+          <label class="studio-pro__field"><span>{% if AVAN_PAGE_LANG == 'fa' %}فونت{% else %}FONT{% endif %}</span><select data-prop-font></select></label>
+          <div class="studio-pro__inline-fields"><label><span>{% if AVAN_PAGE_LANG == 'fa' %}رنگ{% else %}COLOR{% endif %}</span><input type="color" data-prop-color></label><label><span>{% if AVAN_PAGE_LANG == 'fa' %}وزن{% else %}WEIGHT{% endif %}</span><select data-prop-weight><option value="400">400</option><option value="600">600</option><option value="700">700</option><option value="900">900</option></select></label></div>
+          <div class="studio-pro__align"><button type="button" data-text-align="left">←</button><button type="button" data-text-align="center">↔</button><button type="button" data-text-align="right">→</button></div>
+          <label class="studio-pro__range"><span>{% if AVAN_PAGE_LANG == 'fa' %}فاصله حروف{% else %}LETTER SPACING{% endif %}</span><input type="range" min="-4" max="24" step="1" data-prop-letter></label>
+          <label class="studio-pro__range"><span>{% if AVAN_PAGE_LANG == 'fa' %}فاصله خطوط{% else %}LINE HEIGHT{% endif %}</span><input type="range" min="0.7" max="2.2" step="0.05" data-prop-lineheight></label>
+        </section>
+
+        <section class="studio-pro__prop-section">
+          <div class="studio-pro__section-title"><strong>{% if AVAN_PAGE_LANG == 'fa' %}تبدیل{% else %}TRANSFORM{% endif %}</strong></div>
+          <label class="studio-pro__range"><span>{% if AVAN_PAGE_LANG == 'fa' %}اندازه{% else %}SIZE{% endif %}</span><input type="range" min="4" max="160" step="1" data-prop-size></label>
+          <label class="studio-pro__range"><span>{% if AVAN_PAGE_LANG == 'fa' %}چرخش{% else %}ROTATION{% endif %}</span><input type="range" min="-180" max="180" step="1" data-prop-rotation></label>
+          <label class="studio-pro__range"><span>{% if AVAN_PAGE_LANG == 'fa' %}شفافیت{% else %}OPACITY{% endif %}</span><input type="range" min="0" max="100" step="1" data-prop-opacity></label>
+          <div class="studio-pro__action-grid"><button type="button" data-duplicate-layer>{% if AVAN_PAGE_LANG == 'fa' %}تکثیر{% else %}DUPLICATE{% endif %}</button><button type="button" data-flip-x>{% if AVAN_PAGE_LANG == 'fa' %}قرینه افقی{% else %}FLIP X{% endif %}</button><button type="button" data-flip-y>{% if AVAN_PAGE_LANG == 'fa' %}قرینه عمودی{% else %}FLIP Y{% endif %}</button><button type="button" data-center-layer>{% if AVAN_PAGE_LANG == 'fa' %}وسط‌چین{% else %}CENTER{% endif %}</button></div>
+          <div class="studio-pro__order-row"><button type="button" data-send-back>↓ {% if AVAN_PAGE_LANG == 'fa' %}عقب{% else %}BACK{% endif %}</button><button type="button" data-bring-front>↑ {% if AVAN_PAGE_LANG == 'fa' %}جلو{% else %}FRONT{% endif %}</button></div>
+        </section>
       </div>
 
-      <div class="studio-buy-preview">
-        <span>WEAR YOUR DESIGN</span><strong><span data-studio-price>0</span> TOMAN</strong>
-        <p>Color, fabric, every surface and every layer are saved into the order snapshot.</p>
-        <div class="studio-size-title">SIZE</div><div class="studio-size-options" data-studio-sizes></div><div class="studio-stock-state" data-studio-stock>SELECT A SIZE</div>
-        <button type="button" class="studio-add-bag" data-studio-add-bag disabled>ADD CUSTOM DESIGN TO BAG</button><div class="studio-buy-message" data-studio-buy-message></div>
-        <div class="studio-publish-options">
-          <label><input type="checkbox" data-publish-remix {% if initial_design.allow_remix %}checked{% endif %}><span>ALLOW REMIX</span></label>
-          <label><input type="checkbox" data-publish-sale {% if initial_design.is_for_sale %}checked{% endif %}><span>LET OTHERS WEAR IT</span></label>
-          {% if creator_pricing_enabled %}<label class="studio-sale-fee"><span>CREATOR DESIGN FEE / TOMAN</span><input type="number" min="0" step="1000" value="{{ initial_design.sale_price|default:0 }}" data-publish-price></label>{% else %}<input type="hidden" value="0" data-publish-price>{% endif %}
-        </div>
-      </div>
+      <section class="studio-pro__buy">
+        <div><span>{% if AVAN_PAGE_LANG == 'fa' %}قیمت لباس{% else %}GARMENT PRICE{% endif %}</span><strong><span data-studio-price>0</span> <small>{% if AVAN_PAGE_LANG == 'fa' %}تومان{% else %}TOMAN{% endif %}</small></strong></div>
+        <div class="studio-pro__sizes" data-studio-sizes></div><div class="studio-pro__stock" data-studio-stock></div>
+        <button type="button" data-studio-add-bag disabled>{% if AVAN_PAGE_LANG == 'fa' %}افزودن به سبد{% else %}ADD TO BAG{% endif %}</button><div data-studio-buy-message></div>
+      </section>
     </aside>
   </div>
-  {% else %}<div class="studio-no-products"><span>AVAN STUDIO</span><h1>NO CUSTOMIZABLE GARMENTS.</h1><p>Mark at least one product as Customizable in the catalog.</p></div>{% endif %}
+  {% else %}<div class="studio-pro__no-garment">{% if AVAN_PAGE_LANG == 'fa' %}هنوز لباس قابل طراحی فعالی وجود ندارد.{% else %}No customizable garments are available yet.{% endif %}</div>{% endif %}
 </section>
 
-<div class="studio-modal" data-sticker-modal hidden><div class="studio-modal__dialog"><div class="modal-head"><div><span>STICKER LIBRARY</span><h2>Pick a ready element</h2></div><button type="button" data-close-stickers>×</button></div><div class="sticker-tabs" data-sticker-tabs></div><div class="sticker-grid" data-sticker-grid></div><div class="my-stickers"><div><strong>MY STICKERS</strong><small>Private to your account.</small></div><label>UPLOAD STICKER<input type="file" accept="image/png,image/jpeg,image/webp" data-sticker-upload hidden></label><div class="sticker-grid" data-my-stickers></div></div></div></div>
-<div class="studio-modal" data-ai-modal hidden><div class="studio-modal__dialog ai-dialog"><div class="modal-head"><div><span>AI DESIGN</span><h2>Describe a printable graphic</h2></div><button type="button" data-close-ai>×</button></div><textarea rows="5" placeholder="Example: bold Persian calligraphy with a futuristic red chrome flame, streetwear print" data-ai-prompt></textarea><div class="ai-status" data-ai-status>{% if studio_settings.ai_configured %}AI READY{% else %}OWNER MUST CONFIGURE OPENAI_API_KEY{% endif %}</div><button class="red-btn ai-generate" type="button" data-ai-generate>GENERATE DESIGN</button></div></div>
-
-{% if studio_owner_mode %}
-<div class="studio-owner-drawer" data-owner-drawer hidden><div class="owner-drawer__head"><div><span>OWNER STUDIO</span><h2>Manage the Studio from here</h2></div><button type="button" data-close-owner>×</button></div>
-  <div class="owner-section"><h3>GARMENT PROFILE</h3><form data-owner-form="garment"><select name="product">{% for product in studio_products %}<option value="{{ product.id }}">{{ product.name }}</option>{% endfor %}</select><select name="garment_type"><option value="tee">T-shirt</option><option value="hoodie">Hoodie</option><option value="crop">Crop top</option></select><select name="default_fabric"><option value="">Default fabric</option>{% for fabric in studio_fabrics %}<option value="{{ fabric.id }}">{{ fabric.name }}</option>{% endfor %}</select><button>SAVE PROFILE</button></form></div>
-  <div class="owner-section"><h3>ADD FABRIC</h3><form data-owner-form="fabric"><input name="name" placeholder="Name" required><input name="name_fa" placeholder="نام فارسی"><div class="owner-mini-grid"><input name="roughness" type="number" step=".01" min="0" max="1" value=".75"><input name="weave" type="number" step=".01" min="0" max="1" value=".08"><input name="sheen" type="number" step=".01" min="0" max="1" value=".08"></div><button>ADD FABRIC</button></form></div>
-  <div class="owner-section"><h3>ADD FONT</h3><form data-owner-form="font" enctype="multipart/form-data"><input name="name" placeholder="Font name" required><input name="family_name" placeholder="CSS family, optional"><select name="language"><option value="both">Persian + English</option><option value="fa">Persian</option><option value="en">English</option></select><input name="font_file" type="file" accept=".woff,.woff2"><button>ADD FONT</button></form></div>
-  <div class="owner-section"><h3>STICKERS</h3><form data-owner-form="sticker-category"><input name="name" placeholder="Category name" required><input name="name_fa" placeholder="نام فارسی"><button>ADD CATEGORY</button></form><form data-owner-form="sticker" enctype="multipart/form-data"><select name="category">{% for category in sticker_library %}<option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}</select><input name="title" placeholder="Sticker title"><input name="title_fa" placeholder="عنوان فارسی"><input name="image" type="file" accept="image/png,image/jpeg,image/webp" required><button>UPLOAD STICKER</button></form></div>
-  <div class="owner-section"><h3>FEATURES</h3><form data-owner-form="settings"><label><input type="checkbox" name="ai_enabled" value="1" {% if studio_settings.ai_enabled %}checked{% endif %}> AI generation</label><label><input type="checkbox" name="allow_user_stickers" value="1" {% if studio_settings.allow_user_stickers %}checked{% endif %}> Personal stickers</label><label><input type="checkbox" name="inspiration_enabled" value="1" {% if studio_settings.inspiration_enabled %}checked{% endif %}> Inspiration tools</label><button>SAVE FEATURES</button></form></div>
-</div>{% endif %}
-
-<div hidden id="studio-csrf">{% csrf_token %}</div>
-{{ studio_products|json_script:"studio-products-data" }}{{ initial_design|json_script:"studio-initial-design" }}{{ studio_fabrics|json_script:"studio-fabrics-data" }}{{ studio_fonts|json_script:"studio-fonts-data" }}{{ sticker_library|json_script:"studio-stickers-data" }}{{ studio_settings|json_script:"studio-settings-data" }}
-{% endblock %}
-{% block extra_js %}<script src="{% static 'js/studio.js' %}" defer></script>{% endblock %}
+<div class="studio-pro__sticker-modal" data-sticker-modal hidden><button type="button" class="studio-pro__modal-backdrop" data-close-stickers></button><section><header><div><span>AVAN / STICKERS</span><h2>{% if AVAN_PAGE_LANG == 'fa' %}استیکرها{% else %}STICKERS{% endif %}</h2></div><button type="button" data-close-stickers>×</button></header><div data-sticker-tabs class="studio-pro__sticker-tabs"></div><div data-sticker-grid class="studio-pro__sticker-grid"></div><div class="studio-pro__my-stickers"><div><strong>{% if AVAN_PAGE_LANG == 'fa' %}استیکرهای من{% else %}MY STICKERS{% endif %}</strong><small>{% if AVAN_PAGE_LANG == 'fa' %}خصوصی برای حساب خودت{% else %}Private to your account{% endif %}</small></div><label>{% if AVAN_PAGE_LANG == 'fa' %}آپلود استیکر{% else %}UPLOAD STICKER{% endif %}<input type="file" accept="image/png,image/jpeg,image/webp" data-sticker-upload hidden></label><div data-my-stickers class="studio-pro__sticker-grid"></div></div></section></div>
+<div hidden id="studio-csrf">{% csrf_token %}</div>{{ studio_products|json_script:"studio-products-data" }}{{ initial_design|json_script:"studio-initial-design" }}{{ studio_fonts|json_script:"studio-fonts-data" }}{{ sticker_library|json_script:"studio-stickers-data" }}
+{% endblock %}{% block extra_js %}<script src="{% static 'js/stage20-studio.js' %}" defer></script>{% endblock %}
