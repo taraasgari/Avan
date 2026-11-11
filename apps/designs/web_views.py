@@ -81,17 +81,20 @@ def _public_queryset():
     return (
         Design.objects
         .filter(status=Design.Status.PUBLISHED, visibility=Design.Visibility.PUBLIC)
-        .select_related("owner", "base_product", "base_color", "parent_design", "parent_design__owner")
+        .select_related("owner", "base_product", "base_product__studio_profile", "base_color", "parent_design", "parent_design__owner")
         .prefetch_related("base_product__images", "base_product__design_mockups__color", "likes", "saves", "remixes")
     )
 
 
 def _preview_payload(design):
-    sides = (design.design_data or {}).get("sides", {})
+    data = design.design_data or {}
+    sides = data.get("sides", {})
     front = sides.get("front", []) or []
     back = sides.get("back", []) or []
     side = "front" if front or not back else "back"
     layers = front if side == "front" else back
+    coordinate_space = data.get("coordinateSpace") or ""
+    stage_mode = coordinate_space == "garment-stage-v2"
 
     mockup = (
         design.base_product.design_mockups
@@ -101,7 +104,17 @@ def _preview_payload(design):
     )
     fallback = design.base_product.images.first()
 
-    if mockup:
+    profile = getattr(design.base_product, "studio_profile", None)
+    stage_reference = None
+    if profile is not None:
+        stage_reference = getattr(profile, f"{side}_reference", None)
+
+    if stage_mode and stage_reference:
+        image_url = stage_reference.url
+        print_box = (profile.print_zones or {}).get(side) or {
+            "x": 25, "y": 22, "width": 50, "height": 55,
+        }
+    elif mockup:
         image_url = mockup.image.url
         print_box = {
             "x": float(mockup.print_x),
@@ -118,6 +131,8 @@ def _preview_payload(design):
         "layers": layers,
         "image_url": image_url,
         "print": print_box,
+        "coordinate_space": coordinate_space,
+        "stage_mode": stage_mode,
     }
 
 

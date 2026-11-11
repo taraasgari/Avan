@@ -10,9 +10,30 @@ const csrf=$('#studio-csrf input')?.value||'';
 const authenticated=root.dataset.authenticated==='1';
 const fa=document.documentElement.lang.startsWith('fa');
 const VIEW_DEFS=[['front',fa?'جلو':'FRONT'],['back',fa?'پشت':'BACK'],['left_sleeve',fa?'آستین چپ':'LEFT SLEEVE'],['right_sleeve',fa?'آستین راست':'RIGHT SLEEVE'],['neck_label',fa?'لیبل پشت یقه':'NECK LABEL']];
-const defaultData={coordinateSpace:'garment-stage-v2',sides:{front:[],back:[],left_sleeve:[],right_sleeve:[],neck_label:[]}};
-const state={productId:initial?.product_id||products[0]?.id||null,colorId:initial?.color_id||null,view:'front',selected:null,selectedSize:null,zoom:1,designId:initial?.id||null,dirty:false,grid:false,guide:true,data:initial?.design_data||structuredClone(defaultData),undo:[],redo:[]};
-for(const [v] of VIEW_DEFS) state.data.sides[v]=state.data.sides[v]||[];
+const defaultData={version:2,coordinateSpace:'garment-stage-v2',sides:{front:[],back:[],left_sleeve:[],right_sleeve:[],neck_label:[]}};
+function normalizeInitialData(raw){
+  const data=(raw&&typeof raw==='object')?structuredClone(raw):structuredClone(defaultData);
+  data.version=Number(data.version||2);
+  if(!data.sides||typeof data.sides!=='object')data.sides={};
+  for(const [view] of VIEW_DEFS){
+    if(!Array.isArray(data.sides[view]))data.sides[view]=[];
+    for(const item of data.sides[view]){
+      if(!item||typeof item!=='object')continue;
+      if(item.type==='text'){
+        if(item.size==null&&item.fontSize!=null)item.size=Number(item.fontSize);
+        if(item.weight==null&&item.fontWeight!=null)item.weight=Number(item.fontWeight);
+        if(item.lineHeight==null)item.lineHeight=1.05;
+        if(item.letterSpacing==null)item.letterSpacing=0;
+      }
+      item.flipX=!!item.flipX;
+      item.flipY=!!item.flipY;
+      item.hidden=!!item.hidden;
+      item.locked=!!item.locked;
+    }
+  }
+  return data;
+}
+const state={productId:initial?.product_id||products[0]?.id||null,colorId:initial?.color_id||null,view:'front',selected:null,selectedSize:null,zoom:1,designId:initial?.id||null,dirty:false,grid:false,guide:true,data:normalizeInitialData(initial?.design_data),undo:[],redo:[]};
 const el={product:$('[data-product-select]'),colors:$('[data-color-options]'),tabs:$('[data-view-tabs]'),img:$('[data-garment-image]'),tint:$('[data-garment-tint]'),garmentWrap:$('[data-garment-wrap]'),stage:$('[data-garment-stage]'),surface:$('[data-design-surface]'),guide:$('[data-print-guide]'),grid:$('[data-grid-overlay]'),missing:$('[data-missing-view]'),list:$('[data-layers-list]'),count:$('[data-layer-count]'),empty:$('[data-properties-empty]'),panel:$('[data-properties-panel]'),font:$('[data-prop-font]'),title:$('[data-design-title]'),save:$('[data-save-design]'),publish:$('[data-publish-design]'),saveState:$('[data-save-state]'),sizes:$('[data-studio-sizes]'),stock:$('[data-studio-stock]'),price:$('[data-studio-price]'),addBag:$('[data-studio-add-bag]'),buyMsg:$('[data-studio-buy-message]'),layerName:$('[data-selected-layer-name]')};
 function product(){return products.find(p=>String(p.id)===String(state.productId))||products[0]}
 function color(){return product()?.colors?.find(c=>String(c.id)===String(state.colorId))||product()?.colors?.[0]}
@@ -27,7 +48,23 @@ function mark(){state.dirty=true;if(el.saveState)el.saveState.textContent=fa?'ذ
 function commit(fn){snapshot();fn();mark();renderAll()}
 function undo(){if(!state.undo.length)return;state.redo.push(cloneData());state.data=state.undo.pop();state.selected=null;mark();renderAll()}
 function redo(){if(!state.redo.length)return;state.undo.push(cloneData());state.data=state.redo.pop();state.selected=null;mark();renderAll()}
-function migrateLegacyCoordinates(){if(state.data.coordinateSpace==='garment-stage-v2')return;for(const [v] of VIEW_DEFS){const z=zoneFor(product(),v);for(const l of state.data.sides[v]||[]){l.x=z.x+((Number(l.x??50)/100)*z.width);l.y=z.y+((Number(l.y??50)/100)*z.height);l.width=((Number(l.width??35)/100)*z.width);}}state.data.coordinateSpace='garment-stage-v2';mark()}
+function migrateLegacyCoordinates(){
+  if(state.data.coordinateSpace==='garment-stage-v2')return;
+  const legacyVersion=Number(state.data.version||0);
+  if(legacyVersion>0&&legacyVersion<2){
+    for(const [v] of VIEW_DEFS){
+      const z=zoneFor(product(),v);
+      for(const l of state.data.sides[v]||[]){
+        l.x=z.x+((Number(l.x??50)/100)*z.width);
+        l.y=z.y+((Number(l.y??50)/100)*z.height);
+        l.width=((Number(l.width??35)/100)*z.width);
+      }
+    }
+  }
+  state.data.version=2;
+  state.data.coordinateSpace='garment-stage-v2';
+  mark();
+}
 function setView(v,animate=true){if(!VIEW_DEFS.some(x=>x[0]===v))return;if(state.view===v)return;if(animate)el.garmentWrap?.classList.add('is-switching');setTimeout(()=>{state.view=v;state.selected=null;renderAll();el.garmentWrap?.classList.remove('is-switching')},animate?90:0)}
 function cycleView(delta){const defs=viewDefs();let i=defs.findIndex(x=>x[0]===state.view);if(i<0)i=0;setView(defs[(i+delta+defs.length)%defs.length][0])}
 function renderAll(){renderProduct();renderViews();renderLayers();renderProps();renderSizes();renderHistoryButtons()}

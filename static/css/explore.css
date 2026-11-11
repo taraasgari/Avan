@@ -22,3 +22,42 @@
 
 /* Stage 6 creator pricing */
 .creator-fee-line{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:.65rem}
+
+/* Studio Core Fix v1: render Stage 20 absolute coordinates without re-basing
+   them into the legacy print box. */
+.design-preview__studio-frame{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:100%;
+    aspect-ratio:980/690;
+    transform:translate(-50%,-50%);
+    overflow:visible;
+}
+.design-preview__studio-frame .design-preview__garment--stage{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:auto;
+    height:auto;
+    max-width:82%;
+    max-height:92%;
+    transform:translate(-50%,-50%);
+    object-fit:contain;
+}
+.design-preview__surface{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+}
+.design-preview__surface .preview-layer--text>span{
+    display:block;
+    width:100%;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+}
+.preview-layer--asset img{
+    display:block;
+    width:100%;
+    height:auto;
+}
