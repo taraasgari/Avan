@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 
@@ -81,7 +81,7 @@ def _public_queryset():
     return (
         Design.objects
         .filter(status=Design.Status.PUBLISHED, visibility=Design.Visibility.PUBLIC)
-        .select_related("owner", "base_product", "base_product__studio_profile", "base_color", "parent_design", "parent_design__owner")
+        .select_related("owner", "base_product", "base_product__category", "base_product__studio_profile", "base_color", "parent_design", "parent_design__owner")
         .prefetch_related("base_product__images", "base_product__design_mockups__color", "likes", "saves", "remixes")
     )
 
@@ -259,18 +259,137 @@ def my_designs(request):
 
 
 def explore(request):
-    sort = request.GET.get("sort", "newest")
+    from django.contrib.auth import get_user_model
+
+    from apps.accounts.models import CreatorFollow
+    from apps.catalog.models import Category
+    from apps.experience.models import Drop
+
+    feed = request.GET.get("feed") or ""
+    legacy_sort = request.GET.get("sort") or ""
+    if not feed:
+        feed = "popular" if legacy_sort == "popular" else "for-you"
+    if feed not in {"for-you", "following", "popular", "newest"}:
+        feed = "for-you"
+
+    category_slug = (request.GET.get("category") or "").strip()
+
     qs = _public_queryset().annotate(
         likes_total=Count("likes", distinct=True),
+        saves_total=Count("saves", distinct=True),
         remixes_total=Count("remixes", distinct=True),
     )
-    if sort == "popular":
-        qs = qs.order_by("-likes_total", "-remixes_total", "-published_at")
-    else:
-        qs = qs.order_by("-published_at")
+    if category_slug:
+        qs = qs.filter(base_product__category__slug=category_slug)
 
-    cards = [{"design": design, "preview": _preview_payload(design)} for design in qs[:48]]
-    return render(request, "designs/explore.html", {"cards": cards, "sort": sort})
+    followed_creator_ids = set()
+    if request.user.is_authenticated:
+        followed_creator_ids = set(
+            CreatorFollow.objects.filter(follower=request.user)
+            .values_list("creator_id", flat=True)
+        )
+
+    if feed == "following":
+        if request.user.is_authenticated:
+            qs = qs.filter(owner_id__in=followed_creator_ids).order_by("-published_at")
+        else:
+            qs = qs.none()
+    elif feed == "popular":
+        qs = qs.order_by("-likes_total", "-remixes_total", "-saves_total", "-published_at")
+    elif feed == "newest":
+        qs = qs.order_by("-published_at")
+    else:
+        qs = qs.order_by("-likes_total", "-saves_total", "-remixes_total", "-published_at")
+
+    designs = list(qs[:48])
+    design_ids = [design.id for design in designs]
+    liked_ids = set()
+    saved_ids = set()
+    if request.user.is_authenticated and design_ids:
+        liked_ids = set(
+            request.user.design_likes.filter(design_id__in=design_ids)
+            .values_list("design_id", flat=True)
+        )
+        saved_ids = set(
+            request.user.saved_designs.filter(design_id__in=design_ids)
+            .values_list("design_id", flat=True)
+        )
+
+    cards = [
+        {
+            "design": design,
+            "preview": _preview_payload(design),
+            "liked": design.id in liked_ids,
+            "saved": design.id in saved_ids,
+            "is_following": design.owner_id in followed_creator_ids,
+        }
+        for design in designs
+    ]
+
+    categories = (
+        Category.objects.filter(
+            is_active=True,
+            products__customer_designs__status=Design.Status.PUBLISHED,
+            products__customer_designs__visibility=Design.Visibility.PUBLIC,
+        )
+        .annotate(designs_total=Count("products__customer_designs", distinct=True))
+        .order_by("sort_order", "name")[:10]
+    )
+
+    UserModel = get_user_model()
+    public_design_filter = Q(
+        designs__status=Design.Status.PUBLISHED,
+        designs__visibility=Design.Visibility.PUBLIC,
+    )
+    suggestions = (
+        UserModel.objects.filter(public_profile_enabled=True)
+        .annotate(
+            followers_total=Count("creator_followers", distinct=True),
+            designs_total=Count("designs", filter=public_design_filter, distinct=True),
+        )
+        .filter(designs_total__gt=0)
+    )
+    excluded_creator_ids = set(followed_creator_ids)
+    if request.user.is_authenticated:
+        excluded_creator_ids.add(request.user.id)
+    if excluded_creator_ids:
+        suggestions = suggestions.exclude(id__in=excluded_creator_ids)
+    suggestions = list(
+        suggestions.order_by("-followers_total", "-designs_total", "username")[:4]
+    )
+
+    featured_drop = (
+        Drop.objects.filter(status=Drop.Status.PUBLISHED)
+        .order_by("-is_featured", "-starts_at", "-created_at")
+        .first()
+    )
+
+    activity_cards = []
+    if request.user.is_authenticated and followed_creator_ids:
+        activity_designs = (
+            _public_queryset()
+            .filter(owner_id__in=followed_creator_ids)
+            .order_by("-published_at")[:3]
+        )
+        activity_cards = [
+            {"design": design, "preview": _preview_payload(design)}
+            for design in activity_designs
+        ]
+
+    return render(
+        request,
+        "designs/explore.html",
+        {
+            "cards": cards,
+            "feed": feed,
+            "category_slug": category_slug,
+            "categories": categories,
+            "suggestions": suggestions,
+            "featured_drop": featured_drop,
+            "activity_cards": activity_cards,
+            "public_count": _public_queryset().count(),
+        },
+    )
 
 
 def public_design(request, design_id):

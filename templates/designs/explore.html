@@ -1,37 +1,161 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Explore — AVAN{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/stage5.css' %}">{% endblock %}
+{% block title %}کاوش — AVAN{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/explore.css' %}">
+<link rel="stylesheet" href="{% static 'css/explore-social.css' %}">
+{% endblock %}
 
 {% block content %}
-<section class="explore-page">
-    <header class="explore-hero">
-        <div><p>AVAN / COMMUNITY DESIGNS</p><h1>EXPLORE<br>THE NEXT.</h1></div>
-        <div class="explore-intro"><p>Discover public designs made on AVAN garments. Like them, save them, remix them, or wear them.</p><a href="/design/">CREATE YOUR DESIGN →</a></div>
-    </header>
+<section class="social-explore" data-social-explore>
+    <aside class="social-explore__sidebar" aria-label="فیلترهای کاوش">
+        <div class="social-sidebar__inner">
+            <div class="social-sidebar__title"><span class="social-sidebar__mark">⌘</span><strong>فید کاوش</strong></div>
+            <nav class="social-sidebar__nav">
+                <a href="/explore/?feed=for-you{% if category_slug %}&category={{ category_slug }}{% endif %}" class="{% if feed == 'for-you' %}is-active{% endif %}"><span>▦</span><b>همه طرح‌ها</b></a>
+                <a href="/explore/?feed=following{% if category_slug %}&category={{ category_slug }}{% endif %}" class="{% if feed == 'following' %}is-active{% endif %}"><span>♙</span><b>دنبال‌شده‌ها</b></a>
+                <a href="/explore/?feed=popular{% if category_slug %}&category={{ category_slug }}{% endif %}" class="{% if feed == 'popular' %}is-active{% endif %}"><span>♡</span><b>محبوب‌ترین‌ها</b></a>
+                <a href="/explore/?feed=newest{% if category_slug %}&category={{ category_slug }}{% endif %}" class="{% if feed == 'newest' %}is-active{% endif %}"><span>◷</span><b>جدیدترین‌ها</b></a>
+            </nav>
 
-    <div class="stage5-tabs"><a href="/explore/" class="is-active">EXPLORE</a>{% if request.user.is_authenticated %}<a href="/following/">FOLLOWING</a>{% endif %}</div>
+            <div class="social-sidebar__divider"></div>
+            <p class="social-sidebar__label">دسته‌بندی‌ها</p>
+            <nav class="social-sidebar__categories">
+                <a href="/explore/?feed={{ feed }}" class="{% if not category_slug %}is-active{% endif %}"><span>همه</span><small>{{ public_count }}</small></a>
+                {% for category in categories %}
+                <a href="/explore/?feed={{ feed }}&category={{ category.slug }}" class="{% if category_slug == category.slug %}is-active{% endif %}">
+                    <span>{{ category.name_fa|default:category.name }}</span><small>{{ category.designs_total }}</small>
+                </a>
+                {% endfor %}
+            </nav>
+            <a href="/design/garments/" class="social-sidebar__create">＋ ساخت طرح جدید</a>
+        </div>
+    </aside>
 
-    <div class="explore-toolbar">
-        <div><strong>{{ cards|length }}</strong><span>PUBLIC DESIGNS</span></div>
-        <nav><a href="/explore/?sort=newest" class="{% if sort == 'newest' %}is-active{% endif %}">NEWEST</a><a href="/explore/?sort=popular" class="{% if sort == 'popular' %}is-active{% endif %}">POPULAR</a></nav>
-    </div>
+    <main class="social-explore__main">
+        <header class="social-explore__hero">
+            <span>AVAN / COMMUNITY</span>
+            <h1>کاوش در طرح‌های آوان <em>✦</em></h1>
+            <p>طرح‌های خلاقانه کاربران را ببین، دنبال کن، لایک کن، ذخیره کن و ریمیکس بساز.</p>
+        </header>
 
-    <div class="explore-grid">
-        {% for card in cards %}
-        <article class="explore-card" data-design-card="{{ card.design.id }}">
-            <a class="explore-card__preview" href="/explore/{{ card.design.id }}/">{% include "designs/_preview.html" with design=card.design preview=card.preview compact=True %}</a>
-            <div class="explore-card__body">
-                <div class="explore-card__creator"><span>BY</span>{% if card.design.owner.public_profile_enabled %}<a href="/creator/{{ card.design.owner.username }}/"><strong>{{ card.design.owner.display_name|default:card.design.owner.username }}</strong></a>{% else %}<strong>{{ card.design.owner.display_name|default:card.design.owner.username }}</strong>{% endif %}</div>
-                <a href="/explore/{{ card.design.id }}/"><h2>{{ card.design.title }}</h2></a>
-                <p>{{ card.design.base_product.name }}{% if card.design.base_color %} / {{ card.design.base_color.name }}{% endif %}</p>
-                <div class="explore-card__stats"><span>♥ {{ card.design.likes_total }}</span><span>REMIX {{ card.design.remixes_total }}</span>{% if card.design.is_for_sale %}<span class="for-sale">WEAR IT</span>{% endif %}</div>
-                <div class="explore-card__actions"><button type="button" data-design-like="{{ card.design.id }}">LIKE</button><button type="button" data-design-save="{{ card.design.id }}">SAVE</button>{% if card.design.allow_remix %}<button type="button" data-design-remix="{{ card.design.id }}">REMIX</button>{% endif %}</div>
+        <nav class="social-feed-tabs" aria-label="مرتب‌سازی فید">
+            <a href="/explore/?feed=for-you{% if category_slug %}&category={{ category_slug }}{% endif %}" class="{% if feed == 'for-you' %}is-active{% endif %}">برای شما</a>
+            <a href="/explore/?feed=newest{% if category_slug %}&category={{ category_slug }}{% endif %}" class="{% if feed == 'newest' %}is-active{% endif %}">جدیدترین</a>
+            <a href="/explore/?feed=popular{% if category_slug %}&category={{ category_slug }}{% endif %}" class="{% if feed == 'popular' %}is-active{% endif %}">محبوب‌ترین</a>
+            <a href="/explore/?feed=following{% if category_slug %}&category={{ category_slug }}{% endif %}" class="{% if feed == 'following' %}is-active{% endif %}">دنبال‌شده‌ها</a>
+        </nav>
+
+        {% if feed == "following" and not request.user.is_authenticated %}
+        <div class="social-feed-empty social-feed-empty--login">
+            <span>فید شخصی تو</span><h2>برای دیدن طرح‌های دنبال‌شده‌ها وارد شو.</h2>
+            <a href="/account/login/?next=/explore/%3Ffeed%3Dfollowing">ورود به حساب</a>
+        </div>
+        {% else %}
+        <div class="social-feed-grid">
+            {% for card in cards %}
+            <article class="social-card" data-design-card="{{ card.design.id }}">
+                <header class="social-card__head">
+                    <a class="social-card__creator" href="{% if card.design.owner.public_profile_enabled %}/creator/{{ card.design.owner.username }}/{% else %}#{% endif %}">
+                        <span class="social-avatar">{% if card.design.owner.avatar %}<img src="{{ card.design.owner.avatar.url }}" alt="{{ card.design.owner.display_name|default:card.design.owner.username }}">{% else %}{{ card.design.owner.display_name|default:card.design.owner.username|slice:":1"|upper }}{% endif %}</span>
+                        <span><strong>{{ card.design.owner.username }}</strong><small>{{ card.design.published_at|timesince }} پیش</small></span>
+                    </a>
+                    <div class="social-card__head-actions">
+                        {% if card.design.owner.public_profile_enabled and request.user != card.design.owner %}
+                            {% if request.user.is_authenticated %}
+                            <button type="button" class="social-follow {% if card.is_following %}is-active{% endif %}" data-follow-creator="{{ card.design.owner.username }}">{% if card.is_following %}دنبال می‌کنید{% else %}دنبال کردن{% endif %}</button>
+                            {% else %}
+                            <a class="social-follow" href="/account/login/?next=/explore/">دنبال کردن</a>
+                            {% endif %}
+                        {% endif %}
+                        <a class="social-card__more" href="/explore/{{ card.design.id }}/" aria-label="جزئیات طرح">•••</a>
+                    </div>
+                </header>
+
+                <a class="social-card__visual" href="/explore/{{ card.design.id }}/">
+                    {% include "designs/_preview.html" with design=card.design preview=card.preview compact=True %}
+                    {% if card.design.is_for_sale %}<span class="social-card__wear">قابل خرید</span>{% endif %}
+                </a>
+
+                <div class="social-card__toolbar">
+                    <button type="button" class="social-action social-action--like {% if card.liked %}is-active{% endif %}" data-design-like="{{ card.design.id }}" aria-label="لایک"><span>♥</span><b data-like-count-for="{{ card.design.id }}">{{ card.design.likes_total }}</b></button>
+                    <a class="social-action" href="/explore/{{ card.design.id }}/" aria-label="مشاهده طرح"><span>◯</span><b>دیدن</b></a>
+                    {% if card.design.allow_remix %}
+                    <button type="button" class="social-action" data-design-remix="{{ card.design.id }}" aria-label="ریمیکس"><span>↻</span><b>{{ card.design.remixes_total }}</b></button>
+                    {% endif %}
+                    <button type="button" class="social-action social-action--save {% if card.saved %}is-active{% endif %}" data-design-save="{{ card.design.id }}" aria-label="ذخیره"><span>⌑</span><b data-save-label>{% if card.saved %}ذخیره شد{% else %}ذخیره{% endif %}</b></button>
+                </div>
+
+                <div class="social-card__body">
+                    <a href="/explore/{{ card.design.id }}/"><h2>{{ card.design.title }}</h2></a>
+                    <p>{{ card.design.base_product.name }}{% if card.design.base_color %} · {{ card.design.base_color.name }}{% endif %}</p>
+                    <div class="social-card__chips">
+                        <span>#{{ card.design.base_product.category.name_fa|default:card.design.base_product.category.name }}</span>
+                        {% if card.design.parent_design %}<span>#ریمیکس</span>{% endif %}
+                        {% if card.design.is_for_sale %}<span>#قابل_خرید</span>{% endif %}
+                    </div>
+                    {% if card.design.parent_design and card.design.parent_design.owner %}<small class="social-card__lineage">ریمیکس از @{{ card.design.parent_design.owner.username }}</small>{% endif %}
+                </div>
+            </article>
+            {% empty %}
+            <div class="social-feed-empty">
+                <span>AVAN EXPLORE</span><h2>فعلاً طرحی برای این فیلتر نیست.</h2>
+                <p>یک دسته دیگر را امتحان کن یا اولین طرح را منتشر کن.</p><a href="/design/garments/">ساخت طرح جدید</a>
             </div>
-        </article>
-        {% empty %}<div class="explore-empty"><span>AVAN EXPLORE</span><h2>NO PUBLIC DESIGNS YET.</h2><p>Publish the first design from AVAN Studio.</p><a href="/design/">OPEN STUDIO</a></div>{% endfor %}
-    </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </main>
+
+    <aside class="social-explore__rail">
+        <div class="social-rail__inner">
+            {% if featured_drop %}
+            <a class="social-drop-card" href="/drops/{{ featured_drop.slug }}/">
+                {% if featured_drop.cover_image %}<img src="{{ featured_drop.cover_image.url }}" alt="{{ featured_drop.title }}">{% endif %}
+                <span>دراپ ویژه · {{ featured_drop.phase }}</span><h2>{{ featured_drop.title }}</h2>
+                {% if featured_drop.subtitle %}<p>{{ featured_drop.subtitle }}</p>{% endif %}<strong>مشاهده دراپ ←</strong>
+            </a>
+            {% else %}
+            <a class="social-drop-card social-drop-card--empty" href="/drops/">
+                <span>AVAN DROPS</span><h2>دراپ بعدی نزدیک است.</h2><p>کالکشن‌های محدود و انتخاب‌شده آوان اینجا دیده می‌شوند.</p><strong>مشاهده دراپ‌ها ←</strong>
+            </a>
+            {% endif %}
+
+            <section class="social-rail-card">
+                <header><h3>پیشنهاد دنبال کردن</h3><span>♙</span></header>
+                <div class="social-suggestions">
+                    {% for creator in suggestions %}
+                    <div class="social-suggestion">
+                        <a href="/creator/{{ creator.username }}/" class="social-suggestion__who">
+                            <span class="social-avatar">{% if creator.avatar %}<img src="{{ creator.avatar.url }}" alt="{{ creator.display_name|default:creator.username }}">{% else %}{{ creator.display_name|default:creator.username|slice:":1"|upper }}{% endif %}</span>
+                            <span><strong>{{ creator.username }}</strong><small>{{ creator.designs_total }} طرح · {{ creator.followers_total }} دنبال‌کننده</small></span>
+                        </a>
+                        {% if request.user.is_authenticated %}
+                        <button type="button" class="social-follow" data-follow-creator="{{ creator.username }}">دنبال کردن</button>
+                        {% else %}
+                        <a class="social-follow" href="/account/login/?next=/explore/">دنبال کردن</a>
+                        {% endif %}
+                    </div>
+                    {% empty %}<p class="social-rail-muted">فعلاً پیشنهاد تازه‌ای نداریم.</p>{% endfor %}
+                </div>
+            </section>
+
+            {% if request.user.is_authenticated %}
+            <section class="social-rail-card">
+                <header><h3>تازه از دنبال‌شده‌ها</h3><span>⌁</span></header>
+                <div class="social-activity">
+                    {% for item in activity_cards %}
+                    <a href="/explore/{{ item.design.id }}/" class="social-activity__item">
+                        <div class="social-activity__copy"><strong>@{{ item.design.owner.username }}</strong><span>{{ item.design.title }}</span><small>{{ item.design.published_at|timesince }} پیش</small></div>
+                        <div class="social-activity__thumb">{% include "designs/_preview.html" with design=item.design preview=item.preview compact=True %}</div>
+                    </a>
+                    {% empty %}<p class="social-rail-muted">چند Creator را دنبال کن تا فعالیت تازه اینجا ظاهر شود.</p>{% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        </div>
+    </aside>
 </section>
 <div hidden id="explore-csrf">{% csrf_token %}</div>
 {% endblock %}

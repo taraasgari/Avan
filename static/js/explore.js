@@ -26,9 +26,9 @@
                     headers: {"X-CSRFToken": csrf, "Accept": "application/json"},
                 });
                 button.classList.toggle("is-active", data.active);
-                const card = button.closest("[data-design-card]");
-                const stat = card?.querySelector(".explore-card__stats span:first-child");
-                if (stat) stat.textContent = `♥ ${data.count}`;
+                document.querySelectorAll(`[data-like-count-for="${id}"]`).forEach(node => {
+                    node.textContent = data.count;
+                });
                 const count = document.querySelector("[data-like-count]");
                 if (count && document.querySelector(`[data-design-like="${id}"]`)) count.textContent = data.count;
             } catch (error) {
@@ -47,7 +47,10 @@
                     headers: {"X-CSRFToken": csrf, "Accept": "application/json"},
                 });
                 button.classList.toggle("is-active", data.active);
-                if (button.textContent.trim() === "SAVE" || button.textContent.trim() === "SAVED") {
+                const saveLabel = button.querySelector("[data-save-label]");
+                if (saveLabel) {
+                    saveLabel.textContent = data.active ? "ذخیره شد" : "ذخیره";
+                } else if (button.textContent.trim() === "SAVE" || button.textContent.trim() === "SAVED") {
                     button.textContent = data.active ? "SAVED" : "SAVE";
                 }
             } catch (error) {
@@ -61,7 +64,7 @@
             const id = button.dataset.designRemix;
             button.disabled = true;
             const original = button.textContent;
-            button.textContent = "CREATING...";
+            button.textContent = "در حال ساخت...";
             try {
                 const data = await jsonFetch(`/api/designs/${id}/remix/`, {
                     method: "POST",
@@ -72,6 +75,28 @@
                 if (error.message !== "Sign in required.") alert(error.message);
                 button.disabled = false;
                 button.textContent = original;
+            }
+        });
+    });
+
+    document.querySelectorAll("[data-follow-creator]").forEach(button => {
+        button.addEventListener("click", async () => {
+            const username = button.dataset.followCreator;
+            if (!username) return;
+            button.disabled = true;
+            try {
+                const data = await jsonFetch(`/creator/${encodeURIComponent(username)}/follow/`, {
+                    method: "POST",
+                    headers: {"X-CSRFToken": csrf, "Accept": "application/json"},
+                });
+                document.querySelectorAll(`[data-follow-creator="${username}"]`).forEach(node => {
+                    node.classList.toggle("is-active", data.active);
+                    node.textContent = data.active ? "دنبال می‌کنید" : "دنبال کردن";
+                });
+            } catch (error) {
+                if (error.message !== "Sign in required.") alert(error.message);
+            } finally {
+                button.disabled = false;
             }
         });
     });
