@@ -47,48 +47,85 @@ def _appearance_context():
 
 def _page_design_context(request):
     defaults = {
-        "page_key": "", "background": "", "text_color": "", "surface": "",
-        "accent": "", "section_gap": "", "card_radius": "", "hide_header": False,
-        "hero_kicker_fa": "", "hero_kicker_en": "", "hero_title_fa": "", "hero_title_en": "",
-        "hero_subtitle_fa": "", "hero_subtitle_en": "", "primary_label_fa": "",
-        "primary_label_en": "", "primary_url": "", "secondary_label_fa": "",
-        "secondary_label_en": "", "secondary_url": "",
+        "page_key": "",
+        "page_path": getattr(request, "path", "/") or "/",
+        "background": "",
+        "text_color": "",
+        "surface": "",
+        "accent": "",
+        "section_gap": "",
+        "card_radius": "",
+        "hide_header": False,
+        "hero_kicker_fa": "",
+        "hero_kicker_en": "",
+        "hero_title_fa": "",
+        "hero_title_en": "",
+        "hero_subtitle_fa": "",
+        "hero_subtitle_en": "",
+        "primary_label_fa": "",
+        "primary_label_en": "",
+        "primary_url": "",
+        "secondary_label_fa": "",
+        "secondary_label_en": "",
+        "secondary_url": "",
+        "elements": [],
+        "is_preview": False,
     }
     try:
         from apps.owner.models import PageDesign
+
         path = getattr(request, "path", "/") or "/"
-        key = "home" if path == "/" else None
         mapping = [
-            ("/shop/", "product" if path != "/shop/" else "shop"),
-            ("/design/garments/", "design"), ("/design/", "studio"),
-            ("/collections/", "collections"), ("/explore/", "explore"),
-            ("/play/", "play"), ("/challenges/", "challenges"), ("/drops/", "drops"),
-            ("/account/support/", "support"), ("/account/", "account"),
+            ("/", "home"),
+            ("/shop/", "shop"),
+            ("/design/garments/", "design"),
+            ("/collections/", "collections"),
+            ("/explore/", "explore"),
+            ("/play/", "play"),
+            ("/challenges/", "challenges"),
+            ("/drops/", "drops"),
         ]
-        if key is None:
+
+        # Exact path records take precedence so dynamic public pages can each
+        # have their own design instead of inheriting a section's settings.
+        obj = PageDesign.objects.filter(page_path=path).order_by("-updated_at").first()
+        if obj is None:
+            key = None
             for prefix, candidate in mapping:
-                if path.startswith(prefix):
+                if path == prefix or (prefix != "/" and path.startswith(prefix)):
                     key = candidate
                     break
-        if not key:
+            if key:
+                obj = PageDesign.objects.filter(page_key=key).first()
+
+        if obj is None:
             return defaults
-        obj = PageDesign.objects.filter(page_key=key).first()
-        if not obj:
-            return defaults
-        use_draft = (
-            request.GET.get("visual_preview") == "1"
-            and getattr(request, "user", None) is not None
-            and request.user.is_authenticated
-            and (request.user.is_superuser or request.user.is_staff)
+
+        user = getattr(request, "user", None)
+        is_owner = bool(
+            user is not None
+            and user.is_authenticated
+            and user.is_active
+            and user.is_superuser
         )
-        data = dict(obj.draft_data if use_draft else obj.published_data or {})
+        use_draft = is_owner and (
+            request.GET.get("visual_preview") == "1"
+            or request.GET.get("visual_edit") == "1"
+        )
+
+        draft = obj.draft_data if isinstance(obj.draft_data, dict) else {}
+        published = obj.published_data if isinstance(obj.published_data, dict) else {}
+        data = dict((draft if use_draft and draft else published) or {})
+
         defaults.update(data)
-        defaults["page_key"] = key
-        defaults["is_preview"] = use_draft
+        defaults["page_key"] = obj.page_key
+        defaults["page_path"] = path
+        defaults["elements"] = data.get("elements", []) if isinstance(data.get("elements", []), list) else []
+        defaults["is_preview"] = bool(use_draft)
         return defaults
     except Exception:
+        # A temporary DB/migration issue must never break storefront rendering.
         return defaults
-
 
 def brand(request):
     unread_notifications = 0

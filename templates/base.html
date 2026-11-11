@@ -55,51 +55,102 @@
     {% block extra_css %}{% endblock %}
     <title>{% block title %}{{ AVAN_SEO.title|default:AVAN_BRAND_NAME }}{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/stage20-header-hotfix.css' %}">
+{% if request.user.is_authenticated and request.user.is_superuser %}
+<link rel="stylesheet" href="{% static 'css/visual-editor.css' %}">
+{% endif %}
 </head>
 <body>
 <header class="site-header site-header-v4">
     <div class="site-header-v4__main">
-        <button type="button" class="mobile-menu-trigger" data-menu-open aria-label="{% avan_t 'menu' %}"><span></span><span></span></button>
-        <a class="brand brand-v4" href="/">{{ AVAN_BRAND_NAME }}</a>
+        <button type="button" class="mobile-menu-trigger" data-menu-open aria-label="{% avan_t 'menu' %}">
+            <span></span><span></span>
+        </button>
 
-        <form class="header-searchbar header-searchbar-v4" action="/search/" method="get" role="search" data-live-search-form>
-            <button type="submit" class="header-searchbar__submit" aria-label="{% avan_t 'search' %}">⌕</button>
-            <input type="search" name="q" placeholder="{% if AVAN_PAGE_LANG == 'fa' %}محصول، طرح، کالکشن یا طراح را جستجو کن...{% else %}Search products, designs, collections or creators...{% endif %}" autocomplete="off" data-live-search-input>
-            <kbd>ENTER</kbd>
-            <div class="header-search-suggestions" data-search-suggestions hidden></div>
-        </form>
+        <a class="brand brand-v4" href="/" aria-label="AVAN — {% if AVAN_PAGE_LANG == 'fa' %}صفحه اصلی{% else %}Home{% endif %}">
+            {{ AVAN_BRAND_NAME }}
+        </a>
 
-        <div class="header-actions header-actions-v4">
-            <button type="button" class="theme-icon-button" data-theme-toggle aria-label="Theme" title="{% if AVAN_PAGE_LANG == 'fa' %}حالت شب و روز{% else %}Theme{% endif %}"><span class="theme-icon theme-icon--moon">☾</span><span class="theme-icon theme-icon--sun">☀</span></button>
-            <button type="button" class="header-language-v4" data-language-toggle aria-label="Language">{% avan_t "language" %}</button>
-            {% if request.user.is_authenticated %}
-                <a href="/account/support/" class="header-utility-link">{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی{% else %}SUPPORT{% endif %}</a>
-                {% if request.user.is_superuser %}<a href="/owner/" class="header-utility-link">{% if AVAN_PAGE_LANG == 'fa' %}مدیریت{% else %}OWNER{% endif %}</a>{% endif %}
-                <a href="/account/" class="header-account-v4"><span>{% avan_t "my_avan" %}</span><strong>{{ request.user.display_name|default:request.user.username }}</strong></a>
-            {% else %}
-                <a href="/account/login/" class="header-account-v4"><span>{% if AVAN_PAGE_LANG == 'fa' %}حساب کاربری{% else %}ACCOUNT{% endif %}</span><strong>{% avan_t "sign_in" %}</strong></a>
-            {% endif %}
-            <button type="button" class="header-bag header-bag-v4" data-cart-open aria-label="{% avan_t 'bag' %}"><span>{% avan_t "bag" %}</span><b data-cart-count>0</b></button>
-        </div>
-    </div>
-
-    <div class="site-header-v4__nav">
-        <nav class="header-nav-cluster header-nav-cluster--store" aria-label="{% if AVAN_PAGE_LANG == 'fa' %}فروشگاه{% else %}Store{% endif %}">
+        <nav class="header-main-nav" aria-label="{% if AVAN_PAGE_LANG == 'fa' %}منوی اصلی{% else %}Main navigation{% endif %}">
+            <a href="/">{% avan_t "home" %}</a>
             <a href="/shop/">{% avan_t "shop" %}</a>
             <a href="/design/garments/">{% avan_t "design" %}</a>
             <a href="/collections/">{% avan_t "collections" %}</a>
-        </nav>
-        <span class="header-nav-divider"></span>
-        <nav class="header-nav-cluster header-nav-cluster--discover" aria-label="{% if AVAN_PAGE_LANG == 'fa' %}کشف و سرگرمی{% else %}Discover{% endif %}">
             <a href="/explore/">{% avan_t "explore" %}</a>
             <a href="/play/">{% avan_t "play" %}</a>
             <a href="/challenges/">{% avan_t "challenges" %}</a>
             <a href="/drops/">{% avan_t "drops" %}</a>
+            {% if request.user.is_authenticated %}
+                <a href="/for-you/">{% avan_t "for_you" %}</a>
+            {% endif %}
         </nav>
-        {% if request.user.is_authenticated %}
-        <span class="header-nav-divider"></span>
-        <nav class="header-nav-cluster header-nav-cluster--personal"><a href="/for-you/">{% avan_t "for_you" %}</a></nav>
-        {% endif %}
+
+        <form class="header-searchbar header-searchbar-v4" action="/search/" method="get" role="search" data-live-search-form>
+            <button type="submit" class="header-searchbar__submit" aria-label="{% avan_t 'search' %}"><span aria-hidden="true">⌕</span></button>
+            <input
+                type="search"
+                name="q"
+                value="{{ request.GET.q|default:'' }}"
+                placeholder="{% if AVAN_PAGE_LANG == 'fa' %}محصول، طرح، کالکشن یا طراح را جستجو کن...{% else %}Search products, designs, collections or creators...{% endif %}"
+                autocomplete="off"
+                data-live-search-input
+            >
+            <kbd aria-hidden="true">ENTER</kbd>
+            <div class="header-search-suggestions" data-search-suggestions hidden></div>
+        </form>
+
+        <div class="header-actions header-actions-v4">
+            <button type="button" class="theme-icon-button" data-theme-toggle aria-label="{% if AVAN_PAGE_LANG == 'fa' %}تغییر حالت شب و روز{% else %}Toggle theme{% endif %}" title="{% if AVAN_PAGE_LANG == 'fa' %}حالت شب و روز{% else %}Theme{% endif %}">
+                <span class="theme-icon theme-icon--moon" aria-hidden="true">☾</span>
+                <span class="theme-icon theme-icon--sun" aria-hidden="true">☀</span>
+            </button>
+            <button type="button" class="header-language-v4" data-language-toggle aria-label="{% if AVAN_PAGE_LANG == 'fa' %}تغییر زبان{% else %}Change language{% endif %}">{% avan_t "language" %}</button>
+
+            <button type="button" class="header-bag header-bag-v4" data-cart-open aria-label="{% avan_t 'bag' %}">
+                <span>{% avan_t "bag" %}</span><b data-cart-count>0</b>
+            </button>
+
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser %}
+                <button type="button" class="avan-visual-launch" data-avan-visual-open data-avan-visual-ui="1">{% if AVAN_PAGE_LANG == 'fa' %}طراحی{% else %}DESIGN{% endif %}</button>
+                {% endif %}
+                <details class="header-user-menu" data-user-menu>
+                    <summary class="header-user-trigger" aria-label="{% if AVAN_PAGE_LANG == 'fa' %}منوی حساب کاربری{% else %}Account menu{% endif %}">
+                        <span class="header-user-avatar" aria-hidden="true">{{ request.user.username|slice:":1"|upper }}</span>
+                        <span class="header-user-copy">
+                            <small>{% if AVAN_PAGE_LANG == 'fa' %}حساب کاربری{% else %}MY ACCOUNT{% endif %}</small>
+                            <strong>{{ request.user.display_name|default:request.user.username }}</strong>
+                        </span>
+                        <span class="header-user-chevron" aria-hidden="true">⌄</span>
+                    </summary>
+                    <div class="header-user-dropdown">
+                        <div class="header-user-dropdown__head">
+                            <strong>{{ request.user.display_name|default:request.user.username }}</strong>
+                            <small dir="ltr">{{ request.user.email }}</small>
+                        </div>
+                        <a href="/account/" class="header-user-dropdown__link">{% if AVAN_PAGE_LANG == 'fa' %}نمای کلی حساب من{% else %}My account{% endif %}</a>
+                        <a href="/account/profile/" class="header-user-dropdown__link">{% if AVAN_PAGE_LANG == 'fa' %}ویرایش پروفایل{% else %}Edit profile{% endif %}</a>
+                        <a href="/account/wishlist/" class="header-user-dropdown__link">{% if AVAN_PAGE_LANG == 'fa' %}علاقه‌مندی‌ها{% else %}Wishlist{% endif %}</a>
+                        <a href="/account/support/" class="header-user-dropdown__link">{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی{% else %}Support{% endif %}</a>
+                        {% if request.user.is_superuser %}
+                            <a href="/owner/" class="header-user-dropdown__link header-user-dropdown__link--owner">{% if AVAN_PAGE_LANG == 'fa' %}پنل مالکیت{% else %}Owner console{% endif %}</a>
+                        {% endif %}
+                        <div class="header-user-dropdown__separator"></div>
+                        <form method="post" action="{% url 'accounts:logout' %}" class="header-logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="header-user-dropdown__logout">
+                                <span aria-hidden="true">↪</span>
+                                {% if AVAN_PAGE_LANG == 'fa' %}خروج از حساب کاربری{% else %}Sign out{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </details>
+            {% else %}
+                <div class="header-auth-actions">
+                    <a href="/account/login/" class="header-auth-link">{% if AVAN_PAGE_LANG == 'fa' %}ورود{% else %}Sign in{% endif %}</a>
+                    <a href="/account/register/" class="header-auth-link header-auth-link--primary">{% if AVAN_PAGE_LANG == 'fa' %}ثبت‌نام{% else %}Create account{% endif %}</a>
+                </div>
+            {% endif %}
+        </div>
     </div>
 </header>
 
@@ -112,7 +163,7 @@
     <div class="avan-search__panel">
         <div class="avan-search__head"><span>AVAN / {% avan_t "search" %}</span><button type="button" data-search-close>×</button></div>
         <form action="/search/" method="get">
-            <input type="search" name="q" placeholder="WHAT ARE YOU LOOKING FOR?" data-search-input autocomplete="off">
+            <input type="search" name="q" placeholder="{% if AVAN_PAGE_LANG == 'fa' %}دنبال چه چیزی می‌گردی؟{% else %}What are you looking for?{% endif %}" data-search-input autocomplete="off">
             <button type="submit">{% avan_t "search" %} →</button>
         </form>
         <div class="avan-search__quick"><span>{% avan_t "quick_access" %}</span><a href="/shop/">{% avan_t "shop" %}</a><a href="/explore/">{% avan_t "explore" %}</a>{% if request.user.is_authenticated %}<a href="/following/">{% avan_t "following" %}</a><a href="/outfits/">{% avan_t "outfits" %}</a>{% endif %}</div>
@@ -134,8 +185,35 @@
         </nav>
         <div class="mobile-menu__account">
             {% if request.user.is_authenticated %}
-            {% if request.user.is_superuser %}<a href="/owner/">{% avan_t "owner_console" %}</a>{% endif %}<a href="/for-you/">{% avan_t "for_you" %}</a><a href="/following/">{% avan_t "following_feed" %}</a><a href="/outfits/">{% avan_t "my_outfits" %}</a><a href="/size-passport/">{% avan_t "size_passport" %}</a><a href="/account/addresses/">{% avan_t "addresses" %}</a><a href="/account/returns/">{% avan_t "returns" %}</a><a href="/account/notification-preferences/">{% avan_t "notification_preferences" %}</a><a href="/account/support/">{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی{% else %}SUPPORT{% endif %}</a><a href="/account/creator/wallet/">{% avan_t "creator_wallet" %}</a><a href="/account/">{% avan_t "my_avan" %}</a>
-            {% else %}<a href="/account/login/">{% avan_t "sign_in" %}</a>{% endif %}
+                <div class="mobile-user-card">
+                    <span class="mobile-user-card__avatar">{{ request.user.username|slice:":1"|upper }}</span>
+                    <span class="mobile-user-card__identity">
+                        <strong>{{ request.user.display_name|default:request.user.username }}</strong>
+                        <small dir="ltr">{{ request.user.email }}</small>
+                    </span>
+                </div>
+                <a href="/account/">{% avan_t "my_avan" %}</a>
+                <a href="/account/profile/">{% if AVAN_PAGE_LANG == 'fa' %}ویرایش پروفایل{% else %}Edit profile{% endif %}</a>
+                <a href="/account/wishlist/">{% if AVAN_PAGE_LANG == 'fa' %}علاقه‌مندی‌ها{% else %}Wishlist{% endif %}</a>
+                <a href="/for-you/">{% avan_t "for_you" %}</a>
+                <a href="/following/">{% avan_t "following_feed" %}</a>
+                <a href="/outfits/">{% avan_t "my_outfits" %}</a>
+                <a href="/size-passport/">{% avan_t "size_passport" %}</a>
+                <a href="/account/addresses/">{% avan_t "addresses" %}</a>
+                <a href="/account/returns/">{% avan_t "returns" %}</a>
+                <a href="/account/notifications/">{% if AVAN_PAGE_LANG == 'fa' %}اعلان‌ها{% else %}Notifications{% endif %}</a>
+                <a href="/account/notification-preferences/">{% avan_t "notification_preferences" %}</a>
+                <a href="/account/support/">{% if AVAN_PAGE_LANG == 'fa' %}پشتیبانی{% else %}Support{% endif %}</a>
+                <a href="/account/creator/wallet/">{% avan_t "creator_wallet" %}</a>
+                {% if request.user.is_superuser %}<a class="mobile-owner-link" href="/owner/">{% avan_t "owner_console" %}</a>{% if request.user.is_superuser %}<button type="button" class="mobile-visual-design" data-avan-visual-open data-avan-visual-ui="1">{% if AVAN_PAGE_LANG == 'fa' %}طراحی بصری{% else %}Visual design{% endif %}</button>{% endif %}{% endif %}
+                <form method="post" action="{% url 'accounts:logout' %}" class="mobile-logout-form">
+                    {% csrf_token %}
+                    <button type="submit">{% if AVAN_PAGE_LANG == 'fa' %}خروج از حساب کاربری{% else %}Sign out{% endif %}</button>
+                </form>
+            {% else %}
+                <a href="/account/login/">{% if AVAN_PAGE_LANG == 'fa' %}ورود{% else %}Sign in{% endif %}</a>
+                <a href="/account/register/">{% if AVAN_PAGE_LANG == 'fa' %}ثبت‌نام{% else %}Create account{% endif %}</a>
+            {% endif %}
         </div>
     </aside>
 </div>
@@ -145,6 +223,10 @@
 </nav>
 
 <div hidden id="avan-csrf">{% csrf_token %}</div>
+{% if request.user.is_authenticated and request.user.is_superuser %}
+{{ AVAN_PAGE_DESIGN|json_script:"avan-visual-design-data" }}
+<script src="{% static 'js/visual-editor.js' %}" defer></script>
+{% endif %}
 <script src="{% static 'js/preferences.js' %}" defer></script>
 <script src="{% static 'js/app.js' %}" defer></script>
 <script src="{% static 'js/cart-ui.js' %}" defer></script>

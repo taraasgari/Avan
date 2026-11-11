@@ -612,3 +612,29 @@
     }
 
 }
+
+/* AVAN account sign-out action */
+.account-header form { margin: 0; }
+.account-logout {
+    min-height: 42px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #c94d4d;
+    background: transparent;
+    border: 1px solid color-mix(in srgb, #c94d4d 35%, var(--line));
+    border-radius: 10px;
+    font-size: .72rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.account-logout:hover {
+    background: color-mix(in srgb, #c94d4d 8%, transparent);
+    border-color: #c94d4d;
+    transform: translateY(-1px);
+}
+@media (max-width: 560px) {
+    .account-logout { min-height: 40px; }
+}

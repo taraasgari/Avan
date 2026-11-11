@@ -78,9 +78,9 @@ def login_view(request):
     )
 
 
+@require_POST
 def logout_view(request):
-    if request.method == "POST":
-        logout(request)
+    logout(request)
     return redirect("/")
 
 

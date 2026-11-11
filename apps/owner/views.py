@@ -951,31 +951,336 @@ def support_ticket_detail(request, reference):
 
 
 
-@owner_required
+def _visual_design_path_allowed(page_path):
+    """Allow public pages plus a tiny owner-only preview subset of account pages."""
+    blocked_prefixes = (
+        "/owner/", "/admin/", "/api/", "/bag/", "/checkout/",
+        "/orders/", "/payments/", "/login/", "/logout/", "/register/",
+    )
+    if (
+        not page_path.startswith("/")
+        or page_path.startswith("//")
+        or "://" in page_path
+        or "?" in page_path
+        or "#" in page_path
+        or len(page_path) > 240
+        or page_path.startswith(blocked_prefixes)
+    ):
+        return False
+
+    if page_path.startswith("/account/"):
+        return (
+            page_path in {"/account/", "/account/profile/", "/account/wishlist/", "/account/support/"}
+            or page_path.startswith("/account/support/")
+        )
+    return True
+
+
+def _visual_clean_path(raw_path, re_module):
+    if not isinstance(raw_path, list) or not raw_path or len(raw_path) > 16:
+        return None
+    safe_path = []
+    for segment in raw_path:
+        if not isinstance(segment, dict):
+            return None
+        tag = str(segment.get("tag") or "").lower()
+        try:
+            index = int(segment.get("index"))
+        except (TypeError, ValueError):
+            return None
+        if not re_module.fullmatch(r"[a-z][a-z0-9-]{0,24}", tag) or not 1 <= index <= 800:
+            return None
+        safe_path.append({"tag": tag, "index": index})
+    return safe_path
+
+
+@superuser_required
 def page_designer(request):
-    pages = PageDesign.objects.order_by("id")
-    selected_key = request.GET.get("page") or request.POST.get("page_key") or "home"
-    page = get_object_or_404(PageDesign, page_key=selected_key)
-    if request.method == "POST":
-        action = request.POST.get("action", "save")
-        fields = [
-            "background", "text_color", "surface", "accent", "section_gap", "card_radius",
-            "hero_kicker_fa", "hero_kicker_en", "hero_title_fa", "hero_title_en",
-            "hero_subtitle_fa", "hero_subtitle_en", "primary_label_fa", "primary_label_en",
-            "primary_url", "secondary_label_fa", "secondary_label_en", "secondary_url",
-        ]
-        data = {key: (request.POST.get(key) or "").strip() for key in fields}
-        data["hide_header"] = request.POST.get("hide_header") == "on"
-        page.draft_data = data
-        page.updated_by = request.user
-        if action == "publish":
-            page.published_data = data
-            page.published_at = timezone.now()
-            messages.success(request, "تغییرات منتشر شد.")
-        else:
-            messages.success(request, "پیش‌نویس ذخیره شد.")
-        page.save()
-        if request.headers.get("X-Visual-Builder") == "1":
-            return JsonResponse({"ok": True, "published": action == "publish"})
-        return redirect(f"/owner/design/?page={page.page_key}")
-    return render(request, "owner/page_designer.html", _owner_context(request, pages=pages, selected_page=page, visual_data=page.draft_data or page.published_data or {}))
+    """Owner-only visual studio with live same-origin previews."""
+    page_registry = [
+        ("home", "صفحه اصلی", "Home", "/"),
+        ("shop", "فروشگاه", "Shop", "/shop/"),
+        ("design-garments", "انتخاب لباس برای طراحی", "Garment picker", "/design/garments/"),
+        ("design-studio", "استودیو طراحی", "Design studio", "/design/"),
+        ("collections", "کالکشن‌ها", "Collections", "/collections/"),
+        ("explore", "کاوش", "Explore", "/explore/"),
+        ("play", "بازی‌ها", "Play", "/play/"),
+        ("challenges", "چالش‌ها", "Challenges", "/challenges/"),
+        ("drops", "دراپ‌ها", "Drops", "/drops/"),
+        ("account", "حساب کاربری", "Account", "/account/"),
+        ("support", "پشتیبانی", "Support", "/account/support/"),
+    ]
+
+    seeded = []
+    seed_keys = []
+    seen_paths = set()
+    for key, label_fa, label_en, page_path in page_registry:
+        obj, _ = PageDesign.objects.update_or_create(
+            page_key=key,
+            defaults={
+                "page_label_fa": label_fa,
+                "page_label_en": label_en,
+                "page_path": page_path,
+            },
+        )
+        seeded.append(obj)
+        seed_keys.append(key)
+        seen_paths.add(page_path)
+
+    extras = []
+    for obj in PageDesign.objects.exclude(page_key__in=seed_keys).order_by("id"):
+        if obj.page_path in seen_paths or not _visual_design_path_allowed(obj.page_path):
+            continue
+        seen_paths.add(obj.page_path)
+        extras.append(obj)
+
+    pages = seeded + extras
+    selected_key = request.GET.get("page") or "home"
+    selected_page = next((page for page in pages if page.page_key == selected_key), seeded[0] if seeded else None)
+    if selected_page is None:
+        return JsonResponse({"ok": False, "error": "صفحه‌ای برای طراحی ثبت نشده است."}, status=503)
+
+    preview_url = selected_page.page_path
+    separator = "&" if "?" in preview_url else "?"
+    preview_url = f"{preview_url}{separator}visual_edit=1&visual_preview=1"
+
+    return render(
+        request,
+        "owner/page_designer.html",
+        _owner_context(
+            request,
+            pages=pages,
+            selected_page=selected_page,
+            preview_url=preview_url,
+        ),
+    )
+
+
+@superuser_required
+@require_POST
+def page_design_upload(request):
+    """Upload an owner-selected image for the visual editor."""
+    import uuid
+    from pathlib import Path
+    from django.core.files.storage import default_storage
+    from django.utils import timezone as django_timezone
+    from PIL import Image, UnidentifiedImageError
+
+    upload = request.FILES.get("file")
+    if not upload:
+        return JsonResponse({"ok": False, "error": "فایل تصویر ارسال نشده است."}, status=400)
+
+    if upload.size > 8 * 1024 * 1024:
+        return JsonResponse({"ok": False, "error": "حجم تصویر نباید بیشتر از ۸ مگابایت باشد."}, status=413)
+
+    allowed_types = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+        "image/gif": ".gif",
+    }
+    ext = allowed_types.get((upload.content_type or "").lower())
+    if not ext:
+        return JsonResponse({"ok": False, "error": "فرمت تصویر مجاز نیست."}, status=400)
+
+    try:
+        upload.seek(0)
+        image = Image.open(upload)
+        image.verify()
+        upload.seek(0)
+        image = Image.open(upload)
+        width, height = image.size
+        if width < 1 or height < 1 or width * height > 40_000_000:
+            raise ValueError("Invalid image dimensions")
+        upload.seek(0)
+    except (UnidentifiedImageError, OSError, ValueError):
+        return JsonResponse({"ok": False, "error": "فایل تصویر معتبر نیست."}, status=400)
+
+    now = django_timezone.now()
+    relative = (
+        Path("visual-editor")
+        / now.strftime("%Y")
+        / now.strftime("%m")
+        / f"{uuid.uuid4().hex}{ext}"
+    )
+    saved_name = default_storage.save(relative.as_posix(), upload)
+    return JsonResponse({
+        "ok": True,
+        "url": default_storage.url(saved_name),
+        "width": width,
+        "height": height,
+    })
+
+
+@superuser_required
+@require_POST
+def page_design_api(request):
+    """Persist structured visual edits without accepting arbitrary HTML or JavaScript."""
+    import hashlib
+    import json
+    import re
+    from django.utils.text import slugify
+
+    if len(request.body) > 300_000:
+        return JsonResponse({"ok": False, "error": "درخواست بیش از حد بزرگ است."}, status=413)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return JsonResponse({"ok": False, "error": "درخواست JSON معتبر نیست."}, status=400)
+
+    page_path = str(payload.get("path") or "").strip()
+    if not _visual_design_path_allowed(page_path):
+        return JsonResponse({"ok": False, "error": "این مسیر برای طراحی بصری مجاز نیست."}, status=400)
+
+    action = payload.get("action", "save")
+    if action not in {"save", "publish"}:
+        return JsonResponse({"ok": False, "error": "عملیات نامعتبر است."}, status=400)
+
+    elements = payload.get("elements", [])
+    if not isinstance(elements, list) or len(elements) > 240:
+        return JsonResponse({"ok": False, "error": "ساختار عناصر نامعتبر است."}, status=400)
+
+    def spacing_pattern(allow_auto=False):
+        token = r"(?:0|[0-9]{1,3}px" + (r"|auto" if allow_auto else "") + r")"
+        return re.compile(rf"^{token}(?:\s+{token}){{0,3}}$")
+
+    validators = {
+        "color": re.compile(r"^(#[0-9a-fA-F]{6}|rgba?\([0-9.,% ]{3,48}\))$"),
+        "backgroundColor": re.compile(r"^(#[0-9a-fA-F]{6}|rgba?\([0-9.,% ]{3,48}\)|transparent)$"),
+        "fontSize": re.compile(r"^(?:[1-9]|[1-9][0-9]|1[01][0-9]|120)px$"),
+        "fontWeight": re.compile(r"^(400|500|600|700|800|900)$"),
+        "textAlign": re.compile(r"^(start|end|left|right|center|justify)$"),
+        "borderRadius": re.compile(r"^(?:0|[1-9][0-9]?|100)px$|^50%$"),
+        "padding": spacing_pattern(False),
+        "margin": spacing_pattern(True),
+        "maxWidth": re.compile(r"^(?:auto|100%|[1-9]?[0-9]%|[1-9][0-9]{0,3}px)$"),
+        "width": re.compile(r"^(?:auto|100%|[1-9]?[0-9]%|[1-9][0-9]{0,3}px)$"),
+        "height": re.compile(r"^(?:auto|[1-9][0-9]{0,3}px|100%)$"),
+        "minHeight": re.compile(r"^(?:0|[1-9][0-9]{0,3}px)$"),
+        "letterSpacing": re.compile(r"^(?:-?[0-9](?:\.[0-9])?)px$"),
+        "lineHeight": re.compile(r"^(?:[1-3](?:\.[0-9]{1,2})?|0\.[8-9][0-9]?)$"),
+        "opacity": re.compile(r"^(?:0(?:\.[0-9]{1,2})?|1(?:\.0{1,2})?)$"),
+        "objectFit": re.compile(r"^(cover|contain|fill)$"),
+    }
+
+    def clean_styles(raw_styles):
+        if not isinstance(raw_styles, dict):
+            return {}
+        safe = {}
+        for style_key, raw_value in raw_styles.items():
+            if style_key not in validators:
+                continue
+            value = str(raw_value).strip()
+            if value == "":
+                safe[style_key] = ""
+            elif len(value) <= 64 and validators[style_key].fullmatch(value):
+                safe[style_key] = value
+        return safe
+
+    def clean_attrs(raw_attrs, tag):
+        if not isinstance(raw_attrs, dict):
+            return {}
+        safe = {}
+        if tag == "img":
+            src = str(raw_attrs.get("src") or "").strip()
+            if src.startswith("/") and not src.startswith("//") and len(src) <= 800:
+                safe["src"] = src
+            alt = str(raw_attrs.get("alt") or "")[:300]
+            safe["alt"] = alt
+        title = str(raw_attrs.get("title") or "")[:300]
+        if title:
+            safe["title"] = title
+        return safe
+
+    safe_elements = []
+    allowed_insert_tags = {"p", "span", "div", "h1", "h2", "h3", "img"}
+
+    for raw in elements:
+        if not isinstance(raw, dict):
+            continue
+        kind = str(raw.get("kind") or "style")
+
+        if kind == "insert":
+            insert_id = str(raw.get("id") or "")
+            tag = str(raw.get("tag") or "").lower()
+            parent_path = _visual_clean_path(raw.get("parent_path"), re)
+            if (
+                not re.fullmatch(r"vb-[A-Za-z0-9-]{6,80}", insert_id)
+                or tag not in allowed_insert_tags
+                or parent_path is None
+            ):
+                continue
+            text_value = None if tag == "img" else str(raw.get("text") or "")[:2000]
+            safe_elements.append({
+                "kind": "insert",
+                "id": insert_id,
+                "parent_path": parent_path,
+                "tag": tag,
+                "styles": clean_styles(raw.get("styles")),
+                "attrs": clean_attrs(raw.get("attrs"), tag),
+                "text": text_value,
+            })
+            continue
+
+        safe_path = _visual_clean_path(raw.get("path"), re)
+        if safe_path is None:
+            continue
+        tag = str(safe_path[-1].get("tag") or "")
+        text_value = raw.get("text")
+        if text_value is not None:
+            text_value = str(text_value)[:2000]
+        safe_elements.append({
+            "kind": "style",
+            "path": safe_path,
+            "styles": clean_styles(raw.get("styles")),
+            "attrs": clean_attrs(raw.get("attrs"), tag),
+            "text": text_value,
+            "hidden": bool(raw.get("hidden")),
+        })
+
+    digest = hashlib.sha1(page_path.encode("utf-8")).hexdigest()[:10]
+    slug = slugify(page_path.strip("/").replace("/", "-"))[:60] or "home"
+    page_key = f"page-{slug}-{digest}"[:80]
+
+    page = PageDesign.objects.filter(page_path=page_path).order_by("-updated_at").first()
+    if page is None:
+        labels = {
+            "/": ("صفحه اصلی", "Home"),
+            "/shop/": ("فروشگاه", "Shop"),
+            "/design/": ("استودیو طراحی", "Design studio"),
+            "/design/garments/": ("انتخاب لباس برای طراحی", "Garment picker"),
+            "/explore/": ("کاوش", "Explore"),
+            "/collections/": ("کالکشن‌ها", "Collections"),
+            "/account/": ("حساب کاربری", "Account"),
+            "/account/support/": ("پشتیبانی", "Support"),
+        }
+        label_fa, label_en = labels.get(page_path, (page_path, page_path))
+        page, _ = PageDesign.objects.get_or_create(
+            page_key=page_key,
+            defaults={
+                "page_label_fa": label_fa,
+                "page_label_en": label_en,
+                "page_path": page_path,
+            },
+        )
+
+    data = dict(page.draft_data or page.published_data or {})
+    data["elements"] = safe_elements
+    page.draft_data = data
+    page.updated_by = request.user
+    update_fields = ["draft_data", "updated_by", "updated_at"]
+
+    if action == "publish":
+        page.published_data = dict(data)
+        page.published_at = timezone.now()
+        update_fields.extend(["published_data", "published_at"])
+
+    page.save(update_fields=update_fields)
+    return JsonResponse({
+        "ok": True,
+        "action": action,
+        "page_key": page.page_key,
+        "elements_saved": len(safe_elements),
+        "published_at": page.published_at.isoformat() if page.published_at else None,
+    })

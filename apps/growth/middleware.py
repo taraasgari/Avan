@@ -8,6 +8,47 @@ from .models import SeoRedirect
 from .security import _event, hit_limit
 
 
+
+
+def _is_owner_visual_preview(request):
+    """Allow same-origin framing only for authenticated superuser visual previews."""
+    if request.method not in {"GET", "HEAD"}:
+        return False
+
+    if (
+        request.GET.get("visual_preview") != "1"
+        or request.GET.get("visual_edit") != "1"
+    ):
+        return False
+
+    user = getattr(request, "user", None)
+    if not (
+        getattr(user, "is_authenticated", False)
+        and getattr(user, "is_active", False)
+        and getattr(user, "is_superuser", False)
+    ):
+        return False
+
+    blocked_prefixes = (
+        "/owner/", "/admin/", "/api/", "/bag/", "/checkout/",
+        "/orders/", "/payments/", "/login/", "/logout/", "/register/",
+    )
+    if request.path.startswith(blocked_prefixes):
+        return False
+
+    if request.path.startswith("/account/"):
+        return (
+            request.path in {
+                "/account/",
+                "/account/profile/",
+                "/account/wishlist/",
+                "/account/support/",
+            }
+            or request.path.startswith("/account/support/")
+        )
+
+    return True
+
 class AvanSecurityMiddleware:
     """Low-risk request throttles + modern response security headers."""
 
@@ -29,14 +70,22 @@ class AvanSecurityMiddleware:
 
         response = self.get_response(request)
 
+        owner_visual_preview = _is_owner_visual_preview(request)
+
+        # Override Django's DENY only for authenticated owner previews.
+        if owner_visual_preview:
+            response.headers["X-Frame-Options"] = "SAMEORIGIN"
+
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
         response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(self)")
         response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
         response.headers.setdefault("X-Permitted-Cross-Domain-Policies", "none")
 
+        frame_ancestors = "'self'" if owner_visual_preview else "'none'"
         csp = (
             "default-src 'self'; "
-            "base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; "
+            "base-uri 'self'; form-action 'self'; "
+            f"frame-ancestors {frame_ancestors}; object-src 'none'; "
             "img-src 'self' data: blob:; font-src 'self' data:; "
             "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
             "connect-src 'self'; worker-src 'self' blob:; manifest-src 'self'"

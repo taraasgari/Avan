@@ -42,10 +42,19 @@
     document.querySelectorAll("[data-menu-open]").forEach(el => el.addEventListener("click", openMenu));
     document.querySelectorAll("[data-menu-close]").forEach(el => el.addEventListener("click", closeMenu));
 
+    document.addEventListener("click", event => {
+        document.querySelectorAll("[data-user-menu][open]").forEach(details => {
+            if (!details.contains(event.target)) details.removeAttribute("open");
+        });
+    });
+
     document.addEventListener("keydown", event => {
         if (event.key === "Escape") {
             closeSearch();
             closeMenu();
+            document.querySelectorAll("[data-user-menu][open]").forEach(details => {
+                details.removeAttribute("open");
+            });
         }
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
             event.preventDefault();
